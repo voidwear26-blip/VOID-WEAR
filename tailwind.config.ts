@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -10,8 +11,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        body: ['Space Grotesk', 'sans-serif'],
+        headline: ['Space Grotesk', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -88,10 +89,25 @@ export default {
             height: '0',
           },
         },
+        'rotate-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' }
+        },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.4', filter: 'blur(40px)' },
+          '50%': { opacity: '0.8', filter: 'blur(60px)' }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'rotate-slow': 'rotate-slow 20s linear infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'glow-pulse': 'glow-pulse 4s ease-in-out infinite'
       },
     },
   },
