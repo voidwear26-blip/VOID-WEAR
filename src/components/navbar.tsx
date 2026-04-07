@@ -28,12 +28,14 @@ export function Navbar() {
               <Zap className="w-5 h-5 group-hover:text-white transition-colors" />
               <span>VOID WEAR</span>
             </Link>
-            <div className="hidden md:flex items-center gap-8 text-xs font-medium opacity-60 hover:opacity-100 transition-opacity">
-              <Link href="/products" className="hover:text-white transition-colors tracking-widest">COLLECTION</Link>
-              <Link href="/about" className="hover:text-white transition-colors tracking-widest">STORY</Link>
-              <Link href="/assistant" className="hover:text-white transition-colors tracking-widest flex items-center gap-1">
-                AI LAB <span className="text-[10px] bg-white text-black px-1 rounded">BETA</span>
+            <div className="hidden lg:flex items-center gap-8 text-[10px] font-bold opacity-60 hover:opacity-100 transition-opacity">
+              <Link href="/products" className="hover:text-white transition-colors tracking-[0.3em]">COLLECTION</Link>
+              <Link href="/assistant" className="hover:text-white transition-colors tracking-[0.3em] flex items-center gap-1">
+                AI LAB <span className="text-[8px] bg-white text-black px-1 rounded">BETA</span>
               </Link>
+              <Link href="/about" className="hover:text-white transition-colors tracking-[0.3em]">STORY</Link>
+              <Link href="/shipping" className="hover:text-white transition-colors tracking-[0.3em]">SHIPPING</Link>
+              <Link href="/contact" className="hover:text-white transition-colors tracking-[0.3em]">CONTACT</Link>
             </div>
           </div>
 

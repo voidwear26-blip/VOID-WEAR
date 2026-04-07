@@ -1,0 +1,48 @@
+
+export default function ShippingPage() {
+  return (
+    <div className="pt-40 pb-32 bg-black min-h-screen">
+      <div className="container mx-auto px-6 max-w-3xl">
+        <div className="space-y-16">
+          <div className="space-y-4">
+            <span className="text-xs font-bold tracking-[0.6em] text-white/40 uppercase">LOGISTICS // PROTOCOLS</span>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">Shipping Protocol</h1>
+          </div>
+
+          <div className="space-y-12">
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold tracking-widest uppercase">Global Expedition</h2>
+              <p className="text-sm text-white/60 tracking-widest leading-relaxed uppercase">
+                We facilitate delivery to all major terrestrial hubs. Our logistics network utilizes secure orbital couriers to ensure your assembly reaches you within 3-7 standard cycles.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold tracking-widest uppercase">Encrypted Tracking</h2>
+              <p className="text-sm text-white/60 tracking-widest leading-relaxed uppercase">
+                Once your order is processed, you will receive a unique neural key to track your shipment's progress through the void. All data is encrypted with 256-bit quantum security.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold tracking-widest uppercase">Return Protocol</h2>
+              <p className="text-sm text-white/60 tracking-widest leading-relaxed uppercase">
+                If an item does not integrate with your form, you have 14 cycles to initiate a return sequence. All items must be in their original vacuum-sealed packaging.
+              </p>
+            </section>
+
+            <div className="p-8 border border-white/10 bg-white/5">
+              <h3 className="text-xs font-bold tracking-widest uppercase mb-4">Current Transit Times</h3>
+              <ul className="space-y-2 text-[10px] text-white/40 tracking-widest uppercase">
+                <li className="flex justify-between"><span>North American Sector</span><span>2-3 Cycles</span></li>
+                <li className="flex justify-between"><span>Euro-Zone Hubs</span><span>3-4 Cycles</span></li>
+                <li className="flex justify-between"><span>Asian-Pacific Metros</span><span>3-5 Cycles</span></li>
+                <li className="flex justify-between"><span>Remote Outposts</span><span>5-7 Cycles</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
