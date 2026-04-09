@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Hero() {
   const [mounted, setMounted] = useState(false);
@@ -16,63 +17,125 @@ export function Hero() {
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-black">
-      {/* Background Particles */}
-      <div className="particle-bg">
-        {[...Array(20)].map((_, i) => (
-          <div 
+      {/* Dynamic Background Particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(40)].map((_, i) => (
+          <motion.div 
             key={i} 
             className="particle"
+            initial={{ 
+              x: `${Math.random() * 100}vw`, 
+              y: `${Math.random() * 100}vh`,
+              opacity: 0,
+              scale: 0 
+            }}
+            animate={{ 
+              y: ['0vh', '100vh'],
+              opacity: [0, 0.3, 0],
+              scale: [0, 1, 0]
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear",
+              delay: Math.random() * 10
+            }}
             style={{
-              left: `${Math.random() * 100}%`,
               width: `${Math.random() * 3 + 1}px`,
               height: `${Math.random() * 3 + 1}px`,
-              animationDuration: `${Math.random() * 10 + 5}s`,
-              animationDelay: `${Math.random() * 5}s`
             }}
           />
         ))}
       </div>
 
-      {/* Rotating Eclipse Logo */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-[300px] h-[300px] md:w-[600px] md:h-[600px]">
-          <div className="absolute inset-0 rounded-full border border-white/5 animate-rotate-slow"></div>
-          <div className="absolute inset-4 rounded-full border-t border-white/20 animate-rotate-slow"></div>
-          <div className="absolute inset-20 flex items-center justify-center">
-            <div className="w-full h-full rounded-full eclipse-logo animate-pulse"></div>
+      {/* Immersive Eclipse Logo */}
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <div className="relative w-[280px] h-[280px] md:w-[500px] md:h-[500px]">
+          {/* Main Eclipse Body */}
+          <div className="absolute inset-0 eclipse-logo"></div>
+          
+          {/* Pulsing Corona */}
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{ 
+              duration: 4, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+            className="absolute -inset-10 bg-white/5 rounded-full blur-[80px]"
+          />
+          
+          {/* Orbiting Ring */}
+          <div className="absolute inset-[-40px] border border-white/5 rounded-full animate-rotate-slow">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]"></div>
           </div>
-          {/* Outer glow aura */}
-          <div className="absolute -inset-20 bg-white/5 rounded-full blur-[100px] animate-glow-pulse"></div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Cinematic Text Content */}
-      <div className="relative z-10 text-center space-y-8 max-w-4xl px-6">
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 fill-mode-forwards">
-          <h2 className="text-xs md:text-sm font-medium tracking-[1em] text-white/40 uppercase">Void Wear / Series 01</h2>
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter leading-none glow-text">
-            ASCEND THE <br /> DIGITAL VOID
-          </h1>
-          <p className="text-sm md:text-lg text-white/60 max-w-md mx-auto tracking-widest font-light leading-relaxed">
-            FUTURE-READY APPAREL FOR THE HYPER-VIRTUAL GENERATION. MINIMALIST DESIGN, MAXIMALIST IMPACT.
-          </p>
+      <div className="relative z-10 text-center space-y-12 max-w-4xl px-6">
+        <div className="space-y-6">
+          <motion.h2 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+            className="text-[10px] md:text-xs font-medium wide-tracking text-white/40 uppercase"
+          >
+            VOID WEAR / SERIES 01
+          </motion.h2>
+          
+          <motion.h1 
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1.2, duration: 1.2 }}
+            className="text-6xl md:text-9xl font-black tracking-tighter leading-none glow-text font-headline"
+          >
+            VOID WEAR
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1.4, duration: 1 }}
+            className="text-xs md:text-sm text-white/40 max-w-md mx-auto thin-tracking uppercase font-light leading-relaxed"
+          >
+            EMBRACE THE UNKNOWN
+          </motion.p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-in fade-in slide-in-from-bottom-20 duration-1000 delay-500 fill-mode-forwards">
-          <Button asChild className="bg-white text-black hover:bg-white/90 px-12 py-7 text-sm font-bold tracking-[0.3em] rounded-none">
-            <Link href="/products">EXPLORE COLLECTION</Link>
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1.8, duration: 1 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
+        >
+          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-12 py-8 text-[10px] font-bold tracking-[0.4em] rounded-none transition-all duration-500">
+            <Link href="/products">ENTER VOID</Link>
           </Button>
-          <Button variant="outline" asChild className="border-white/20 text-white hover:bg-white hover:text-black px-12 py-7 text-sm font-bold tracking-[0.3em] rounded-none bg-transparent">
-            <Link href="/assistant">STYLE ASSISTANT</Link>
+          <Button variant="outline" asChild className="border-white/20 text-white hover:bg-white hover:text-black px-12 py-8 text-[10px] font-bold tracking-[0.4em] rounded-none bg-transparent transition-all duration-500">
+            <Link href="/assistant">NEURAL LAB</Link>
           </Button>
-        </div>
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 animate-bounce opacity-40">
-        <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
-        <span className="text-[10px] tracking-[0.5em]">SCROLL</span>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2.5, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
+      >
+        <div className="w-[1px] h-16 bg-gradient-to-b from-white/40 to-transparent"></div>
+        <span className="text-[8px] tracking-[1em] text-white/20 uppercase">DESCEND</span>
+      </motion.div>
     </section>
   );
 }

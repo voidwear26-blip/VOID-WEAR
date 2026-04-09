@@ -7,11 +7,11 @@
   :root {
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-    --card: 0 0% 4%;
+    --card: 0 0% 2%;
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 4%;
     --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 98%;
+    --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 98%;
@@ -21,48 +21,68 @@
     --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 90%;
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 100%;
     --radius: 0rem;
   }
 }
 
 @layer base {
   * {
-    @apply border-border uppercase tracking-widest;
+    @apply border-border;
+    cursor: none !important;
   }
   body {
-    @apply bg-background text-foreground selection:bg-white selection:text-black;
+    @apply bg-background text-foreground selection:bg-white selection:text-black overflow-x-hidden;
+    font-family: 'Orbitron', sans-serif;
   }
 }
 
 .glow-text {
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4), 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.glow-border {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+  transition: box-shadow 0.5s ease;
 }
 
 .glow-border:hover {
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-.perspective-1000 {
-  perspective: 1000px;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
 }
 
 .eclipse-logo {
-  background: radial-gradient(circle at center, transparent 40%, white 41%, white 43%, transparent 44%);
-  filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
+  background: black;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 60px 10px rgba(255, 255, 255, 0.4),
+    inset 0 0 40px rgba(255, 255, 255, 0.1);
+  position: relative;
 }
 
-.particle-bg {
+.eclipse-logo::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(from 0deg, transparent, white, transparent);
+  border-radius: 50%;
+  filter: blur(10px);
+  opacity: 0.3;
+  animation: rotate-slow 10s linear infinite;
+}
+
+.noise-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  content: "";
+  opacity: 0.05;
+  z-index: 9999;
   pointer-events: none;
-  z-index: -1;
-  background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 1) 0%, rgba(0, 0, 0, 1) 100%);
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
 
 .particle {
@@ -70,10 +90,51 @@
   background: white;
   border-radius: 50%;
   opacity: 0.3;
-  animation: float-particle linear infinite;
+  pointer-events: none;
 }
 
-@keyframes float-particle {
-  from { transform: translateY(100vh) scale(0); opacity: 0; }
-  to { transform: translateY(-10vh) scale(1); opacity: 0.3; }
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.custom-cursor {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  mix-blend-mode: difference;
+  transition: transform 0.1s ease-out;
+}
+
+.custom-cursor-follower {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.2s ease-out;
+}
+
+.perspective-text {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.wide-tracking {
+  letter-spacing: 0.6em;
+}
+
+.thin-tracking {
+  letter-spacing: 1.2em;
 }
