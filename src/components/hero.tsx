@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -13,59 +13,10 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  // Generate a stable set of stars to avoid hydration issues and excessive re-renders
-  const stars = useMemo(() => {
-    return [...Array(80)].map((_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 0.5,
-      duration: Math.random() * 20 + 20,
-      delay: Math.random() * -20,
-      opacity: Math.random() * 0.5 + 0.2
-    }));
-  }, []);
-
   if (!mounted) return null;
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#000000]">
-      {/* Immersive Space Environment */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        {/* Deep Space Gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(255,255,255,0.03)_0%,_transparent_70%)]" />
-        
-        {/* Moving Starfield */}
-        {stars.map((star) => (
-          <motion.div 
-            key={star.id} 
-            className="absolute rounded-full bg-white"
-            initial={{ 
-              left: `${star.x}%`, 
-              top: `${star.y}%`,
-              opacity: 0,
-              scale: 0.5
-            }}
-            animate={{ 
-              top: [`${star.y}%`, `${star.y - 20}%`],
-              opacity: [0, star.opacity, 0],
-              scale: [0.5, 1, 0.5]
-            }}
-            transition={{
-              duration: star.duration,
-              repeat: Infinity,
-              ease: "linear",
-              delay: star.delay
-            }}
-            style={{
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              boxShadow: star.size > 1.5 ? '0 0 10px rgba(255,255,255,0.5)' : 'none'
-            }}
-          />
-        ))}
-      </div>
-
+    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
       {/* Cinematic Solar Eclipse */}
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
@@ -73,7 +24,7 @@ export function Hero() {
         transition={{ duration: 4, ease: [0.22, 1, 0.36, 1] }}
         className="absolute inset-0 flex items-center justify-center z-10"
       >
-        <div className="relative w-[280px] h-[280px] md:w-[500px] md:h-[500px]">
+        <div className="relative w-[280px] h-[280px] md:w-[450px] md:h-[450px]">
           {/* Breathing Aura */}
           <div className="eclipse-glow" />
           
@@ -89,7 +40,7 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Cinematic Text Content - Adjusted positioning to avoid header collision */}
+      {/* Cinematic Text Content */}
       <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 mt-20">
         <div className="space-y-4">
           <motion.div

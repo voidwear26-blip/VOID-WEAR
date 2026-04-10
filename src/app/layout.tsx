@@ -4,6 +4,7 @@ import './globals.css';
 import { Navbar } from '@/components/navbar';
 import { Toaster } from '@/components/ui/toaster';
 import { CustomCursor } from '@/components/custom-cursor';
+import { SpaceBackground } from '@/components/space-background';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
@@ -25,10 +26,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-black text-white selection:bg-white selection:text-black overflow-x-hidden">
         <FirebaseClientProvider>
+          <SpaceBackground />
           <div className="noise-overlay" />
           <CustomCursor />
           <Navbar />
-          <main className="min-h-screen">
+          <main className="relative z-10 min-h-screen">
             {children}
           </main>
           <Toaster />
