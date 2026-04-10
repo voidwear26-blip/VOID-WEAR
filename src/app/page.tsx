@@ -24,23 +24,26 @@ export default function Home() {
       <Hero />
       
       {/* Featured Collection Section */}
-      <section className="py-48 bg-transparent relative">
+      <section className="py-24 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-32">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20 md:mb-32">
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">CATALOGUE // SEASON 01</span>
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tighter glow-text uppercase leading-none">
+              <h2 className="text-4xl md:text-7xl font-bold tracking-tighter glow-text uppercase leading-none">
                 LATEST <br /> ASSEMBLAGES
               </h2>
             </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/40 hover:text-white transition-all duration-500 border-b border-white/5 hover:border-white pb-4">
+            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/40 hover:text-white transition-all duration-500 border-b border-white/5 hover:border-white pb-4 w-fit">
               VIEW FULL COLLECTION
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+          {/* Horizontal scroll on mobile, grid on desktop */}
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16 overflow-x-auto md:overflow-visible pb-12 -mx-6 px-6 md:mx-0 md:px-0 no-scrollbar snap-x snap-mandatory scroll-smooth">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         </div>
@@ -60,7 +63,7 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-[1em] text-white/20 uppercase">MANIFESTO</span>
-            <h3 className="text-3xl md:text-5xl font-light tracking-[0.2em] leading-relaxed uppercase">
+            <h3 className="text-2xl md:text-5xl font-light tracking-[0.2em] leading-relaxed uppercase">
               WE ARE THE SHELL <br /> FOR YOUR <span className="text-white font-bold glow-text">DIGITAL MIGRATION</span>. 
               MINIMAL ARCHITECTURE FOR COMPLEX IDENTITIES.
             </h3>
