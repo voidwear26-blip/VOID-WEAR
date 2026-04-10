@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -36,6 +35,11 @@ export default function AdminDashboard() {
     return { totalSales, orderCount: orders.length };
   }, [orders]);
 
+  const iconMotionProps = {
+    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
+    transition: { type: "spring", stiffness: 400, damping: 10 }
+  };
+
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
@@ -54,25 +58,25 @@ export default function AdminDashboard() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           <StatCard 
-            icon={<DollarSign />} 
+            icon={<motion.div {...iconMotionProps}><DollarSign className="w-5 h-5" /></motion.div>} 
             label="TOTAL REVENUE" 
             value={`$${stats.totalSales.toLocaleString()}`} 
             loading={ordersLoading}
           />
           <StatCard 
-            icon={<ShoppingBag />} 
+            icon={<motion.div {...iconMotionProps}><ShoppingBag className="w-5 h-5" /></motion.div>} 
             label="TOTAL TRANSMISSIONS" 
             value={stats.orderCount.toString()} 
             loading={ordersLoading}
           />
           <StatCard 
-            icon={<Users />} 
+            icon={<motion.div {...iconMotionProps}><Users className="w-5 h-5" /></motion.div>} 
             label="ENTITIES REGISTERED" 
             value={users?.length.toString() || "0"} 
             loading={usersLoading}
           />
           <StatCard 
-            icon={<Package />} 
+            icon={<motion.div {...iconMotionProps}><Package className="w-5 h-5" /></motion.div>} 
             label="INVENTORY UNITS" 
             value={products?.length.toString() || "0"} 
             loading={productsLoading}
@@ -121,7 +125,9 @@ export default function AdminDashboard() {
                </div>
             </div>
             <div className="pt-6 border-t border-white/5 flex items-center gap-2 text-white/20">
-               <Zap className="w-3 h-3" />
+               <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
+                 <Zap className="w-3 h-3" />
+               </motion.div>
                <span className="text-[8px] tracking-[0.5em] uppercase">NEURAL LOGGING ACTIVE</span>
             </div>
           </div>
@@ -134,7 +140,7 @@ export default function AdminDashboard() {
 function StatCard({ icon, label, value, loading }: { icon: React.ReactNode, label: string, value: string, loading?: boolean }) {
   return (
     <div className="bg-white/[0.02] border border-white/5 p-8 space-y-4 hover:border-white/20 transition-all group backdrop-blur-sm">
-      <div className="text-white/40 w-5 h-5 group-hover:text-white transition-colors">{icon}</div>
+      <div className="text-white/40 group-hover:text-white transition-colors">{icon}</div>
       <div className="space-y-1">
         <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase font-bold">{label}</p>
         {loading ? (
@@ -151,13 +157,20 @@ function QuickActionButton({ href, label, description, icon }: { href: string, l
   return (
     <Link href={href} className="flex items-center justify-between p-8 border border-white/5 hover:border-white/40 bg-white/[0.01] transition-all group">
       <div className="flex items-center gap-6">
-        <div className="text-white/20 group-hover:text-white transition-colors">{icon}</div>
+        <motion.div 
+          whileHover={{ scale: 1.3, filter: "drop-shadow(0 0 10px white)" }}
+          className="text-white/20 group-hover:text-white transition-colors"
+        >
+          {icon}
+        </motion.div>
         <div className="space-y-2">
           <span className="text-[10px] font-bold tracking-[0.4em] uppercase group-hover:glow-text transition-all">{label}</span>
           <p className="text-[9px] text-white/20 tracking-widest uppercase">{description}</p>
         </div>
       </div>
-      <ArrowUpRight className="w-5 h-5 text-white/20 group-hover:text-white transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+      <motion.div whileHover={{ x: 5, y: -5 }}>
+        <ArrowUpRight className="w-5 h-5 text-white/20 group-hover:text-white transition-all" />
+      </motion.div>
     </Link>
   );
 }

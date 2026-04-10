@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from 'next/link';
@@ -25,7 +24,6 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Get cart item count
   const cartItemsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
@@ -34,13 +32,21 @@ export function Navbar() {
   const { data: cartItems } = useCollection(cartItemsQuery);
   const itemCount = cartItems?.length || 0;
 
+  const iconMotionProps = {
+    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))" },
+    whileTap: { scale: 0.9 },
+    transition: { type: "spring", stiffness: 400, damping: 17 }
+  };
+
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 ${scrolled ? 'bg-black/90 backdrop-blur-xl py-4 border-b border-white/5' : 'bg-transparent py-10'}`}>
         <div className="container mx-auto px-10 flex items-center justify-between">
           <div className="flex items-center gap-16">
             <Link href="/" className="text-xl font-black tracking-[0.8em] flex items-center gap-4 group">
-              <Zap className="w-4 h-4 group-hover:text-white transition-all duration-700" />
+              <motion.div {...iconMotionProps}>
+                <Zap className="w-4 h-4 group-hover:text-white transition-all duration-700" />
+              </motion.div>
               <span className="glow-text">VOID WEAR</span>
             </Link>
             
@@ -56,7 +62,11 @@ export function Navbar() {
             {user ? (
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
-                  <Link href="/profile"><User className="w-4 h-4" /></Link>
+                  <Link href="/profile">
+                    <motion.div {...iconMotionProps}>
+                      <User className="w-4 h-4" />
+                    </motion.div>
+                  </Link>
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -64,12 +74,18 @@ export function Navbar() {
                   onClick={() => auth.signOut()}
                   className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <motion.div {...iconMotionProps}>
+                    <LogOut className="w-4 h-4" />
+                  </motion.div>
                 </Button>
               </div>
             ) : (
               <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
-                <Link href="/login"><User className="w-4 h-4" /></Link>
+                <Link href="/login">
+                  <motion.div {...iconMotionProps}>
+                    <User className="w-4 h-4" />
+                  </motion.div>
+                </Link>
               </Button>
             )}
             
@@ -79,7 +95,9 @@ export function Navbar() {
               className="hover:bg-white/5 h-12 w-12 text-white relative group rounded-none"
               onClick={() => setIsCartOpen(true)}
             >
-              <ShoppingBag className="w-4 h-4 group-hover:glow-text" />
+              <motion.div {...iconMotionProps}>
+                <ShoppingBag className="w-4 h-4 group-hover:glow-text" />
+              </motion.div>
               {itemCount > 0 && (
                 <motion.span 
                   initial={{ scale: 0 }}

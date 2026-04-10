@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/app/lib/products-service';
@@ -11,6 +10,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { addToCart } from '@/firebase/cart-actions';
 import { useToast } from '@/hooks/use-toast';
 import { toggleWishlist } from '@/firebase/wishlist-actions';
+import { collection } from 'firebase/firestore';
 
 interface ProductCardProps {
   product: Product;
@@ -23,7 +23,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
-  // Wishlist state check
   const wishlistQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'wishlist');
@@ -91,6 +90,12 @@ export function ProductCard({ product }: ProductCardProps) {
     await toggleWishlist(db, user.uid, product);
   };
 
+  const iconMotionProps = {
+    whileHover: { scale: 1.25, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
+    whileTap: { scale: 0.9 },
+    transition: { type: "spring", stiffness: 400, damping: 10 }
+  };
+
   const displayImage = product.imageUrls && product.imageUrls.length > 0 
     ? product.imageUrls[0] 
     : 'https://picsum.photos/seed/void-placeholder/800/1000';
@@ -123,18 +128,19 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
           
           <div className="absolute top-6 right-6 z-20">
-            <button 
+            <motion.button 
+              {...iconMotionProps}
               onClick={handleWishlist}
               className={`p-3 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 ${isWishlisted ? 'bg-white text-black' : 'bg-black/40 text-white/40 hover:text-white'}`}
             >
               <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
-            </button>
+            </motion.button>
           </div>
 
           <motion.button 
             onClick={handleAddToCart}
             disabled={adding}
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.1, filter: "drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))" }}
             whileTap={{ scale: 0.9 }}
             className="absolute bottom-6 right-6 w-12 h-12 bg-white text-black rounded-none flex items-center justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 z-10"
           >

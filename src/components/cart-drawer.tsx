@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -29,11 +28,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { data: cartItems, isLoading } = useCollection(cartItemsQuery);
   const [total, setTotal] = useState(0);
 
-  // Mock total calculation since product prices are in a different collection
-  // In production, you'd join this data or denormalize price into cart items
   useEffect(() => {
     if (cartItems) {
-      setTotal(cartItems.reduce((acc, item) => acc + (item.quantity * 250), 0)); // Using 250 as placeholder price
+      setTotal(cartItems.reduce((acc, item) => acc + (item.quantity * 250), 0));
     }
   }, [cartItems]);
 
@@ -43,17 +40,27 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     deleteDocumentNonBlocking(itemRef);
   };
 
+  const iconMotionProps = {
+    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))" },
+    whileTap: { scale: 0.9 },
+    transition: { type: "spring", stiffness: 400, damping: 10 }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-black border-l border-white/5 text-white p-0 flex flex-col w-full sm:max-w-md backdrop-blur-xl">
         <SheetHeader className="p-10 border-b border-white/5">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-sm font-bold tracking-[0.5em] flex items-center gap-4">
-              <ShoppingBag className="w-4 h-4" />
+              <motion.div {...iconMotionProps}>
+                <ShoppingBag className="w-4 h-4" />
+              </motion.div>
               YOUR BAG
             </SheetTitle>
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="hover:bg-white/5 rounded-none">
-              <X className="w-5 h-5" />
+              <motion.div {...iconMotionProps}>
+                <X className="w-5 h-5" />
+              </motion.div>
             </Button>
           </div>
         </SheetHeader>
@@ -81,9 +88,13 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   <div className="flex-1 space-y-3">
                     <div className="flex justify-between items-start">
                       <h4 className="text-[10px] font-bold tracking-widest uppercase">MODULE-{item.id.slice(0,4)}</h4>
-                      <button onClick={() => handleRemove(item.id)} className="text-white/20 hover:text-white transition-colors">
+                      <motion.button 
+                        {...iconMotionProps}
+                        onClick={() => handleRemove(item.id)} 
+                        className="text-white/20 hover:text-white transition-colors"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </motion.button>
                     </div>
                     <p className="text-[9px] text-white/40 tracking-[0.2em]">QTY: {item.quantity}</p>
                     <div className="pt-2 text-[10px] font-bold tracking-widest">$250</div>
@@ -93,7 +104,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             </AnimatePresence>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-8 opacity-20">
-              <ShoppingBag className="w-16 h-16 stroke-[0.5px]" />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+                <ShoppingBag className="w-16 h-16 stroke-[0.5px]" />
+              </motion.div>
               <p className="text-[10px] tracking-[1em]">THE VOID IS EMPTY</p>
             </div>
           )}

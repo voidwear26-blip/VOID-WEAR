@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -6,6 +5,7 @@ import { generateOutfitSuggestion, GenerateOutfitSuggestionOutput } from '@/ai/f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sparkles, Loader2, ArrowRight, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function AIAssistant() {
   const [description, setDescription] = useState('');
@@ -27,6 +27,12 @@ export function AIAssistant() {
     }
   };
 
+  const iconMotionProps = {
+    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
+    whileTap: { scale: 0.9 },
+    transition: { type: "spring", stiffness: 400, damping: 10 }
+  };
+
   return (
     <section className="py-24 bg-transparent border-y border-white/5 overflow-hidden">
       <div className="container mx-auto px-6 max-w-5xl">
@@ -34,7 +40,9 @@ export function AIAssistant() {
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold tracking-[0.5em] text-white/40 uppercase">
-                <Sparkles className="w-4 h-4" />
+                <motion.div {...iconMotionProps}>
+                  <Sparkles className="w-4 h-4" />
+                </motion.div>
                 <span>AI STYLE LAB / NEURAL ENGINE</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight glow-text">
@@ -57,7 +65,11 @@ export function AIAssistant() {
                 disabled={loading}
                 className="absolute right-2 top-2 h-12 w-12 bg-white text-black hover:bg-white/90 rounded-none"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  <motion.div {...iconMotionProps}>
+                    <ArrowRight className="w-5 h-5" />
+                  </motion.div>
+                )}
               </Button>
             </form>
           </div>
@@ -67,7 +79,9 @@ export function AIAssistant() {
               <div className="bg-white/5 p-12 border border-white/10 space-y-8 animate-in fade-in zoom-in duration-700 relative z-10">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.5em] text-white/40">
-                    <Zap className="w-3 h-3" />
+                    <motion.div {...iconMotionProps}>
+                      <Zap className="w-3 h-3" />
+                    </motion.div>
                     <span>SUGGESTED ASSEMBLY</span>
                   </div>
                   <p className="text-sm tracking-widest leading-relaxed text-white/80 italic">
@@ -93,13 +107,14 @@ export function AIAssistant() {
             ) : (
               <div className="text-center space-y-6 opacity-20">
                 <div className="w-32 h-32 mx-auto border-2 border-dashed border-white rounded-full flex items-center justify-center animate-spin-slow">
-                  <Sparkles className="w-8 h-8" />
+                  <motion.div {...iconMotionProps}>
+                    <Sparkles className="w-8 h-8" />
+                  </motion.div>
                 </div>
                 <p className="text-[10px] tracking-[0.8em]">AWAITING NEURAL INPUT</p>
               </div>
             )}
             
-            {/* Background Decorative Elements */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/5 rounded-full blur-[120px] pointer-events-none"></div>
           </div>
         </div>
