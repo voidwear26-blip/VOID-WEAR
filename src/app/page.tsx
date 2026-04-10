@@ -7,11 +7,11 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="space-y-0 bg-black">
+    <div className="space-y-0 bg-transparent">
       <Hero />
       
       {/* Featured Collection Section */}
-      <section className="py-48 bg-black relative">
+      <section className="py-48 bg-transparent relative">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-32">
             <div className="space-y-6">
@@ -37,13 +37,13 @@ export default function Home() {
       </section>
 
       {/* Experimental AI Lab Section */}
-      <div className="relative border-y border-white/5">
+      <div className="relative border-y border-white/5 bg-transparent">
         <div className="absolute top-0 left-0 w-1/2 h-full bg-white/[0.02] blur-3xl pointer-events-none"></div>
         <AIAssistant />
       </div>
 
       {/* Brand Manifesto Section */}
-      <section className="py-64 bg-black overflow-hidden">
+      <section className="py-64 bg-transparent overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-[1em] text-white/20 uppercase">MANIFESTO</span>
@@ -57,7 +57,7 @@ export default function Home() {
       </section>
 
       {/* Immersive Footer */}
-      <footer className="py-48 bg-black border-t border-white/5">
+      <footer className="py-48 bg-transparent border-t border-white/5">
         <div className="container mx-auto px-6 grid md:grid-cols-4 gap-24">
           <div className="md:col-span-2 space-y-12">
             <Link href="/" className="text-3xl font-black tracking-[0.3em] glow-text">VOID WEAR</Link>

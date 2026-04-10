@@ -28,7 +28,7 @@ export function AIAssistant() {
   };
 
   return (
-    <section className="py-24 bg-black border-y border-white/5 overflow-hidden">
+    <section className="py-24 bg-transparent border-y border-white/5 overflow-hidden">
       <div className="container mx-auto px-6 max-w-5xl">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
