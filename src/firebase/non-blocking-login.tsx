@@ -4,6 +4,8 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
 
@@ -22,6 +24,8 @@ const handleAuthError = (error: any) => {
     description = "THIS ENTITY IS ALREADY LINKED. PROCEED TO LOGIN.";
   } else if (error.code === 'auth/weak-password') {
     description = "ACCESS KEY STRENGTH INSUFFICIENT.";
+  } else if (error.code === 'auth/popup-closed-by-user') {
+    description = "AUTHENTICATION WINDOW CLOSED BY ENTITY.";
   }
 
   toast({
@@ -44,4 +48,10 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
   signInWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
+}
+
+/** Initiate Google Sign-In (non-blocking). */
+export function initiateGoogleSignIn(authInstance: Auth): void {
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(authInstance, provider).catch(handleAuthError);
 }

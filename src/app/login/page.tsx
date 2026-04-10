@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@/firebase';
-import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
+import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, initiateGoogleSignIn } from '@/firebase/non-blocking-login';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { Zap, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { Zap, ArrowRight, Sparkles, Loader2, Chrome } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -30,14 +30,18 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     
-    // Non-blocking calls. Errors are handled via catch blocks in the utility file.
     if (isSignUp) {
       initiateEmailSignUp(auth, email, password);
     } else {
       initiateEmailSignIn(auth, email, password);
     }
     
-    // Reset loading state after a delay to allow for the auth transition
+    setTimeout(() => setLoading(false), 2000);
+  };
+
+  const handleGoogleSignIn = () => {
+    setLoading(true);
+    initiateGoogleSignIn(auth);
     setTimeout(() => setLoading(false), 2000);
   };
 
@@ -107,25 +111,41 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em]"><span className="bg-black/0 px-4 text-white/20">OR</span></div>
+              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em]"><span className="bg-[#050505] px-4 text-white/20">OR CONNECT VIA</span></div>
             </div>
 
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setLoading(true);
-                initiateAnonymousSignIn(auth);
-              }}
-              disabled={loading}
-              className="w-full border-white/10 h-16 text-[10px] tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                <>
-                  <Sparkles className="mr-3 w-4 h-4" />
-                  GUEST ACCESS
-                </>
-              )}
-            </Button>
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                  <>
+                    <Chrome className="mr-3 w-4 h-4" />
+                    GOOGLE
+                  </>
+                )}
+              </Button>
+
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setLoading(true);
+                  initiateAnonymousSignIn(auth);
+                }}
+                disabled={loading}
+                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                  <>
+                    <Sparkles className="mr-3 w-4 h-4" />
+                    GUEST
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
