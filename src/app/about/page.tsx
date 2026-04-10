@@ -3,10 +3,10 @@ import Image from 'next/image';
 
 export default function AboutPage() {
   return (
-    <div className="pt-40 pb-32 bg-black min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto space-y-32">
-          <div className="space-y-8">
+          <div className="space-y-8 text-center md:text-left">
             <span className="text-xs font-bold tracking-[0.6em] text-white/40 uppercase">OUR STORY // MANIFESTO</span>
             <h1 className="text-5xl md:text-8xl font-bold tracking-tight glow-text uppercase leading-none">Born in the <br /> Digital Void</h1>
             <p className="text-xl md:text-2xl text-white/60 font-light tracking-widest leading-relaxed uppercase">

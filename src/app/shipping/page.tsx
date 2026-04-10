@@ -1,10 +1,10 @@
 
 export default function ShippingPage() {
   return (
-    <div className="pt-40 pb-32 bg-black min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6 max-w-3xl">
         <div className="space-y-16">
-          <div className="space-y-4">
+          <div className="space-y-4 text-center md:text-left">
             <span className="text-xs font-bold tracking-[0.6em] text-white/40 uppercase">LOGISTICS // PROTOCOLS</span>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">Shipping Protocol</h1>
           </div>
@@ -31,12 +31,12 @@ export default function ShippingPage() {
               </p>
             </section>
 
-            <div className="p-8 border border-white/10 bg-white/5">
-              <h3 className="text-xs font-bold tracking-widest uppercase mb-4">Current Transit Times</h3>
-              <ul className="space-y-2 text-[10px] text-white/40 tracking-widest uppercase">
-                <li className="flex justify-between"><span>North American Sector</span><span>2-3 Cycles</span></li>
-                <li className="flex justify-between"><span>Euro-Zone Hubs</span><span>3-4 Cycles</span></li>
-                <li className="flex justify-between"><span>Asian-Pacific Metros</span><span>3-5 Cycles</span></li>
+            <div className="p-10 border border-white/10 bg-white/[0.02] backdrop-blur-md">
+              <h3 className="text-xs font-bold tracking-widest uppercase mb-6">Current Transit Times</h3>
+              <ul className="space-y-4 text-[10px] text-white/40 tracking-widest uppercase">
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>North American Sector</span><span>2-3 Cycles</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>Euro-Zone Hubs</span><span>3-4 Cycles</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>Asian-Pacific Metros</span><span>3-5 Cycles</span></li>
                 <li className="flex justify-between"><span>Remote Outposts</span><span>5-7 Cycles</span></li>
               </ul>
             </div>

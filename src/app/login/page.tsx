@@ -26,7 +26,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] rounded-full blur-[120px]" />
       </div>
@@ -45,7 +45,7 @@ export default function LoginPage() {
           <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase">AUTHENTICATION PROTOCOL</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-sm">
+        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">COMM-CHANNEL / EMAIL</label>
@@ -70,7 +70,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group">
+            <Button type="submit" className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group shadow-[0_0_20px_rgba(255,255,255,0.1)]">
               {isSignUp ? 'INITIALIZE ACCOUNT' : 'ESTABLISH LINK'}
               <ArrowRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -79,13 +79,13 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em]"><span className="bg-black px-4 text-white/20">OR</span></div>
+              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em]"><span className="bg-black/0 px-4 text-white/20">OR</span></div>
             </div>
 
             <Button 
               variant="outline" 
               onClick={() => initiateAnonymousSignIn(auth)}
-              className="w-full border-white/10 h-16 text-[10px] tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 rounded-none"
+              className="w-full border-white/10 h-16 text-[10px] tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
             >
               <Sparkles className="mr-3 w-4 h-4" />
               GUEST ACCESS
