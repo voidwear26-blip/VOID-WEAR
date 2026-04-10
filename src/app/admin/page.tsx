@@ -2,16 +2,15 @@
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
+import { collection, query, collectionGroup } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp, Settings, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
 export default function AdminDashboard() {
   const db = useFirestore();
 
-  // Fetch all orders for analytics
   const ordersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collectionGroup(db, 'orders');
@@ -22,8 +21,14 @@ export default function AdminDashboard() {
     return collection(db, 'products');
   }, [db]);
 
+  const usersQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collection(db, 'users');
+  }, [db]);
+
   const { data: orders, isLoading: ordersLoading } = useCollection(ordersQuery);
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
   const stats = useMemo(() => {
     if (!orders) return { totalSales: 0, orderCount: 0 };
@@ -61,26 +66,29 @@ export default function AdminDashboard() {
             loading={ordersLoading}
           />
           <StatCard 
+            icon={<Users />} 
+            label="ENTITIES REGISTERED" 
+            value={users?.length.toString() || "0"} 
+            loading={usersLoading}
+          />
+          <StatCard 
             icon={<Package />} 
             label="INVENTORY UNITS" 
             value={products?.length.toString() || "0"} 
             loading={productsLoading}
-          />
-          <StatCard 
-            icon={<TrendingUp />} 
-            label="CONVERSION INDEX" 
-            value="3.2%" 
           />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
           <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
             <div className="flex justify-between items-center border-b border-white/5 pb-6">
-              <h3 className="text-xs font-bold tracking-[0.4em] uppercase">QUICK ACTIONS</h3>
+              <h3 className="text-xs font-bold tracking-[0.4em] uppercase">COMMAND MODULES</h3>
             </div>
             <div className="grid gap-4">
-              <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="Update catalog, stock, and pricing." />
-              <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Fulfill orders and monitor payments." />
+              <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="Update catalog, stock, and pricing." icon={<Package className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Fulfill orders and monitor payments." icon={<ShoppingBag className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/users" label="ENTITY MANAGEMENT" description="Monitor users and access levels." icon={<Users className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/content" label="BRAND CONTROL" description="Update hero content and site banners." icon={<Settings className="w-4 h-4" />} />
             </div>
           </div>
 
@@ -139,12 +147,15 @@ function StatCard({ icon, label, value, loading }: { icon: React.ReactNode, labe
   );
 }
 
-function QuickActionButton({ href, label, description }: { href: string, label: string, description: string }) {
+function QuickActionButton({ href, label, description, icon }: { href: string, label: string, description: string, icon?: React.ReactNode }) {
   return (
     <Link href={href} className="flex items-center justify-between p-8 border border-white/5 hover:border-white/40 bg-white/[0.01] transition-all group">
-      <div className="space-y-2">
-        <span className="text-[10px] font-bold tracking-[0.4em] uppercase group-hover:glow-text transition-all">{label}</span>
-        <p className="text-[9px] text-white/20 tracking-widest uppercase">{description}</p>
+      <div className="flex items-center gap-6">
+        <div className="text-white/20 group-hover:text-white transition-colors">{icon}</div>
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold tracking-[0.4em] uppercase group-hover:glow-text transition-all">{label}</span>
+          <p className="text-[9px] text-white/20 tracking-widest uppercase">{description}</p>
+        </div>
       </div>
       <ArrowUpRight className="w-5 h-5 text-white/20 group-hover:text-white transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
     </Link>

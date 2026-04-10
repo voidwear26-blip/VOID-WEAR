@@ -1,432 +1,70 @@
+
 {
   "entities": {
     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a customer or administrative user of the VOID WEAR application. User authentication details are managed by an external system.",
+      "description": "Represents a customer or administrative user of the VOID WEAR application.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
+          "type": "string"
         },
         "email": {
           "type": "string",
-          "description": "The user's primary email address, used for communication.",
           "format": "email"
         },
         "firstName": {
-          "type": "string",
-          "description": "The user's first name."
+          "type": "string"
         },
         "lastName": {
-          "type": "string",
-          "description": "The user's last name."
+          "type": "string"
         },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the user account was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the user account was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "email",
-        "firstName",
-        "lastName",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "Address": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Address",
-      "type": "object",
-      "description": "Stores a physical address, typically associated with a user or an order for shipping and billing purposes.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Address entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User who owns this address. (Relationship: User 1:N Address)"
-        },
-        "addressLine1": {
-          "type": "string",
-          "description": "The first line of the street address."
-        },
-        "addressLine2": {
-          "type": "string",
-          "description": "The second line of the street address (e.g., apartment, suite number)."
-        },
-        "city": {
-          "type": "string",
-          "description": "The city of the address."
-        },
-        "stateProvince": {
-          "type": "string",
-          "description": "The state or province of the address."
-        },
-        "postalCode": {
-          "type": "string",
-          "description": "The postal or zip code of the address."
-        },
-        "country": {
-          "type": "string",
-          "description": "The country of the address."
-        },
-        "addressType": {
-          "type": "string",
-          "description": "The type of address (e.g., 'shipping', 'billing', 'home')."
-        },
-        "isDefault": {
+        "isBlocked": {
           "type": "boolean",
-          "description": "Indicates if this is the user's default address for its type."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "addressLine1",
-        "city",
-        "stateProvince",
-        "postalCode",
-        "country",
-        "addressType"
-      ]
-    },
-    "Product": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
-      "type": "object",
-      "description": "Represents a core product item available for purchase in the VOID WEAR store, containing general information.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Product entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the product."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the product."
-        },
-        "basePrice": {
-          "type": "number",
-          "description": "The base price of the product before any variant adjustments."
-        },
-        "imageUrls": {
-          "type": "array",
-          "description": "An array of URLs for product images.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "category": {
-          "type": "string",
-          "description": "The main category the product belongs to (e.g., 'Apparel', 'Accessories', 'Footwear')."
-        },
-        "slug": {
-          "type": "string",
-          "description": "A URL-friendly identifier for the product, often used in product page URLs."
+          "description": "If true, the user is restricted from making purchases."
         },
         "createdAt": {
           "type": "string",
-          "description": "The timestamp when the product was added to the catalog.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "The timestamp when the product details were last updated.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
-        "name",
-        "description",
-        "basePrice",
-        "imageUrls",
-        "category",
-        "slug",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "ProductVariant": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProductVariant",
-      "type": "object",
-      "description": "Represents a specific variation of a product (e.g., size, color) with its unique SKU, stock quantity, and potential price adjustment.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProductVariant entity."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the parent Product. (Relationship: Product 1:N ProductVariant)"
-        },
-        "size": {
-          "type": "string",
-          "description": "The size of the product variant (e.g., 'S', 'M', 'L', 'XL', 'One Size')."
-        },
-        "color": {
-          "type": "string",
-          "description": "The color of the product variant (e.g., 'Black', 'Cosmic Grey', 'Vibrant White')."
-        },
-        "sku": {
-          "type": "string",
-          "description": "Stock Keeping Unit, a unique identifier for this specific product variant."
-        },
-        "stockQuantity": {
-          "type": "number",
-          "description": "The current number of units available in stock for this variant."
-        },
-        "priceAdjustment": {
-          "type": "number",
-          "description": "The monetary adjustment to the Product.basePrice for this specific variant. Can be positive or negative."
-        },
-        "variantImageUrl": {
-          "type": "string",
-          "description": "An optional URL for an image specific to this variant.",
-          "format": "uri"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the product variant was added.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the product variant details were last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "productId",
-        "size",
-        "color",
-        "sku",
-        "stockQuantity",
-        "priceAdjustment",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "Cart": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Cart",
-      "type": "object",
-      "description": "Represents a user's shopping cart, holding items they intend to purchase before checkout.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Cart entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User who owns this cart. (Relationship: User 1:1 Cart)"
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the cart (e.g., 'active', 'abandoned', 'converted')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the cart was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the cart was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "status",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "CartItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "CartItem",
-      "type": "object",
-      "description": "Represents a single product variant and its quantity added to a user's shopping cart.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the CartItem entity."
-        },
-        "cartId": {
-          "type": "string",
-          "description": "Reference to the Cart this item belongs to. (Relationship: Cart 1:N CartItem)"
-        },
-        "productVariantId": {
-          "type": "string",
-          "description": "Reference to the specific ProductVariant added to the cart. (Relationship: ProductVariant 1:N CartItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The quantity of the product variant in the cart."
-        },
-        "addedAt": {
-          "type": "string",
-          "description": "The timestamp when this item was added to the cart.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "cartId",
-        "productVariantId",
-        "quantity",
-        "addedAt"
+        "email"
       ]
     },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a customer's completed or pending order, tracking payment, shipping, and associated details.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Order entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User who placed the order. (Relationship: User 1:N Order)"
-        },
-        "orderNumber": {
-          "type": "string",
-          "description": "A human-readable, unique identifier for the order (e.g., 'VOID-12345')."
-        },
-        "orderDate": {
-          "type": "string",
-          "description": "The date and time when the order was placed.",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "The total monetary amount of the order, including taxes and shipping."
-        },
-        "currency": {
-          "type": "string",
-          "description": "The currency code for the order (e.g., 'INR', 'USD', 'EUR')."
-        },
-        "paymentStatus": {
-          "type": "string",
-          "description": "The current status of the payment (e.g., 'pending', 'paid', 'failed', 'refunded')."
-        },
-        "shippingStatus": {
-          "type": "string",
-          "description": "The current status of the order's shipping (e.g., 'processing', 'shipped', 'delivered', 'cancelled')."
-        },
-        "shippingAddressId": {
-          "type": "string",
-          "description": "Reference to the Address used for shipping this order. (Relationship: Address 1:N Order)"
-        },
-        "billingAddressId": {
-          "type": "string",
-          "description": "Optional reference to the Address used for billing, if different from shipping. (Relationship: Address 1:N Order)"
-        },
-        "paymentProviderTransactionId": {
-          "type": "string",
-          "description": "The unique transaction ID provided by the payment gateway (e.g., Razorpay)."
-        },
-        "paymentMethod": {
-          "type": "string",
-          "description": "The payment method used for the order (e.g., 'Credit Card', 'UPI', 'Razorpay')."
-        },
-        "expectedDeliveryDate": {
-          "type": "string",
-          "description": "The estimated date for delivery.",
-          "format": "date-time"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the order was initially created in the system.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "The timestamp when the order details were last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "orderNumber",
-        "orderDate",
-        "totalAmount",
-        "currency",
-        "paymentStatus",
-        "shippingStatus",
-        "shippingAddressId",
-        "paymentProviderTransactionId",
-        "paymentMethod",
-        "createdAt",
-        "updatedAt"
-      ]
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "shippingStatus": { "type": "string", "enum": ["processing", "shipped", "delivered", "cancelled"] },
+        "trackingId": { "type": "string" },
+        "courierPartner": { "type": "string" },
+        "orderDate": { "type": "string", "format": "date-time" }
+      }
     },
-    "OrderItem": {
+    "AppConfig": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
+      "title": "AppConfig",
       "type": "object",
-      "description": "Represents a specific product variant and its quantity included in a customer's order at the time of purchase.",
+      "description": "Global application settings for content and brand control.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the OrderItem entity."
-        },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
-        },
-        "productVariantId": {
-          "type": "string",
-          "description": "Reference to the specific ProductVariant purchased. (Relationship: ProductVariant 1:N OrderItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The quantity of the product variant purchased in this order item."
-        },
-        "priceAtOrder": {
-          "type": "number",
-          "description": "The individual price of this product variant at the time the order was placed (including any variant adjustments, excluding quantity)."
-        },
-        "itemName": {
-          "type": "string",
-          "description": "A snapshot of the product name at the time of order for historical accuracy."
-        },
-        "itemSku": {
-          "type": "string",
-          "description": "A snapshot of the product variant SKU at the time of order for historical accuracy."
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "productVariantId",
-        "quantity",
-        "priceAtOrder",
-        "itemName",
-        "itemSku"
-      ]
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "heroTagline": { "type": "string" },
+        "activeSeason": { "type": "string" },
+        "isMaintenanceMode": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -441,171 +79,18 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "user",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores individual user profiles. Access is restricted to the user themselves, identified by `userId` matching `request.auth.uid`.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, corresponding to `request.auth.uid`."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "User profiles and account status."
         }
       },
       {
-        "path": "/users/{userId}/addresses/{addressId}",
+        "path": "/app_config/global",
         "definition": {
-          "entityName": "address",
-          "schema": {
-            "$ref": "#/backend/entities/Address"
-          },
-          "description": "Stores shipping/billing addresses for a specific user. Includes implicit `userId` from path and explicit `userId` in document for strong authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this address."
-            },
-            {
-              "name": "addressId",
-              "description": "The unique identifier for the address document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/products/{productId}",
-        "definition": {
-          "entityName": "product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores public product information. Read access is public for all users. Write access is restricted to administrators.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for the product document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/products/{productId}/variants/{variantId}",
-        "definition": {
-          "entityName": "productVariant",
-          "schema": {
-            "$ref": "#/backend/entities/ProductVariant"
-          },
-          "description": "Stores public product variant details (size, color, SKU, stock, price adjustment). Read access is public for all users. Write access is restricted to administrators. Includes explicit `productId` in document for strong authorization independence.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier of the parent product."
-            },
-            {
-              "name": "variantId",
-              "description": "The unique identifier for the product variant document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/carts/active_cart",
-        "definition": {
-          "entityName": "cart",
-          "schema": {
-            "$ref": "#/backend/entities/Cart"
-          },
-          "description": "Stores the single active shopping cart for a specific user. The document ID 'active_cart' is used as a convention for the current cart. Includes implicit `userId` from path and explicit `userId` in document for strong authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this cart."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/carts/active_cart/items/{itemId}",
-        "definition": {
-          "entityName": "cartItem",
-          "schema": {
-            "$ref": "#/backend/entities/CartItem"
-          },
-          "description": "Stores individual items for a user's active shopping cart. Includes implicit `userId` and `cartId` (from the 'active_cart' document) from path, and explicit `cartId` in document for strong authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns the parent cart."
-            },
-            {
-              "name": "itemId",
-              "description": "The unique identifier for the cart item document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
-        "definition": {
-          "entityName": "order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores historical and pending orders for a specific user. Includes implicit `userId` from path and explicit `userId` in document for strong authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who placed this order."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/items/{itemId}",
-        "definition": {
-          "entityName": "orderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores the specific items purchased within a user's order. Includes implicit `userId` and `orderId` from path, as well as explicit `orderId` in document for strong authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns the parent order."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier of the parent order."
-            },
-            {
-              "name": "itemId",
-              "description": "The unique identifier for the order item document."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/app_roles/admin/{adminId}",
-        "definition": {
-          "entityName": "adminRole",
-          "schema": {
-            "$ref": "#/backend/entities/AdminRole"
-          },
-          "description": "Dedicated collection for Database-Backed Access Control (DBAC). Contains documents representing users with 'admin' privileges. The existence of a document here (where `adminId` matches `request.auth.uid`) grants administrative access, used for simple `exists()` checks in security rules.",
-          "params": [
-            {
-              "name": "adminId",
-              "description": "The unique identifier (UID) of the user who holds the admin role."
-            }
-          ]
+          "entityName": "appConfig",
+          "schema": { "$ref": "#/backend/entities/AppConfig" },
+          "description": "Singleton document for global site content."
         }
       }
-    ],
-    "reasoning": "The Firestore structure for VOID WEAR is designed around core principles of Authorization Independence, Structural Segregation, and consistent Access Modeling to ensure security, scalability, and debuggability. \n\n**Authorization Independence via Denormalization:**\nAuthorization context is denormalized to avoid `get()` calls in security rules, which can break atomic operations and complicate debugging. For all user-owned data (e.g., Addresses, Carts, Orders, and their items), the `userId` is inherently part of the document's path (`/users/{userId}/...`). Additionally, critical parent IDs (`userId`, `cartId`, `orderId`) are explicitly stored as fields within the respective child documents (`Address`, `Cart`, `CartItem`, `Order`, `OrderItem`). For instance, an `OrderItem` document at `/users/{userId}/orders/{orderId}/items/{itemId}` will contain both `userId` and `orderId` fields. This design makes authorization checks self-contained within each document, allowing rules to evaluate permissions solely based on `request.auth.uid` and the document's own fields, thus enabling robust atomic operations and simplifying rule logic.\n\n**QAPs (Rules are not Filters) through Structural Segregation:**\nTo support Queryable Access Patterns (QAPs) and prevent security rules from acting as data filters (which are inefficient and insecure), collections are segregated based on their security posture:\n\n1.  **Public Catalog Data:** The `/products` and `/products/{productId}/variants` collections are designed for public read access. All documents within these collections share the same security requirement: anyone can read them. This ensures that `list` queries on these collections will always return a complete, authorized result set without needing complex rule-based filtering.\n2.  **Private User-Owned Data:** Collections under `/users/{userId}/...` (e.g., `/users/{userId}/addresses`, `/users/{userId}/carts/active_cart/items`, `/users/{userId}/orders`) are strictly private to the authenticated user. Security rules will enforce that `request.auth.uid == userId` (where `userId` is obtained from the path and denormalized fields). This structural segregation guarantees that `list` operations within these user-specific paths will only retrieve data belonging to the requesting user, satisfying QAP principles.\n3.  **Administrative Roles (DBAC):** The `/app_roles/admin/{adminId}` collection is used for Database-Backed Access Control. The mere existence of a document with an `adminId` matching `request.auth.uid` grants administrative privileges. This provides a clear, debuggable mechanism for elevated access that does not rely on custom claims.\n\n**Access Modeling and Data Clarity:**\n*   **Path-Based Ownership:** Consistently applied for user data (e.g., `/users/{userId}/addresses`).\n*   **Hierarchical Paths:** Used for nested data (e.g., `/users/{userId}/orders/{orderId}/items/{itemId}`).\n*   **Explicit State:** Entities like `Cart` and `Order` use clear `status` fields for predictable state management. Predictable schemas with explicit field names (e.g., `ownerId`, `createdAt`) are maintained throughout."
+    ]
   }
 }

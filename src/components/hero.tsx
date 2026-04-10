@@ -5,15 +5,31 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export function Hero() {
   const [mounted, setMounted] = useState(false);
+  const db = useFirestore();
+
+  const configRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, 'app_config', 'global');
+  }, [db]);
+
+  const { data: config } = useDoc(configRef);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
+  const content = {
+    title: config?.heroTitle || 'VOID WEAR',
+    subtitle: config?.heroSubtitle || 'SYSTEM 01',
+    tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
+  };
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
@@ -49,7 +65,7 @@ export function Hero() {
             transition={{ delay: 1, duration: 1.5 }}
           >
             <span className="text-[10px] md:text-xs font-bold tracking-[1.2em] text-white/30 uppercase">
-              VOID WEAR // SYSTEM 01
+              VOID WEAR // {content.subtitle}
             </span>
           </motion.div>
           
@@ -59,7 +75,7 @@ export function Hero() {
             transition={{ delay: 1.3, duration: 1.5 }}
             className="text-5xl md:text-7xl lg:text-8xl font-black tracking-[0.2em] leading-tight glow-text uppercase"
           >
-            VOID WEAR
+            {content.title}
           </motion.h1>
           
           <motion.p 
@@ -68,7 +84,7 @@ export function Hero() {
             transition={{ delay: 1.6, duration: 1.5 }}
             className="text-[10px] md:text-xs text-white/40 max-w-md mx-auto tracking-[0.6em] uppercase font-light"
           >
-            EMBRACE THE UNKNOWN
+            {content.tagline}
           </motion.p>
         </div>
 
