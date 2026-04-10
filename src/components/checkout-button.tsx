@@ -3,9 +3,9 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, deleteDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface CheckoutButtonProps {
@@ -26,28 +26,41 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
   const { toast } = useToast();
 
   const handleCheckout = async () => {
-    if (!user || !db) return;
+    if (!user || !db) {
+      toast({
+        variant: "destructive",
+        title: "AUTH_REQUIRED",
+        description: "PLEASE LOG IN TO SECURE YOUR TRANSMISSION.",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      // 1. Create order on backend
+      // 1. Create order on backend with validation
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount }),
       });
+
+      if (!res.ok) throw new Error('ORDER_CREATION_FAILED');
+      
       const orderData = await res.json();
 
-      // 2. Load Razorpay script (if not already loaded)
+      // 2. Initialize Razorpay Gateway
       const options = {
-        key: 'rzp_test_placeholder', // User should replace with real key
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder', 
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
-        description: 'Digital Assemblage Purchase',
+        description: 'SECURE DIGITAL TRANSMISSION',
         order_id: orderData.id,
         handler: async function (response: any) {
-          // 3. Verify payment
+          setLoading(true);
+          
+          // 3. Strict Signature Verification
           const verifyRes = await fetch('/api/checkout/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -55,13 +68,14 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
           });
 
           if (verifyRes.ok) {
-            // 4. Create Order document and Clear Cart
-            const orderId = `VOID-${Date.now()}`;
+            // 4. Atomic Transaction: Create Order & Clear Cart
+            const orderId = `VOID-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
             const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
             const cartItemsRef = collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
-            const cartSnap = await getDocs(cartItemsRef);
             
+            const cartSnap = await getDocs(cartItemsRef);
             const batch = writeBatch(db);
+
             batch.set(orderRef, {
               id: orderId,
               userId: user.uid,
@@ -84,27 +98,41 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
             await batch.commit();
 
             toast({
-              title: "TRANSMISSION SUCCESSFUL",
-              description: "YOUR ASSEMBLAGE HAS BEEN SECURED.",
+              title: "TRANSMISSION SECURED",
+              description: "YOUR ASSEMBLAGE HAS BEEN LOGGED IN THE VOID.",
             });
+            
             window.location.href = '/profile';
+          } else {
+            toast({
+              variant: "destructive",
+              title: "VERIFICATION_FAILURE",
+              description: "SECURITY SIGNATURE MISMATCH. CONTACT SUPPORT.",
+            });
           }
+        },
+        prefill: {
+          email: user.email,
         },
         theme: {
           color: '#000000',
         },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+          }
+        }
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      console.error(error);
+      console.error('[CHECKOUT_EXCEPTION]', error);
       toast({
         variant: "destructive",
-        title: "LINK FAILURE",
-        description: "COULD NOT INITIALIZE UPLINK.",
+        title: "LINK_FAILURE",
+        description: "COULD NOT ESTABLISH SECURE UPLINK. RETRY LATER.",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -113,12 +141,13 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
     <Button 
       onClick={handleCheckout}
       disabled={disabled || loading} 
-      className="w-full bg-white text-black hover:bg-white/90 py-10 text-[10px] font-bold tracking-[0.6em] rounded-none group"
+      className="w-full bg-white text-black hover:bg-white/90 py-10 text-[10px] font-bold tracking-[0.6em] rounded-none group relative overflow-hidden"
     >
       {loading ? (
         <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
         <>
+          <ShieldCheck className="absolute left-6 w-4 h-4 text-black/20" />
           PROCEED TO UPLINK
           <ArrowRight className="ml-4 w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </>
