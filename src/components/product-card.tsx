@@ -1,14 +1,16 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/app/lib/products-service';
-import { Plus, Check, Loader2 } from 'lucide-react';
+import { Plus, Check, Loader2, Heart } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { addToCart } from '@/firebase/cart-actions';
 import { useToast } from '@/hooks/use-toast';
+import { toggleWishlist } from '@/firebase/wishlist-actions';
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +22,15 @@ export function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+
+  // Wishlist state check
+  const wishlistQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'wishlist');
+  }, [db, user]);
+  
+  const { data: wishlist } = useCollection(wishlistQuery);
+  const isWishlisted = wishlist?.some(item => item.productId === product.id);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -63,7 +74,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     setAdding(true);
     try {
-      await addToCart(db, user.uid, product.id);
+      await addToCart(db!, user.uid, product.id);
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch (err) {
@@ -73,7 +84,13 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // Safe fallback for images
+  const handleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user || !db) return;
+    await toggleWishlist(db, user.uid, product);
+  };
+
   const displayImage = product.imageUrls && product.imageUrls.length > 0 
     ? product.imageUrls[0] 
     : 'https://picsum.photos/seed/void-placeholder/800/1000';
@@ -105,6 +122,15 @@ export function ProductCard({ product }: ProductCardProps) {
           
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
           
+          <div className="absolute top-6 right-6 z-20">
+            <button 
+              onClick={handleWishlist}
+              className={`p-3 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 ${isWishlisted ? 'bg-white text-black' : 'bg-black/40 text-white/40 hover:text-white'}`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
+            </button>
+          </div>
+
           <motion.button 
             onClick={handleAddToCart}
             disabled={adding}
@@ -126,9 +152,6 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="text-[10px] font-bold text-white/40 tracking-widest">${product.basePrice}</span>
           </div>
           <div className="h-[1px] w-0 group-hover:w-full bg-white/10 transition-all duration-700"></div>
-          <p className="text-[10px] text-white/20 line-clamp-1 tracking-[0.2em] uppercase leading-relaxed">
-            {product.description}
-          </p>
         </div>
       </Link>
     </motion.div>

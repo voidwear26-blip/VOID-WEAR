@@ -2,14 +2,20 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { motion } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ArrowRight, ShoppingBag } from 'lucide-react';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, Clock, ShieldCheck, ArrowRight, ShoppingBag, MapPin, Heart, FileText, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { ProductCard } from '@/components/product-card';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const [activeTab, setActiveTab] = useState('orders');
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -19,7 +25,19 @@ export default function ProfilePage() {
     );
   }, [db, user]);
 
+  const addressesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'addresses');
+  }, [db, user]);
+
+  const wishlistQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'wishlist');
+  }, [db, user]);
+
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
+  const { data: addresses } = useCollection(addressesQuery);
+  const { data: wishlistItems } = useCollection(wishlistQuery);
 
   if (isUserLoading) {
     return (
@@ -45,13 +63,13 @@ export default function ProfilePage() {
 
   return (
     <div className="pt-48 pb-32 bg-transparent min-h-screen">
-      <div className="container mx-auto px-10">
-        <div className="grid lg:grid-cols-3 gap-24">
-          {/* User Info */}
+      <div className="container mx-auto px-6 md:px-10">
+        <div className="grid lg:grid-cols-4 gap-16 md:gap-24">
+          {/* User Info Sidebar */}
           <div className="space-y-12">
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">ENTITY // PROFILE</span>
-              <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none">
+              <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none break-all">
                 {user.email?.split('@')[0]}
               </h1>
               <p className="text-white/40 tracking-[0.2em] text-[10px] uppercase">
@@ -59,75 +77,193 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            <div className="p-8 border border-white/5 bg-white/[0.02] space-y-6">
+            <div className="p-8 border border-white/5 bg-white/[0.02] space-y-6 backdrop-blur-sm">
               <div className="flex items-center gap-4 text-white/40">
                 <ShieldCheck className="w-4 h-4" />
                 <span className="text-[9px] tracking-[0.3em] uppercase">Security Level: Standard</span>
               </div>
               <div className="flex items-center gap-4 text-white/40">
                 <Clock className="w-4 h-4" />
-                <span className="text-[9px] tracking-[0.3em] uppercase">Member Since: 2024</span>
+                <span className="text-[9px] tracking-[0.3em] uppercase">Last Sync: Today</span>
               </div>
             </div>
+            
+            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-white/20">
+              {['orders', 'addresses', 'wishlist'].map(tab => (
+                <button 
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`text-left transition-all duration-300 ${activeTab === tab ? 'text-white pl-4 border-l border-white' : 'hover:text-white/60'}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </nav>
           </div>
 
-          {/* Orders List */}
-          <div className="lg:col-span-2 space-y-12">
-            <div className="flex items-center justify-between border-b border-white/5 pb-8">
-              <h2 className="text-xs font-bold tracking-[0.5em] uppercase">TRANSMISSION HISTORY</h2>
-              <span className="text-[10px] text-white/20">{orders?.length || 0} ITEMS</span>
-            </div>
+          {/* Main Content Area */}
+          <div className="lg:col-span-3">
+            <AnimatePresence mode="wait">
+              {activeTab === 'orders' && (
+                <motion.div 
+                  key="orders"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-12"
+                >
+                  <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase">TRANSMISSION HISTORY</h2>
+                    <span className="text-[10px] text-white/20">{orders?.length || 0} ITEMS</span>
+                  </div>
 
-            <div className="space-y-6">
-              {isOrdersLoading ? (
-                <div className="space-y-4">
-                  {[1, 2].map(i => (
-                    <div key={i} className="h-32 bg-white/[0.02] animate-pulse border border-white/5" />
-                  ))}
-                </div>
-              ) : orders && orders.length > 0 ? (
-                orders.map((order) => (
-                  <motion.div 
-                    key={order.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-10 flex flex-col md:flex-row md:items-center justify-between gap-8"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Package className="w-4 h-4 text-white/40" />
-                        <span className="text-[10px] font-bold tracking-widest uppercase">{order.orderNumber}</span>
+                  <div className="space-y-6">
+                    {isOrdersLoading ? (
+                      <div className="space-y-4">
+                        {[1, 2].map(i => (
+                          <div key={i} className="h-32 bg-white/[0.02] animate-pulse border border-white/5" />
+                        ))}
                       </div>
-                      <div className="text-[9px] text-white/40 tracking-widest uppercase">
-                        INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
-                      </div>
-                    </div>
+                    ) : orders && orders.length > 0 ? (
+                      orders.map((order) => (
+                        <div 
+                          key={order.id}
+                          className="group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-8"
+                        >
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                              <Package className="w-4 h-4 text-white/40" />
+                              <span className="text-[10px] font-bold tracking-widest uppercase">{order.orderNumber}</span>
+                              <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
+                                order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' :
+                                order.shippingStatus === 'shipped' ? 'border-blue-500/50 text-blue-500' :
+                                'border-white/20 text-white/40'
+                              }`}>
+                                {order.shippingStatus || 'processing'}
+                              </span>
+                            </div>
+                            <div className="text-[9px] text-white/40 tracking-widest uppercase">
+                              INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+                            </div>
+                          </div>
 
-                    <div className="flex items-center gap-12">
-                      <div className="text-right">
-                        <div className="text-[10px] font-bold tracking-widest">${order.totalAmount}</div>
-                        <div className="text-[8px] text-white/20 tracking-widest uppercase mt-1">
-                          {order.paymentStatus}
+                          <div className="flex items-center gap-12">
+                            <div className="text-right">
+                              <div className="text-[10px] font-bold tracking-widest">${order.totalAmount}</div>
+                              <div className="text-[8px] text-white/20 tracking-widest uppercase mt-1">
+                                {order.paymentStatus}
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-white/20 hover:text-white transition-colors">
+                              <FileText className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-px h-10 bg-white/5 hidden md:block" />
-                      <div className="flex items-center gap-3 text-white/40 group-hover:text-white transition-colors">
-                        <span className="text-[9px] tracking-widest uppercase">DETAILS</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="py-32 flex flex-col items-center justify-center space-y-8 opacity-20 border border-dashed border-white/10">
-                  <ShoppingBag className="w-12 h-12 stroke-[0.5px]" />
-                  <p className="text-[10px] tracking-[1em]">NO TRANSMISSIONS LOGGED</p>
-                </div>
+                      ))
+                    ) : (
+                      <EmptyState icon={<ShoppingBag />} message="NO TRANSMISSIONS LOGGED" />
+                    )}
+                  </div>
+                </motion.div>
               )}
-            </div>
+
+              {activeTab === 'addresses' && (
+                <motion.div 
+                  key="addresses"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-12"
+                >
+                  <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase">DELIVERY NODES</h2>
+                    <Button variant="outline" className="border-white/10 text-[9px] tracking-[0.3em] uppercase rounded-none h-8 px-4">
+                      <Plus className="w-3 h-3 mr-2" /> ADD NODE
+                    </Button>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {addresses && addresses.length > 0 ? (
+                      addresses.map(addr => (
+                        <div key={addr.id} className="p-8 border border-white/5 bg-white/[0.01] space-y-4 group">
+                          <div className="flex justify-between items-start">
+                            <MapPin className="w-4 h-4 text-white/40" />
+                            <button 
+                              onClick={() => deleteDocumentNonBlocking(doc(db, 'users', user.uid, 'addresses', addr.id))}
+                              className="text-white/0 group-hover:text-white/20 hover:text-red-500 transition-all"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold tracking-widest uppercase">{addr.addressType || 'HOME'}</p>
+                            <p className="text-[9px] text-white/40 tracking-widest uppercase leading-relaxed">
+                              {addr.addressLine1}<br />
+                              {addr.city}, {addr.stateProvince} {addr.postalCode}<br />
+                              {addr.country}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="md:col-span-2">
+                        <EmptyState icon={<MapPin />} message="NO NODES REGISTERED" />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'wishlist' && (
+                <motion.div 
+                  key="wishlist"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-12"
+                >
+                  <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase">STASIS MODULES</h2>
+                    <span className="text-[10px] text-white/20">{wishlistItems?.length || 0} ITEMS</span>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {wishlistItems && wishlistItems.length > 0 ? (
+                      wishlistItems.map(item => (
+                        <ProductCard 
+                          key={item.id} 
+                          product={{
+                            id: item.productId,
+                            name: item.name,
+                            basePrice: item.price,
+                            imageUrls: [item.image],
+                            category: item.category,
+                            description: '',
+                            slug: ''
+                          } as any} 
+                        />
+                      ))
+                    ) : (
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <EmptyState icon={<Heart />} message="STASIS IS EMPTY" />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function EmptyState({ icon, message }: { icon: React.ReactNode, message: string }) {
+  return (
+    <div className="py-32 flex flex-col items-center justify-center space-y-8 opacity-20 border border-dashed border-white/10">
+      <div className="scale-150">{icon}</div>
+      <p className="text-[10px] tracking-[1em] uppercase text-center px-6">{message}</p>
     </div>
   );
 }
