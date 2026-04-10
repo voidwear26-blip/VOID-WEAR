@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { CustomCursor } from '@/components/custom-cursor';
 import { SpaceBackground } from '@/components/space-background';
 import { FirebaseClientProvider } from '@/firebase';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'VOID WEAR | ASCEND THE VOID',
@@ -34,6 +35,7 @@ export default function RootLayout({
             {children}
           </main>
           <Toaster />
+          <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         </FirebaseClientProvider>
       </body>
     </html>

@@ -1,18 +1,68 @@
+'use client';
 
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { products } from '@/app/lib/products';
+import { products as fallbackProducts } from '@/app/lib/products';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Share2, Heart } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Share2, Heart, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { addToCart } from '@/firebase/cart-actions';
+import { useToast } from '@/hooks/use-toast';
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const { id } = await params;
-  const product = products.find(p => p.id === id);
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const db = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [adding, setAdding] = useState(false);
 
-  if (!product) {
+  const productRef = useMemoFirebase(() => {
+    if (!db || !id) return null;
+    return doc(db, 'products', id);
+  }, [db, id]);
+
+  const { data: dbProduct, isLoading } = useDoc(productRef);
+  const fallbackProduct = fallbackProducts.find(p => p.id === id);
+  const product = dbProduct || fallbackProduct;
+
+  if (!isLoading && !product) {
     notFound();
   }
+
+  const handleAdd = async () => {
+    if (!user || !db || !product) {
+      toast({
+        title: "ACCESS DENIED",
+        description: "AUTHENTICATION REQUIRED.",
+      });
+      return;
+    }
+    setAdding(true);
+    try {
+      await addToCart(db, user.uid, product.id);
+      toast({
+        title: "MODULE ADDED",
+        description: "ASSEMBLAGE UPDATED SUCCESSFULLY.",
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
+      </div>
+    );
+  }
+
+  const displayImage = product?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
 
   return (
     <div className="pt-32 pb-24 bg-transparent">
@@ -23,7 +73,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <ChevronRight className="w-3 h-3" />
           <Link href="/products" className="hover:text-white transition-colors">COLLECTION</Link>
           <ChevronRight className="w-3 h-3" />
-          <span className="text-white">{product.name}</span>
+          <span className="text-white">{product?.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-24 items-start">
@@ -31,8 +81,8 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <div className="space-y-8">
             <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/5">
               <Image 
-                src={product.image} 
-                alt={product.name} 
+                src={displayImage} 
+                alt={product?.name || 'Product'} 
                 fill 
                 className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
                 priority
@@ -49,7 +99,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <div className="grid grid-cols-3 gap-6">
               {[1, 2, 3].map(i => (
                 <div key={i} className="relative aspect-[3/4] bg-white/5 cursor-pointer opacity-60 hover:opacity-100 transition-opacity border border-white/5">
-                   <Image src={product.image} alt={product.name} fill className="object-cover grayscale" />
+                   <Image src={displayImage} alt="Product view" fill className="object-cover grayscale" />
                 </div>
               ))}
             </div>
@@ -60,14 +110,14 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">
                 <span className="w-8 h-[1px] bg-white/40"></span>
-                {product.category}
+                {product?.category}
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{product.name}</h1>
-              <p className="text-2xl font-light tracking-widest text-white/80">${product.price}</p>
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{product?.name}</h1>
+              <p className="text-2xl font-light tracking-widest text-white/80">${product?.basePrice}</p>
             </div>
 
             <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase">
-              {product.description}
+              {product?.description}
             </p>
 
             <div className="space-y-8">
@@ -86,8 +136,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </div>
 
               <div className="flex gap-4">
-                <Button className="flex-1 bg-white text-black hover:bg-white/90 h-20 text-xs font-bold tracking-[0.5em] rounded-none group shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                  ADD TO BAG
+                <Button 
+                  onClick={handleAdd}
+                  disabled={adding}
+                  className="flex-1 bg-white text-black hover:bg-white/90 h-20 text-xs font-bold tracking-[0.5em] rounded-none group shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                >
+                  {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ADD TO BAG'}
                   <ShoppingBag className="ml-4 w-4 h-4 group-hover:scale-110 transition-transform" />
                 </Button>
                 <Button variant="outline" size="icon" className="w-20 h-20 border-white/20 hover:bg-white hover:text-black rounded-none bg-transparent">
@@ -100,7 +154,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SPECIFICATIONS</h4>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/40">
-                  {product.details.map((detail, idx) => (
+                  {product?.details?.map((detail, idx) => (
                     <li key={idx} className="flex items-center gap-3 uppercase">
                       <span className="w-1 h-1 bg-white rounded-full"></span>
                       {detail}

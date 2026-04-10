@@ -1,11 +1,24 @@
+'use client';
 
 import { Hero } from '@/components/hero';
 import { ProductCard } from '@/components/product-card';
 import { AIAssistant } from '@/components/ai-assistant';
-import { products } from '@/app/lib/products';
+import { products as fallbackProducts } from '@/app/lib/products';
 import Link from 'next/link';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, limit, query } from 'firebase/firestore';
 
 export default function Home() {
+  const db = useFirestore();
+
+  const featuredProductsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), limit(6));
+  }, [db]);
+
+  const { data: dbProducts, isLoading } = useCollection(featuredProductsQuery);
+  const products = dbProducts || fallbackProducts.slice(0, 6);
+
   return (
     <div className="space-y-0 bg-transparent">
       <Hero />
@@ -26,7 +39,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-            {products.slice(0, 6).map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

@@ -1,14 +1,16 @@
 
-"use client"
+'use client';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, X, Trash2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, X, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, deleteDoc } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CheckoutButton } from './checkout-button';
+import { useState, useEffect } from 'react';
 
 interface CartDrawerProps {
   open: boolean;
@@ -25,10 +27,15 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   }, [db, user]);
 
   const { data: cartItems, isLoading } = useCollection(cartItemsQuery);
-  
-  // Note: For a real app, you'd fetch product details for these IDs
-  // Here we'll show item counts. Total calc would require price fetching.
-  const subtotal = 0; 
+  const [total, setTotal] = useState(0);
+
+  // Mock total calculation since product prices are in a different collection
+  // In production, you'd join this data or denormalize price into cart items
+  useEffect(() => {
+    if (cartItems) {
+      setTotal(cartItems.reduce((acc, item) => acc + (item.quantity * 250), 0)); // Using 250 as placeholder price
+    }
+  }, [cartItems]);
 
   const handleRemove = (itemId: string) => {
     if (!db || !user) return;
@@ -69,17 +76,17 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   className="flex gap-8 group"
                 >
                   <div className="relative w-24 h-32 flex-shrink-0 bg-white/5 overflow-hidden">
-                    <Image src={`https://picsum.photos/seed/${item.productVariantId}/200/300`} alt="Item" fill className="object-cover grayscale" />
+                    <Image src={`https://picsum.photos/seed/${item.id}/200/300`} alt="Item" fill className="object-cover grayscale" />
                   </div>
                   <div className="flex-1 space-y-3">
                     <div className="flex justify-between items-start">
-                      <h4 className="text-[10px] font-bold tracking-widest uppercase">MODULE-{item.productVariantId.slice(0,4)}</h4>
+                      <h4 className="text-[10px] font-bold tracking-widest uppercase">MODULE-{item.id.slice(0,4)}</h4>
                       <button onClick={() => handleRemove(item.id)} className="text-white/20 hover:text-white transition-colors">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                     <p className="text-[9px] text-white/40 tracking-[0.2em]">QTY: {item.quantity}</p>
-                    <div className="pt-2 text-[10px] font-bold tracking-widest">$TBD</div>
+                    <div className="pt-2 text-[10px] font-bold tracking-widest">$250</div>
                   </div>
                 </motion.div>
               ))}
@@ -95,15 +102,12 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         <SheetFooter className="p-10 border-t border-white/5 bg-white/[0.02] space-y-8 flex-col items-stretch">
           <div className="flex justify-between text-[10px] tracking-[0.3em] font-bold">
             <span className="text-white/40">SUBTOTAL</span>
-            <span className="glow-text">$0.00</span>
+            <span className="glow-text">${total.toFixed(2)}</span>
           </div>
           <p className="text-[8px] text-white/20 tracking-[0.2em] leading-relaxed">
             ALL DATA IS ENCRYPTED. TAXES AND SHIPPING CALCULATED AT UPLINK.
           </p>
-          <Button disabled={!cartItems?.length} className="w-full bg-white text-black hover:bg-white/90 py-10 text-[10px] font-bold tracking-[0.6em] rounded-none group">
-            PROCEED TO UPLINK
-            <ArrowRight className="ml-4 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <CheckoutButton amount={total} disabled={!cartItems?.length} />
         </SheetFooter>
       </SheetContent>
     </Sheet>
