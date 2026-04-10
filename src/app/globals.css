@@ -45,39 +45,39 @@
 
 /* Cinematic Utilities */
 .glow-text {
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4), 0 0 30px rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.05);
 }
 
 .glow-border {
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.03);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.02);
   transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .glow-border:hover {
-  box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .eclipse-logo {
   background: black;
   border-radius: 50%;
   box-shadow: 
-    0 0 80px 10px rgba(255, 255, 255, 0.3),
+    0 0 100px 10px rgba(255, 255, 255, 0.2),
     inset 0 0 40px rgba(255, 255, 255, 0.05);
   position: relative;
 }
 
 .eclipse-glow {
   position: absolute;
-  inset: -20px;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
-  filter: blur(20px);
-  animation: breathing 4s ease-in-out infinite;
+  inset: -30px;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, transparent 75%);
+  filter: blur(40px);
+  animation: breathing 5s ease-in-out infinite;
 }
 
 @keyframes breathing {
   0%, 100% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 0.5; }
 }
 
 .noise-overlay {
@@ -87,38 +87,48 @@
   width: 100%;
   height: 100%;
   content: "";
-  opacity: 0.03;
+  opacity: 0.02;
   z-index: 9999;
   pointer-events: none;
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
 
-.particle {
-  position: absolute;
-  background: white;
-  border-radius: 50%;
-  opacity: 0.2;
-  pointer-events: none;
-}
-
 .custom-cursor {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background: white;
   border-radius: 50%;
   position: fixed;
   pointer-events: none;
   z-index: 10000;
   mix-blend-mode: difference;
+  box-shadow: 0 0 10px white;
 }
 
 .custom-cursor-follower {
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   position: fixed;
   pointer-events: none;
   z-index: 9999;
-  transition: transform 0.15s ease-out;
+  transition: transform 0.1s ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
