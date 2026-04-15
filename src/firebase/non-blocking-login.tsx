@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  UserCredential,
 } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
 
@@ -14,9 +15,14 @@ import { toast } from '@/hooks/use-toast';
  * This prevents unhandled promise rejections that trigger Next.js error overlays.
  */
 const handleAuthError = (error: any) => {
-  console.error('[AUTH_ERROR]', error);
+  // Silence console error for intentional user cancellations
+  if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+    console.error('[AUTH_ERROR]', error);
+  }
   
+  let title = "AUTHENTICATION_FAILED";
   let description = "SYSTEM UNABLE TO ESTABLISH LINK.";
+  let variant: "default" | "destructive" = "destructive";
   
   if (error.code === 'auth/invalid-credential') {
     description = "INVALID EMAIL OR ACCESS KEY. ENSURE YOU HAVE INITIALIZED YOUR ACCOUNT.";
@@ -25,33 +31,37 @@ const handleAuthError = (error: any) => {
   } else if (error.code === 'auth/weak-password') {
     description = "ACCESS KEY STRENGTH INSUFFICIENT.";
   } else if (error.code === 'auth/popup-closed-by-user') {
+    title = "LINK_CANCELLED";
     description = "AUTHENTICATION WINDOW CLOSED BY ENTITY.";
+    variant = "default";
+  } else if (error.code === 'auth/popup-blocked') {
+    description = "UPLINK BLOCKED BY BROWSER. ENABLE POPUPS TO PROCEED.";
   }
 
   toast({
-    variant: "destructive",
-    title: "AUTHENTICATION_FAILED",
-    description: description,
+    variant,
+    title,
+    description,
   });
 };
 
 /** Initiate anonymous sign-in (non-blocking). */
-export function initiateAnonymousSignIn(authInstance: Auth): void {
-  signInAnonymously(authInstance).catch(handleAuthError);
+export function initiateAnonymousSignIn(authInstance: Auth): Promise<UserCredential | void> {
+  return signInAnonymously(authInstance).catch(handleAuthError);
 }
 
 /** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  createUserWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
+export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): Promise<UserCredential | void> {
+  return createUserWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
 }
 
 /** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  signInWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<UserCredential | void> {
+  return signInWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
 }
 
 /** Initiate Google Sign-In (non-blocking). */
-export function initiateGoogleSignIn(authInstance: Auth): void {
+export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential | void> {
   const provider = new GoogleAuthProvider();
-  signInWithPopup(authInstance, provider).catch(handleAuthError);
+  return signInWithPopup(authInstance, provider).catch(handleAuthError);
 }

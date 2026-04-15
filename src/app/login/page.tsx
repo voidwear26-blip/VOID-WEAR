@@ -26,23 +26,29 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     if (isSignUp) {
-      initiateEmailSignUp(auth, email, password);
+      await initiateEmailSignUp(auth, email, password);
     } else {
-      initiateEmailSignIn(auth, email, password);
+      await initiateEmailSignIn(auth, email, password);
     }
     
-    setTimeout(() => setLoading(false), 2000);
+    setLoading(false);
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setLoading(true);
-    initiateGoogleSignIn(auth);
-    setTimeout(() => setLoading(false), 2000);
+    await initiateGoogleSignIn(auth);
+    setLoading(false);
+  };
+
+  const handleGuestSignIn = async () => {
+    setLoading(true);
+    await initiateAnonymousSignIn(auth);
+    setLoading(false);
   };
 
   return (
@@ -131,10 +137,7 @@ export default function LoginPage() {
 
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setLoading(true);
-                  initiateAnonymousSignIn(auth);
-                }}
+                onClick={handleGuestSignIn}
                 disabled={loading}
                 className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
               >
