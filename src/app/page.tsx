@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -20,7 +21,7 @@ export default function Home() {
   const products = dbProducts || fallbackProducts.slice(0, 6);
 
   return (
-    <div className="space-y-0 bg-transparent">
+    <div className="space-y-0 bg-transparent text-white">
       <Hero />
       
       {/* Featured Collection Section */}
@@ -105,12 +106,12 @@ export default function Home() {
 
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">TRANSMISSIONS</h4>
-            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase">JOIN THE GRID FOR EARLY ACCESS TO DROPS.</p>
+            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase">FOR SUPPORT: voidwear26@gmail.com</p>
             <div className="flex gap-2 border-b border-white/10 pb-4">
               <input 
                 type="email" 
                 placeholder="EMAIL@CHANNEL.COM" 
-                className="bg-transparent px-0 py-2 text-[9px] tracking-[0.4em] flex-1 focus:outline-none placeholder:text-white/10"
+                className="bg-transparent px-0 py-2 text-[9px] tracking-[0.4em] flex-1 focus:outline-none placeholder:text-white/10 text-white"
               />
               <button className="text-[9px] font-bold tracking-[0.5em] text-white hover:glow-text">JOIN</button>
             </div>
