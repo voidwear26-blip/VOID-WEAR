@@ -12,30 +12,35 @@ import { toast } from '@/hooks/use-toast';
 
 /** 
  * Helper to handle auth errors gracefully in a non-blocking way.
- * This prevents unhandled promise rejections that trigger Next.js error overlays.
+ * Provides specific guidance for common VOID WEAR entry failures.
  */
 const handleAuthError = (error: any) => {
   // Silence console error for intentional user cancellations
-  if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-    console.error('[AUTH_ERROR]', error);
+  if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+    toast({
+      title: "LINK_CANCELLED",
+      description: "AUTHENTICATION WINDOW CLOSED BY ENTITY.",
+    });
+    return;
   }
+
+  console.error('[AUTH_ERROR]', error);
   
   let title = "AUTHENTICATION_FAILED";
   let description = "SYSTEM UNABLE TO ESTABLISH LINK.";
   let variant: "default" | "destructive" = "destructive";
   
-  if (error.code === 'auth/invalid-credential') {
-    description = "INVALID EMAIL OR ACCESS KEY. ENSURE YOU HAVE INITIALIZED YOUR ACCOUNT.";
+  // Handle modern and legacy Firebase error codes
+  if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+    description = "INVALID CREDENTIALS. IF THIS IS YOUR FIRST ACCESS, PLEASE INITIALIZE VIA 'SIGN UP' TOGGLE.";
   } else if (error.code === 'auth/email-already-in-use') {
-    description = "THIS ENTITY IS ALREADY LINKED. PROCEED TO LOGIN.";
+    description = "THIS ENTITY IS ALREADY LINKED. PROCEED TO LOGIN PROTOCOL.";
   } else if (error.code === 'auth/weak-password') {
-    description = "ACCESS KEY STRENGTH INSUFFICIENT.";
-  } else if (error.code === 'auth/popup-closed-by-user') {
-    title = "LINK_CANCELLED";
-    description = "AUTHENTICATION WINDOW CLOSED BY ENTITY.";
-    variant = "default";
+    description = "ACCESS KEY STRENGTH INSUFFICIENT. MINIMUM 6 CHARACTERS REQUIRED.";
   } else if (error.code === 'auth/popup-blocked') {
-    description = "UPLINK BLOCKED BY BROWSER. ENABLE POPUPS TO PROCEED.";
+    description = "UPLINK BLOCKED BY BROWSER. ENABLE POPUPS TO PROCEED WITH GOOGLE LINK.";
+  } else if (error.code === 'auth/network-request-failed') {
+    description = "NEURAL LINK UNSTABLE. CHECK YOUR NETWORK CONNECTION.";
   }
 
   toast({
@@ -63,5 +68,7 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 /** Initiate Google Sign-In (non-blocking). */
 export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential | void> {
   const provider = new GoogleAuthProvider();
+  // Optional: Force account selection
+  provider.setCustomParameters({ prompt: 'select_account' });
   return signInWithPopup(authInstance, provider).catch(handleAuthError);
 }

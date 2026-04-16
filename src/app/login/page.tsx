@@ -28,31 +28,46 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) return;
+    
     setLoading(true);
-    
-    if (isSignUp) {
-      await initiateEmailSignUp(auth, email, password);
-    } else {
-      await initiateEmailSignIn(auth, email, password);
+    try {
+      if (isSignUp) {
+        await initiateEmailSignUp(auth, email, password);
+      } else {
+        await initiateEmailSignIn(auth, email, password);
+      }
+    } finally {
+      // Small delay to prevent flickering if redirect happens immediately
+      setTimeout(() => setLoading(false), 500);
     }
-    
-    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    await initiateGoogleSignIn(auth);
-    setLoading(false);
+    try {
+      await initiateGoogleSignIn(auth);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGuestSignIn = async () => {
     setLoading(true);
-    await initiateAnonymousSignIn(auth);
-    setLoading(false);
+    try {
+      await initiateAnonymousSignIn(auth);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const iconMotionProps = {
+    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
+    transition: { type: "spring", stiffness: 400, damping: 10 }
   };
 
   return (
-    <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-6 pt-32">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] rounded-full blur-[120px]" />
       </div>
@@ -64,14 +79,16 @@ export default function LoginPage() {
         className="w-full max-w-md space-y-12 relative z-10"
       >
         <div className="text-center space-y-6">
-          <Link href="/" className="inline-flex items-center gap-4 text-2xl font-black tracking-[0.8em] glow-text">
-            <Zap className="w-6 h-6" />
-            VOID WEAR
+          <Link href="/" className="inline-flex flex-col items-center gap-4 group">
+            <motion.div {...iconMotionProps}>
+              <Zap className="w-8 h-8 group-hover:text-white transition-all duration-700" />
+            </motion.div>
+            <span className="text-3xl font-black tracking-[0.8em] glow-text">VOID WEAR</span>
           </Link>
           <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase">AUTHENTICATION PROTOCOL</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
+        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">COMM-CHANNEL / EMAIL</label>
@@ -79,7 +96,7 @@ export default function LoginPage() {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40" 
+                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5" 
                 placeholder="ID@NETWORK.COM"
                 required
                 disabled={loading}
@@ -91,7 +108,7 @@ export default function LoginPage() {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40" 
+                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5" 
                 placeholder="••••••••"
                 required
                 disabled={loading}
@@ -101,7 +118,7 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+              className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -125,11 +142,11 @@ export default function LoginPage() {
                 variant="outline" 
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
+                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                   <>
-                    <Chrome className="mr-3 w-4 h-4" />
+                    <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
                     GOOGLE
                   </>
                 )}
@@ -139,11 +156,11 @@ export default function LoginPage() {
                 variant="outline" 
                 onClick={handleGuestSignIn}
                 disabled={loading}
-                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent"
+                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                   <>
-                    <Sparkles className="mr-3 w-4 h-4" />
+                    <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
                     GUEST
                   </>
                 )}
@@ -154,9 +171,10 @@ export default function LoginPage() {
 
         <div className="text-center">
           <button 
+            type="button"
             disabled={loading}
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-[10px] tracking-[0.3em] text-white/40 hover:text-white transition-colors uppercase font-bold"
+            className="text-[10px] tracking-[0.3em] text-white/40 hover:text-white transition-colors uppercase font-bold border-b border-white/5 hover:border-white pb-1"
           >
             {isSignUp ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
           </button>
