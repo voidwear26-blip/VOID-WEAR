@@ -1,15 +1,20 @@
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, collectionGroup } from 'firebase/firestore';
+import { collection, query, collectionGroup, writeBatch, doc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp, Settings, ShieldAlert, Lock, Loader2 } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, ShieldAlert, Lock, Loader2, Database, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { products as fallbackProducts } from '@/app/lib/products';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
+  const [seeding, setSeeding] = useState(false);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -37,6 +42,36 @@ export default function AdminDashboard() {
   }, [orders]);
 
   const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
+  const handleSeedData = async () => {
+    if (!db) return;
+    setSeeding(true);
+    try {
+      const batch = writeBatch(db);
+      fallbackProducts.forEach(product => {
+        const productRef = doc(db, 'products', product.id);
+        batch.set(productRef, {
+          ...product,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      });
+      await batch.commit();
+      toast({
+        title: "SYSTEM SYNC COMPLETE",
+        description: "INITIAL ASSEMBLAGE CATALOGUE DEPLOYED TO THE VOID.",
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "SYNC FAILURE",
+        description: "COULD NOT ESTABLISH UPLINK FOR SEED DATA.",
+      });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   if (isUserLoading) {
     return (
@@ -82,11 +117,21 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">SYSTEM COMMAND // DASHBOARD</span>
             <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase">Control Center</h1>
           </div>
-          <div className="bg-white/5 border border-white/10 px-6 py-4 backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" />
-              <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">ADMIN: {user?.email?.split('@')[0]}</span>
-            </div>
+          <div className="flex gap-4">
+             <Button 
+                onClick={handleSeedData} 
+                disabled={seeding}
+                className="bg-white/5 border border-white/10 px-6 py-7 h-auto rounded-none text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase hover:bg-white hover:text-black transition-all group"
+             >
+                {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />}
+                {seeding ? 'SYNCING...' : 'SYNC INITIAL CATALOG'}
+             </Button>
+             <div className="bg-white/5 border border-white/10 px-6 py-4 backdrop-blur-md hidden sm:flex items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" />
+                  <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">MASTER ADMIN</span>
+                </div>
+             </div>
           </div>
         </div>
 

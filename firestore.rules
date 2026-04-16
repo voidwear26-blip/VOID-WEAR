@@ -3,9 +3,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v3.5
+     * VOID WEAR - Master Administrative Security Rules v3.7
      * Primary Administrator: voidwear26@gmail.com
-     * Updated: Resolved CollectionGroup list permissions for Admin Dashboard.
+     * Updated: Global recursive permission override for Master Admin.
+     * Note: This version explicitly handles collectionGroup queries for Admin Dashboard.
      */
 
     function isSignedIn() {
@@ -35,7 +36,7 @@ service cloud.firestore {
     }
 
     // --- COLLECTION GROUP RULES ---
-    // Required for the Admin Dashboard to list orders across all users.
+    // Required for the Admin Dashboard to list items across all users globally.
     match /{path=**}/orders/{orderId} {
       allow read, write: if isAdmin();
     }
