@@ -15,6 +15,7 @@ export default function ProductsPage() {
   }, [db]);
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);
+  // Strictly use database products only
   const products = dbProducts || [];
 
   return (

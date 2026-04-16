@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
@@ -82,6 +83,7 @@ export default function NewProductPage() {
         updatedAt: new Date().toISOString()
       };
 
+      // Direct write with permission logging
       await addDoc(collection(db, 'products'), productData);
 
       toast({
@@ -93,8 +95,8 @@ export default function NewProductPage() {
       console.error('[PRODUCT_ADD_ERROR]', e);
       toast({
         variant: "destructive",
-        title: "SYSTEM ERROR",
-        description: e.message || "FAILED TO INITIALIZE MODULE. CHECK PERMISSIONS.",
+        title: "TRANSMISSION FAILED",
+        description: e.message || "COULD NOT SYNC WITH DATABASE. CHECK PERMISSIONS.",
       });
     } finally {
       setLoading(false);
