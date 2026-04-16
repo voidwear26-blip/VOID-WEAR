@@ -24,7 +24,6 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  // Use a stable greeting for the server, update only on client after mount
   const greeting = mounted && user 
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
     : 'OPERATOR';
@@ -37,7 +36,6 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
-      {/* Cinematic Solar Eclipse */}
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -55,7 +53,6 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Hero Content */}
       <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-72 md:pt-20">
         <div className="space-y-4">
           <motion.div
@@ -93,7 +90,7 @@ export function Hero() {
           transition={{ delay: 2, duration: 1.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12"
         >
-          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none transition-all duration-700">
+          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none transition-all duration-700 font-bold">
             <Link href="/products">ENTER SYSTEM</Link>
           </Button>
         </motion.div>

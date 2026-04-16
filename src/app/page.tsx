@@ -27,12 +27,12 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20 md:mb-32">
             <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">CATALOGUE // SEASON 01</span>
+              <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase font-bold">CATALOGUE // SEASON 01</span>
               <h2 className="text-4xl md:text-7xl font-bold tracking-tighter glow-text uppercase leading-none">
                 LATEST <br /> ASSEMBLAGES
               </h2>
             </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/40 hover:text-white transition-all duration-500 border-b border-white/5 hover:border-white pb-4 w-fit">
+            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/40 hover:text-white transition-all duration-500 border-b border-white/5 hover:border-white pb-4 w-fit uppercase">
               VIEW FULL COLLECTION
             </Link>
           </div>
@@ -51,7 +51,7 @@ export default function Home() {
             ) : (
               <div className="col-span-full py-32 text-center opacity-20 border border-dashed border-white/10 w-full flex flex-col items-center justify-center gap-6">
                 <Package className="w-12 h-12 stroke-[0.5px]" />
-                <p className="text-[10px] tracking-[0.8em] uppercase">SYSTEM AWAITING NEURAL SEED</p>
+                <p className="text-[10px] tracking-[0.8em] uppercase font-bold">SYSTEM AWAITING NEURAL SEED</p>
               </div>
             )}
           </div>
@@ -61,7 +61,7 @@ export default function Home() {
       <section className="py-64 bg-transparent overflow-hidden border-t border-white/5">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
-            <span className="text-[10px] tracking-[1em] text-white/20 uppercase">MANIFESTO</span>
+            <span className="text-[10px] tracking-[1em] text-white/20 uppercase font-bold">MANIFESTO</span>
             <h3 className="text-2xl md:text-5xl font-light tracking-[0.2em] leading-relaxed uppercase">
               WE ARE THE SHELL <br /> FOR YOUR <span className="text-white font-bold glow-text">DIGITAL MIGRATION</span>. 
               MINIMAL ARCHITECTURE FOR COMPLEX IDENTITIES.
@@ -83,7 +83,7 @@ export default function Home() {
                 <a 
                   key={social} 
                   href="#" 
-                  className="text-[9px] font-bold tracking-[0.4em] text-white/20 hover:text-white transition-all duration-300 hover:glow-text"
+                  className="text-[9px] font-bold tracking-[0.4em] text-white/20 hover:text-white transition-all duration-300 hover:glow-text uppercase"
                 >
                   {social}
                 </a>
@@ -93,7 +93,7 @@ export default function Home() {
           
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">RESOURCES</h4>
-            <div className="flex flex-col gap-6 text-[9px] text-white/20 tracking-[0.3em] uppercase">
+            <div className="flex flex-col gap-6 text-[9px] text-white/20 tracking-[0.3em] uppercase font-bold">
               <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
               <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
               <Link href="/privacy" className="hover:text-white transition-colors">PRIVACY PROTOCOL</Link>
@@ -103,12 +103,12 @@ export default function Home() {
 
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">TRANSMISSIONS</h4>
-            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase">FOR SUPPORT: VOIDWEAR26@GMAIL.COM</p>
+            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase font-bold">FOR SUPPORT: VOIDWEAR26@GMAIL.COM</p>
           </div>
         </div>
         
         <div className="container mx-auto px-6 mt-48 text-center">
-          <p className="text-[8px] text-white/10 tracking-[1.5em] uppercase">© 2024 VOID WEAR INC. SECURED TRANSMISSION.</p>
+          <p className="text-[8px] text-white/10 tracking-[1.5em] uppercase font-bold">© 2024 VOID WEAR INC. SECURED TRANSMISSION.</p>
         </div>
       </footer>
     </div>

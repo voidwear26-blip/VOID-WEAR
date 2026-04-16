@@ -1,4 +1,5 @@
-import { config } from 'dotenv';
-config();
 
-import '@/ai/flows/generate-outfit-suggestion.ts';
+/**
+ * @fileOverview SYSTEM_PURGE: AI Dev environment disabled.
+ */
+export {};
