@@ -42,9 +42,9 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     // Calling initiateGoogleSignIn immediately to minimize "auth/popup-blocked"
-    // caused by delayed state updates in strict browsers.
+    // caused by delayed state updates or async interruptions in strict browsers.
     setLoading(true);
     initiateGoogleSignIn(auth).finally(() => setLoading(false));
   };

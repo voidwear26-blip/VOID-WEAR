@@ -3,9 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Security Rules Architecture v1.3
+     * VOID WEAR - Security Rules Architecture v1.5
      * Optimized for Master Administrative Command and Global Logistics.
-     * Deployment Trigger: Explicit Admin Email Authorization Update.
+     * Deployment Trigger: Root-level Administrative Email Authorization Sync.
      */
 
     // --- HELPER FUNCTIONS ---
@@ -32,6 +32,7 @@ service cloud.firestore {
 
     // --- MASTER OVERRIDE ---
     // Universal access for the Master Administrator.
+    // This recursive wildcard match handles both single documents and collection group queries.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
@@ -89,11 +90,6 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow list: if isAdmin();
       allow write: if false; // Only manageable via Firebase Console.
-    }
-
-    // Collection Group Access (Required for Admin Dashboard queries)
-    match /{path=**}/orders/{orderId} {
-      allow list, get: if isAdmin();
     }
   }
 }
