@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v8.0
+     * VOID WEAR - Master Administrative Security Rules v9.0
      * Primary Administrator: voidwear26@gmail.com
      * Absolute Authority Override (Full Root + Collection Group Support)
      */
@@ -24,13 +24,14 @@ service cloud.firestore {
 
     // --- MASTER OVERRIDE ---
     // Grants absolute access to all paths for the Master Administrator.
-    // This recursive wildcard at root level handles all collections and subcollections.
+    // This recursive wildcard at root level handles all collections, subcollections, and collection group queries.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- COLLECTION GROUP OVERRIDES ---
     // Specifically allow admin to query 'orders' and 'items' across the entire database.
+    // Note: Collection group rules must match the last segment of the path.
     match /{path=**}/orders/{orderId} {
       allow read, write: if isAdmin();
     }
@@ -68,6 +69,6 @@ service cloud.firestore {
       allow get, list: if true;
     }
     
-    // Deployment Comment: Initializing Master Authority v8.0 - Full Collection Group Authorization
+    // Deployment Comment: Initializing Master Authority v9.0 - Absolute Root & Collection Group Clearance
   }
 }
