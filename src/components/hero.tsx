@@ -25,11 +25,11 @@ export function Hero() {
 
   if (!mounted) return null;
 
-  // Personalize greeting: use user email prefix if logged in
+  // Personalized greeting: use user email prefix if logged in
   const userGreeting = user ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') : 'WELCOME';
   
   const content = {
-    title: config?.heroTitle || 'SYSTEM01',
+    title: config?.heroTitle || 'VOID WEAR',
     subtitle: userGreeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   };
@@ -63,7 +63,7 @@ export function Hero() {
             transition={{ delay: 1, duration: 1.5 }}
           >
             <span className="text-[10px] md:text-xs font-bold tracking-[1.2em] text-white/30 uppercase">
-              SYSTEM01 // {content.subtitle}
+              VOID WEAR // {content.subtitle}
             </span>
           </motion.div>
           

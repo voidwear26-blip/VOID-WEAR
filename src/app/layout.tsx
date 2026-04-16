@@ -8,7 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'SYSTEM01 | ASCEND THE VOID',
+  title: 'VOID WEAR | ASCEND THE VOID',
   description: 'Premium futuristic technical shells for the digital migration.',
 };
 

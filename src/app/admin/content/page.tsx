@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -37,6 +36,14 @@ export default function BrandControlPage() {
         heroTagline: config.heroTagline || 'EMBRACE THE UNKNOWN',
         activeSeason: config.activeSeason || 'SEASON 01',
       });
+    } else {
+        // Default fallbacks if no config exists
+        setFormData({
+            heroTitle: 'VOID WEAR',
+            heroSubtitle: 'SYSTEM 01',
+            heroTagline: 'EMBRACE THE UNKNOWN',
+            activeSeason: 'SEASON 01',
+          });
     }
   }, [config]);
 

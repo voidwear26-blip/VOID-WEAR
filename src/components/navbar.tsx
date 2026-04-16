@@ -39,7 +39,7 @@ export function Navbar() {
               <motion.div {...iconMotionProps}>
                 <Zap className="w-4 h-4 group-hover:text-white transition-all duration-700" />
               </motion.div>
-              <span className="glow-text">SYSTEM01</span>
+              <span className="glow-text">VOID WEAR</span>
             </Link>
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">

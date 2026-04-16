@@ -43,7 +43,7 @@ export function AIAssistant() {
                 <motion.div {...iconMotionProps}>
                   <Sparkles className="w-4 h-4" />
                 </motion.div>
-                <span>SYSTEM01 STYLE LAB / NEURAL ENGINE</span>
+                <span>VOID WEAR STYLE LAB / NEURAL ENGINE</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight glow-text">
                 DEFINE YOUR <br /> DIGITAL AVATAR
