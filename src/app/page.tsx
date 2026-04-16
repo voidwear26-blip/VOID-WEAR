@@ -3,9 +3,7 @@
 
 import { Hero } from '@/components/hero';
 import { ProductCard } from '@/components/product-card';
-import { AIAssistant } from '@/components/ai-assistant';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
 import { Package } from 'lucide-react';
@@ -60,12 +58,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="relative border-y border-white/5 bg-transparent">
-        <div className="absolute top-0 left-0 w-1/2 h-full bg-white/[0.02] blur-3xl pointer-events-none"></div>
-        <AIAssistant />
-      </div>
-
-      <section className="py-64 bg-transparent overflow-hidden">
+      <section className="py-64 bg-transparent overflow-hidden border-t border-white/5">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-[1em] text-white/20 uppercase">MANIFESTO</span>
@@ -101,16 +94,16 @@ export default function Home() {
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">RESOURCES</h4>
             <div className="flex flex-col gap-6 text-[9px] text-white/20 tracking-[0.3em] uppercase">
-              <Link href="/shipping" className="hover:text-white transition-colors">Shipping & Returns</Link>
-              <Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link>
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Protocol</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
+              <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">PRIVACY PROTOCOL</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">TERMS OF SERVICE</Link>
             </div>
           </div>
 
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">TRANSMISSIONS</h4>
-            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase">FOR SUPPORT: voidwear26@gmail.com</p>
+            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase">FOR SUPPORT: VOIDWEAR26@GMAIL.COM</p>
           </div>
         </div>
         

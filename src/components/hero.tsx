@@ -96,9 +96,6 @@ export function Hero() {
           <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none transition-all duration-700">
             <Link href="/products">ENTER SYSTEM</Link>
           </Button>
-          <Button variant="outline" asChild className="border-white/10 text-white hover:border-white px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none bg-transparent transition-all duration-700">
-            <Link href="/assistant">NEURAL LAB</Link>
-          </Button>
         </motion.div>
       </div>
 

@@ -93,14 +93,7 @@ export default function NewProductPage() {
     }
   };
 
-  if (!mounted) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
-        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold text-center">INITIALIZING INTERFACE...</div>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">

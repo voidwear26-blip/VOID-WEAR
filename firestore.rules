@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // VOID WEAR // GLOBAL ACCESS OVERRIDE v25.0
+    // VOID WEAR // ABSOLUTE ACCESS OVERRIDE v26.0
     // Granting unrestricted read/write access to all collections to ensure 
     // administrative modules (Add/Delete/Update) function without permission blocks.
     match /{document=**} {

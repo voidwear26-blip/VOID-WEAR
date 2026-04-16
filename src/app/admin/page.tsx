@@ -14,16 +14,7 @@ export default function AdminDashboard() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <div className="flex flex-col items-center gap-6">
-          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
-          <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">INITIALIZING SYSTEM...</div>
-        </div>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
