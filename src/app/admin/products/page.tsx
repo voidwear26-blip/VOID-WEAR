@@ -1,15 +1,16 @@
+
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2 } from 'lucide-react';
+import { collection, doc, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { products as dummyProducts } from '@/app/lib/products';
+import { products as actualProducts } from '@/app/lib/products';
 
 export default function AdminProductsPage() {
   const { user, isUserLoading } = useUser();
@@ -30,10 +31,7 @@ export default function AdminProductsPage() {
     return collection(db, 'products');
   }, [db, isAdmin]);
 
-  const { data: dbProducts, isLoading: isCollectionLoading } = useCollection(productsQuery);
-  
-  // Logic: Show DB data if available, fallback to dummy only for empty DB or while loading auth
-  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : (isCollectionLoading ? [] : dummyProducts);
+  const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
 
   const filteredProducts = products?.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -41,16 +39,7 @@ export default function AdminProductsPage() {
   );
 
   const handleDelete = async (id: string) => {
-    if (!db) return;
-
-    if (!isAdmin) {
-      toast({
-        variant: "destructive",
-        title: "ACCESS DENIED",
-        description: "MASTER AUTHORITY REQUIRED FOR THIS OPERATION.",
-      });
-      return;
-    }
+    if (!db || !isAdmin) return;
 
     if (!confirm('CONFIRM DESTRUCTION OF PRODUCT MODULE?')) return;
     
@@ -75,7 +64,7 @@ export default function AdminProductsPage() {
     setSyncing(true);
     try {
       const batch = writeBatch(db);
-      dummyProducts.forEach(p => {
+      actualProducts.forEach(p => {
         const ref = doc(collection(db, 'products'));
         batch.set(ref, {
           ...p,
@@ -171,7 +160,7 @@ export default function AdminProductsPage() {
               <tr className="border-b border-white/5 bg-white/[0.02]">
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CATEGORY</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">PRICE (INR)</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">PRICE (₹)</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">STOCK</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">COMMANDS</th>
               </tr>

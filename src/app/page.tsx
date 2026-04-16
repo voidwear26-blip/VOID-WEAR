@@ -1,13 +1,14 @@
+
 'use client';
 
 import { Hero } from '@/components/hero';
 import { ProductCard } from '@/components/product-card';
 import { AIAssistant } from '@/components/ai-assistant';
-import { products as fallbackProducts } from '@/app/lib/products';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
+import { Package } from 'lucide-react';
 
 export default function Home() {
   const db = useFirestore();
@@ -18,7 +19,7 @@ export default function Home() {
   }, [db]);
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);
-  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : fallbackProducts.slice(0, 6);
+  const products = dbProducts || [];
 
   return (
     <div className="space-y-0 bg-transparent text-white">
@@ -43,11 +44,18 @@ export default function Home() {
               [1, 2, 3].map(i => (
                 <div key={i} className="min-w-[85vw] aspect-[3/4] bg-white/5 animate-pulse rounded-none" />
               ))
-            ) : products.map((product) => (
-              <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
-                <ProductCard product={product as any} />
+            ) : products.length > 0 ? (
+              products.map((product) => (
+                <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
+                  <ProductCard product={product as any} />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-32 text-center opacity-20 border border-dashed border-white/10 w-full flex flex-col items-center justify-center gap-6">
+                <Package className="w-12 h-12 stroke-[0.5px]" />
+                <p className="text-[10px] tracking-[0.8em] uppercase">SYSTEM AWAITING NEURAL SEED</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
         

@@ -1,10 +1,10 @@
+
 "use client"
 
-import { products as staticProducts } from '@/app/lib/products';
 import { ProductCard } from '@/components/product-card';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Package } from 'lucide-react';
 
 export default function ProductsPage() {
   const db = useFirestore();
@@ -15,7 +15,7 @@ export default function ProductsPage() {
   }, [db]);
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);
-  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : staticProducts;
+  const products = dbProducts || [];
 
   return (
     <div className="pt-48 pb-32 bg-transparent min-h-screen">
@@ -33,11 +33,19 @@ export default function ProductsPage() {
             <Loader2 className="w-8 h-8 animate-spin mb-4" />
             <p className="text-[10px] tracking-[1em] uppercase">Syncing Assemblages...</p>
           </div>
-        ) : (
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             {products.map((product) => (
               <ProductCard key={product.id} product={product as any} />
             ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-48 text-center space-y-8 opacity-20 border border-dashed border-white/10">
+            <Package className="w-16 h-16 stroke-[0.5px]" />
+            <div className="space-y-2">
+              <p className="text-[10px] tracking-[1em] uppercase font-bold">NO MODULES LOGGED</p>
+              <p className="text-[8px] tracking-[0.3em] uppercase max-w-xs mx-auto">DATABASE DISCONNECTED OR EMPTY. USE COMMAND CENTER TO INITIALIZE CATALOGUE.</p>
+            </div>
           </div>
         )}
       </div>

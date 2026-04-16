@@ -1,7 +1,8 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // MASTER AUTHORITY PROTOCOL v14.0
+    // MASTER AUTHORITY PROTOCOL v15.0
     // Explicitly grants absolute authority to the master administrator account.
     function isAdmin() {
       return request.auth != null && 
@@ -10,7 +11,7 @@ service cloud.firestore {
     }
 
     // 1. ABSOLUTE ADMINISTRATIVE OVERRIDE
-    // Grants full recursive read/write access to any document if identified as Admin.
+    // This rule takes precedence and allows any operation if identified as Admin.
     match /{document=**} {
       allow read, write: if isAdmin();
     }

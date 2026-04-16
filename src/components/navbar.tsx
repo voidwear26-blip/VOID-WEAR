@@ -1,7 +1,8 @@
+
 "use client"
 
 import Link from 'next/link';
-import { ShoppingBag, User, Zap, LogOut } from 'lucide-react';
+import { ShoppingBag, User, Zap, LogOut, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
@@ -45,12 +46,15 @@ export function Navbar() {
             </Link>
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
-              <Link href="/products" className="text-white/30 hover:text-white transition-all duration-500 uppercase">Collection</Link>
-              <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500 uppercase">AI Lab</Link>
-              <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500 uppercase">Story</Link>
-              <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500 uppercase">Contact</Link>
-              {isAdmin && (
-                <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5 uppercase">Admin Command</Link>
+              <Link href="/products" className="text-white/30 hover:text-white transition-all duration-500 uppercase">COLLECTION</Link>
+              <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500 uppercase">AI LAB</Link>
+              <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500 uppercase">STORY</Link>
+              <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500 uppercase">CONTACT</Link>
+              {mounted && isAdmin && (
+                <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5 uppercase flex items-center gap-2">
+                  <ShieldAlert className="w-3 h-3 text-red-500 animate-pulse" />
+                  COMMAND CENTER
+                </Link>
               )}
             </div>
           </div>
