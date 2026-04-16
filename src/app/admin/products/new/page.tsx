@@ -1,10 +1,11 @@
+
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Sparkles, Plus, X } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,11 +15,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
 export default function NewProductPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,7 +38,7 @@ export default function NewProductPage() {
     details: ''
   });
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = mounted && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -47,18 +53,25 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !isAdmin) return;
+    if (!db || !isAdmin) {
+      toast({
+        variant: "destructive",
+        title: "ACCESS DENIED",
+        description: "MASTER AUTHORITY REQUIRED FOR THIS OPERATION.",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
       const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
       
-      await addDoc(collection(db, 'products'), {
+      const productData = {
         name: formData.name.toUpperCase(),
         category: formData.category.toUpperCase(),
-        basePrice: parseFloat(formData.basePrice),
+        basePrice: parseFloat(formData.basePrice) || 0,
         description: formData.description,
-        imageUrls: [formData.imageUrl || 'https://picsum.photos/seed/' + Math.random() + '/800/1000'],
+        imageUrls: [formData.imageUrl || `https://picsum.photos/seed/${Math.random()}/800/1000`],
         stockQuantity: parseInt(formData.stockQuantity) || 0,
         color: formData.color.toUpperCase(),
         sizes: formData.sizes,
@@ -66,29 +79,40 @@ export default function NewProductPage() {
         slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      };
+
+      await addDoc(collection(db, 'products'), productData);
 
       toast({
-        title: "MODULE CREATED",
-        description: "ASSEMBLAGE ADDED TO CATALOGUE.",
+        title: "MODULE INITIALIZED",
+        description: "ASSEMBLAGE SUCCESSFULLY LOGGED IN CATALOGUE.",
       });
       router.push('/admin/products');
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       toast({
         variant: "destructive",
         title: "SYSTEM ERROR",
-        description: "FAILED TO INITIALIZE MODULE.",
+        description: e.message || "FAILED TO INITIALIZE MODULE.",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  if (!mounted || isUserLoading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-black">
+        <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
+        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
-        Authenticating Protocol...
+        ACCESS DENIED // MASTER ONLY
       </div>
     );
   }
@@ -130,7 +154,7 @@ export default function NewProductPage() {
 
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (INR ₹)</label>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (₹ INR)</label>
               <Input 
                 required
                 type="number"

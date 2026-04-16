@@ -1,34 +1,40 @@
+
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { products as dummyProducts } from '@/app/lib/products';
 
 export default function AdminProductsPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAdmin = mounted && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collection(db, 'products');
   }, [db, isAdmin]);
 
-  const { data: dbProducts, isLoading } = useCollection(productsQuery);
+  const { data: dbProducts, isLoading: isCollectionLoading } = useCollection(productsQuery);
   
-  // Efficient fallback logic: prioritize DB data, then dummy data for prototyping
-  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : dummyProducts;
+  // Logic: Show DB data if available, fallback to dummy only for empty DB or while loading auth
+  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : (isCollectionLoading ? [] : dummyProducts);
 
   const filteredProducts = products?.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -45,12 +51,12 @@ export default function AdminProductsPage() {
         title: "MODULE DELETED",
         description: "CATALOGUE UPDATED.",
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       toast({
         variant: "destructive",
-        title: "PERMISSION ERROR",
-        description: "DATABASE ACCESS RESTRICTED."
+        title: "SYSTEM ERROR",
+        description: e.message || "FAILED TO DELETE MODULE."
       });
     }
   };
@@ -73,18 +79,31 @@ export default function AdminProductsPage() {
         title: "NEURAL SEED COMPLETE",
         description: "INITIAL CATALOGUE SYNCED TO SYSTEM.",
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast({ variant: "destructive", title: "SYNC FAILED" });
+      toast({ 
+        variant: "destructive", 
+        title: "SYNC FAILED",
+        description: e.message 
+      });
     } finally {
       setSyncing(false);
     }
   };
 
+  if (!mounted || isUserLoading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-black">
+        <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
+        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
-        Authenticating Protocol...
+        ACCESS DENIED // MASTER ONLY
       </div>
     );
   }
@@ -141,7 +160,7 @@ export default function AdminProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {isLoading ? (
+              {isCollectionLoading ? (
                 [1, 2, 3].map(i => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />

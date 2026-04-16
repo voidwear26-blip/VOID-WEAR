@@ -7,41 +7,34 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == 'voidwear26@gmail.com';
     }
 
-    // User Collection Listing (Needed for Admin Dashboard)
-    match /users {
-      allow list: if isAdmin();
+    // 1. ABSOLUTE ADMINISTRATIVE OVERRIDE
+    // This grants full access to all paths for the admin entity.
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
 
-    // Product Collection Listing
+    // 2. PUBLIC PRODUCT CATALOG
     match /products {
       allow list: if true;
     }
-
-    // Product Catalog Documents
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
     }
 
-    // User Data & Orders
-    match /users/{userId}/{document=**} {
-      allow read, write: if (request.auth != null && request.auth.uid == userId) || isAdmin();
-    }
-
-    // App Configuration
-    match /app_config/{document=**} {
+    // 3. GLOBAL APP CONFIGURATION
+    match /app_config/{configId} {
       allow read: if true;
-      allow write: if isAdmin();
     }
 
-    // Global Search & Listing (Needed for Transmissions)
+    // 4. USER SPECIFIC DATA
+    // Allows users to manage their own profile, orders, and cart.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 5. GLOBAL SEARCH (For Admin Logistics)
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin();
-    }
-
-    // Root Level Fallback for Administrative Control
-    match /{document=**} {
-      allow read, write: if isAdmin();
     }
   }
 }
