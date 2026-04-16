@@ -6,25 +6,16 @@ import { ProductCard } from '@/components/product-card';
 import { AIAssistant } from '@/components/ai-assistant';
 import { products as fallbackProducts } from '@/app/lib/products';
 import Link from 'next/link';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, limit, query } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  const db = useFirestore();
-
-  const featuredProductsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'products'), limit(6));
-  }, [db]);
-
-  const { data: dbProducts, isLoading } = useCollection(featuredProductsQuery);
-  const products = dbProducts || fallbackProducts.slice(0, 6);
+  // Use static library directly - database connection removed.
+  const products = fallbackProducts.slice(0, 6);
 
   return (
     <div className="space-y-0 bg-transparent text-white">
       <Hero />
       
-      {/* Featured Collection Section */}
       <section className="py-24 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20 md:mb-32">
@@ -39,7 +30,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Horizontal scroll on mobile, grid on desktop */}
           <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16 overflow-x-auto md:overflow-visible pb-12 -mx-6 px-6 md:mx-0 md:px-0 no-scrollbar snap-x snap-mandatory scroll-smooth">
             {products.map((product) => (
               <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
@@ -49,17 +39,14 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Background Decorative Element */}
         <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
       </section>
 
-      {/* Experimental AI Lab Section */}
       <div className="relative border-y border-white/5 bg-transparent">
         <div className="absolute top-0 left-0 w-1/2 h-full bg-white/[0.02] blur-3xl pointer-events-none"></div>
         <AIAssistant />
       </div>
 
-      {/* Brand Manifesto Section */}
       <section className="py-64 bg-transparent overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
@@ -73,7 +60,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Immersive Footer */}
       <footer className="py-48 bg-transparent border-t border-white/5">
         <div className="container mx-auto px-6 grid md:grid-cols-4 gap-24">
           <div className="md:col-span-2 space-y-12">
@@ -107,14 +93,6 @@ export default function Home() {
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">TRANSMISSIONS</h4>
             <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase">FOR SUPPORT: voidwear26@gmail.com</p>
-            <div className="flex gap-2 border-b border-white/10 pb-4">
-              <input 
-                type="email" 
-                placeholder="EMAIL@CHANNEL.COM" 
-                className="bg-transparent px-0 py-2 text-[9px] tracking-[0.4em] flex-1 focus:outline-none placeholder:text-white/10 text-white"
-              />
-              <button className="text-[9px] font-bold tracking-[0.5em] text-white hover:glow-text">JOIN</button>
-            </div>
           </div>
         </div>
         

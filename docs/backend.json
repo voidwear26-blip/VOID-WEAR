@@ -37,60 +37,12 @@
         "id",
         "email"
       ]
-    },
-    "Order": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "orderNumber": { "type": "string" },
-        "totalAmount": { "type": "number" },
-        "shippingStatus": { "type": "string", "enum": ["processing", "shipped", "delivered", "cancelled"] },
-        "trackingId": { "type": "string" },
-        "courierPartner": { "type": "string" },
-        "orderDate": { "type": "string", "format": "date-time" }
-      }
-    },
-    "AppConfig": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AppConfig",
-      "type": "object",
-      "description": "Global application settings for content and brand control.",
-      "properties": {
-        "heroTitle": { "type": "string" },
-        "heroSubtitle": { "type": "string" },
-        "heroTagline": { "type": "string" },
-        "activeSeason": { "type": "string" },
-        "isMaintenanceMode": { "type": "boolean" }
-      }
     }
   },
   "auth": {
     "providers": [
       "password",
       "anonymous"
-    ]
-  },
-  "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "user",
-          "schema": { "$ref": "#/backend/entities/User" },
-          "description": "User profiles and account status."
-        }
-      },
-      {
-        "path": "/app_config/global",
-        "definition": {
-          "entityName": "appConfig",
-          "schema": { "$ref": "#/backend/entities/AppConfig" },
-          "description": "Singleton document for global site content."
-        }
-      }
     ]
   }
 }

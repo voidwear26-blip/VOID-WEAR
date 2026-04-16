@@ -1,20 +1,19 @@
+
 "use client"
 
 import Link from 'next/link';
-import { ShoppingBag, User, Zap, LogOut, Settings } from 'lucide-react';
+import { ShoppingBag, User, Zap, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
 import { motion } from 'framer-motion';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useAuth } from '@/firebase';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { user } = useUser();
   const auth = useAuth();
-  const db = useFirestore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,14 +22,6 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const cartItemsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
-  }, [db, user]);
-  
-  const { data: cartItems } = useCollection(cartItemsQuery);
-  const itemCount = cartItems?.length || 0;
 
   const isAdmin = user?.email === 'voidwear26@gmail.com';
 
@@ -103,13 +94,6 @@ export function Navbar() {
               <motion.div {...iconMotionProps}>
                 <ShoppingBag className="w-4 h-4 group-hover:glow-text" />
               </motion.div>
-              {itemCount > 0 && (
-                <motion.span 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-3 right-3 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_white]"
-                />
-              )}
             </Button>
           </div>
         </div>

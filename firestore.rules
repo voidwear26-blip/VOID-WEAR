@@ -1,75 +1,9 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * VOID WEAR - Master Administrative Security Rules v10.0
-     * Primary Administrator: voidwear26@gmail.com
-     * Absolute Authority Override (Full Root + Collection Group + Global List Support)
-     */
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == "voidwear26@gmail.com"
-      );
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // --- MASTER OVERRIDE ---
-    // Grants absolute access to all paths for the Master Administrator.
     match /{document=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if false;
     }
-
-    // --- COLLECTION GROUP OVERRIDES ---
-    match /{path=**}/orders/{orderId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /{path=**}/items/{itemId} {
-      allow read, write: if isAdmin();
-    }
-
-    // --- STANDARD ENTITY RULES ---
-    match /users/{userId} {
-      // Explicitly allow admin to list users
-      allow list: if isAdmin();
-      allow get, create, update: if isOwner(userId);
-
-      match /orders/{orderId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-      
-      match /carts/{cartId}/{allSubcollections=**} {
-        allow read, write: if isOwner(userId);
-      }
-      
-      match /wishlist/{wishId} {
-        allow read, write: if isOwner(userId);
-      }
-      
-      match /addresses/{addrId} {
-        allow read, write: if isOwner(userId);
-      }
-    }
-
-    match /app_config/{configId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-
-    match /products/{productId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Deployment Comment: Initializing Master Authority v10.0 - Absolute Root & User List Clearance
   }
 }

@@ -1,36 +1,17 @@
+
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/app/lib/products-service';
-import { Plus, Check, Loader2, Heart } from 'lucide-react';
+import { Plus, Heart } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { addToCart } from '@/firebase/cart-actions';
-import { useToast } from '@/hooks/use-toast';
-import { toggleWishlist } from '@/firebase/wishlist-actions';
-import { collection } from 'firebase/firestore';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { user } = useUser();
-  const db = useFirestore();
-  const { toast } = useToast();
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-
-  const wishlistQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'wishlist');
-  }, [db, user]);
-  
-  const { data: wishlist } = useCollection(wishlistQuery);
-  const isWishlisted = wishlist?.some(item => item.productId === product.id);
-
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -57,37 +38,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleMouseLeave = () => {
     x.set(0);
     y.set(0);
-  };
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!user) {
-      toast({
-        title: "ACCESS DENIED",
-        description: "AUTHENTICATION REQUIRED FOR CART ACCESS.",
-      });
-      return;
-    }
-
-    setAdding(true);
-    try {
-      await addToCart(db!, user.uid, product.id);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const handleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user || !db) return;
-    await toggleWishlist(db, user.uid, product);
   };
 
   const iconMotionProps = {
@@ -130,22 +80,18 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute top-6 right-6 z-20">
             <motion.button 
               {...iconMotionProps}
-              onClick={handleWishlist}
-              className={`p-3 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 ${isWishlisted ? 'bg-white text-black' : 'bg-black/40 text-white/40 hover:text-white'}`}
+              className="p-3 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 bg-black/40 text-white/40 hover:text-white"
             >
-              <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
+              <Heart className="w-3.5 h-3.5" />
             </motion.button>
           </div>
 
-          <motion.button 
-            onClick={handleAddToCart}
-            disabled={adding}
+          <motion.div 
             whileHover={{ scale: 1.1, filter: "drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))" }}
-            whileTap={{ scale: 0.9 }}
             className="absolute bottom-6 right-6 w-12 h-12 bg-white text-black rounded-none flex items-center justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 z-10"
           >
-            {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : added ? <Check className="w-5 h-5" /> : <Plus className="w-6 h-6" />}
-          </motion.button>
+            <Plus className="w-6 h-6" />
+          </motion.div>
 
           <div className="absolute top-6 left-6 text-[8px] tracking-[0.5em] font-bold text-white/40 group-hover:text-white transition-colors">
             {product.category?.toUpperCase() || 'UNCLASSIFIED'}
