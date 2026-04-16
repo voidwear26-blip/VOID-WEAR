@@ -3,10 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Security Rules Architecture v1.9
-     * Optimized for Master Administrative Command and Global Logistics.
-     * Fixed: Root level list authorization for administrative entities.
-     * Deployment Trigger: Root-level Administrative Email Authorization Sync.
+     * VOID WEAR - Master Administrative Security Rules v2.1
+     * Primary Administrator: voidwear26@gmail.com
+     * Status: Master Override Enabled
      */
 
     // --- HELPER FUNCTIONS ---
@@ -17,10 +16,13 @@ service cloud.firestore {
 
     /** 
      * @description Master Admin Authorization.
-     * Checks for the hardcoded master email.
+     * Grants full root-level access to the designated administrator.
      */
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email == "voidwear26@gmail.com";
+      return isSignedIn() && (
+        request.auth.token.email == "voidwear26@gmail.com" || 
+        exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid))
+      );
     }
 
     function isOwner(userId) {
@@ -28,22 +30,23 @@ service cloud.firestore {
     }
 
     // --- MASTER OVERRIDE ---
-    // Universal access for the Master Administrator at the root level.
-    // This allows collectionGroup queries and global list operations.
+    // This is the absolute authority rule for the Command Center.
+    // It permits all operations at any path (including collectionGroups) for the admin.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- COLLECTION RULES ---
+    // --- COLLECTION RULES (FALLBACKS FOR STANDARD USERS) ---
 
     // Users & Profiles
     match /users/{userId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
-      allow delete: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
 
-      // Sub-collections inherit owner/admin access.
+      // Sub-collections (orders, cart, wishlist)
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
@@ -66,11 +69,9 @@ service cloud.firestore {
       }
     }
 
-    // System Roles (Read-only for identification)
-    match /app_roles/admin/{adminId} {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow write: if false; // Only manageable via Firebase Console.
+    // Root-level orders (for collectionGroup queries)
+    match /users/{userId}/orders/{orderId} {
+      allow read, write: if isOwner(userId) || isAdmin();
     }
   }
 }

@@ -3,7 +3,7 @@
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, collectionGroup } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp, Settings, ShieldAlert, Lock } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp, Settings, ShieldAlert, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
@@ -36,29 +36,35 @@ export default function AdminDashboard() {
     return { totalSales, orderCount: orders.length };
   }, [orders]);
 
-  const isAdmin = user?.email === 'voidwear26@gmail.com';
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   if (isUserLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-[10px] tracking-[1em] animate-pulse">AUTHENTICATING...</div>
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+          <div className="text-[10px] tracking-[1em] text-white/40 uppercase">Authenticating Protocol...</div>
+        </div>
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center">
+      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center bg-black">
         <Lock className="w-12 h-12 text-white/20" />
         <h2 className="text-xl font-bold tracking-[0.5em] glow-text">ACCESS DENIED</h2>
         <p className="text-[10px] text-white/40 tracking-[0.3em] max-w-xs uppercase leading-relaxed">
-          THIS TERMINAL IS RESTRICTED TO AUTHORIZED ADMINISTRATORS ONLY.
+          THIS TERMINAL IS RESTRICTED TO MASTER ADMINISTRATOR: VOIDWEAR26@GMAIL.COM.
         </p>
-        <Link href="/">
-          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all">
-            RETURN TO SURFACE
-          </button>
-        </Link>
+        <div className="pt-8">
+          <p className="text-[8px] text-white/10 tracking-[0.4em] uppercase mb-8">CURRENT ENTITY: {user?.email || 'ANONYMOUS'}</p>
+          <Link href="/">
+            <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all">
+              RETURN TO SURFACE
+            </button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -79,7 +85,7 @@ export default function AdminDashboard() {
           <div className="bg-white/5 border border-white/10 px-6 py-4 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" />
-              <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">OPERATIONS STABLE</span>
+              <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">ADMIN: {user?.email?.split('@')[0]}</span>
             </div>
           </div>
         </div>
