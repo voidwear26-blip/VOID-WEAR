@@ -54,8 +54,8 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Hero Content - pt-56 for mobile safe zone to avoid Navbar overlap */}
-      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-56 md:pt-20">
+      {/* Hero Content - increased padding-top to avoid header overlap on mobile */}
+      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-64 md:pt-20">
         <div className="space-y-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
