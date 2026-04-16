@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Security Rules Architecture v1.2
+     * VOID WEAR - Security Rules Architecture v1.3
      * Optimized for Master Administrative Command and Global Logistics.
      * Deployment Trigger: Explicit Admin Email Authorization Update.
      */
@@ -16,13 +16,10 @@ service cloud.firestore {
 
     /** 
      * @description Master Admin Authorization.
-     * Checks for the hardcoded master email or presence in the admin roles collection.
+     * Checks for the hardcoded master email.
      */
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == "voidwear26@gmail.com" ||
-        exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid))
-      );
+      return isSignedIn() && request.auth.token.email == "voidwear26@gmail.com";
     }
 
     function isOwner(userId) {
