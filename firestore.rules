@@ -3,9 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v9.0
+     * VOID WEAR - Master Administrative Security Rules v10.0
      * Primary Administrator: voidwear26@gmail.com
-     * Absolute Authority Override (Full Root + Collection Group Support)
+     * Absolute Authority Override (Full Root + Collection Group + Global List Support)
      */
 
     function isSignedIn() {
@@ -24,14 +24,11 @@ service cloud.firestore {
 
     // --- MASTER OVERRIDE ---
     // Grants absolute access to all paths for the Master Administrator.
-    // This recursive wildcard at root level handles all collections, subcollections, and collection group queries.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- COLLECTION GROUP OVERRIDES ---
-    // Specifically allow admin to query 'orders' and 'items' across the entire database.
-    // Note: Collection group rules must match the last segment of the path.
     match /{path=**}/orders/{orderId} {
       allow read, write: if isAdmin();
     }
@@ -42,10 +39,12 @@ service cloud.firestore {
 
     // --- STANDARD ENTITY RULES ---
     match /users/{userId} {
+      // Explicitly allow admin to list users
+      allow list: if isAdmin();
       allow get, create, update: if isOwner(userId);
 
       match /orders/{orderId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
       
       match /carts/{cartId}/{allSubcollections=**} {
@@ -63,12 +62,14 @@ service cloud.firestore {
 
     match /app_config/{configId} {
       allow get, list: if true;
+      allow write: if isAdmin();
     }
 
     match /products/{productId} {
       allow get, list: if true;
+      allow write: if isAdmin();
     }
     
-    // Deployment Comment: Initializing Master Authority v9.0 - Absolute Root & Collection Group Clearance
+    // Deployment Comment: Initializing Master Authority v10.0 - Absolute Root & User List Clearance
   }
 }

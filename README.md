@@ -42,7 +42,7 @@ The platform is built on a cutting-edge "Neo-Tokyo" stack:
 
 ## 🔐 SECURITY PROTOCOLS
 
-- **Master Override**: The platform uses hardened Firestore Security Rules (v9.0) that prioritize the Master Administrator for cross-collection queries.
+- **Master Override**: The platform uses hardened Firestore Security Rules (v10.0) that prioritize the Master Administrator for cross-collection queries.
 - **Guarded Queries**: Admin pages utilize "Query Guarding" to prevent unauthorized Firestore link attempts before identity verification.
 - **Encryption**: All transactions are protected by Razorpay's HMAC signature verification and standard SSL/TLS protocols.
 
