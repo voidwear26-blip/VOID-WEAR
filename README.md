@@ -1,3 +1,4 @@
+
 # 🌑 VOID WEAR // SYSTEM MANIFESTO
 
 **VOID WEAR** is a premium futuristic e-commerce platform designed for the digital migration. It provides high-performance technical "assemblages" (apparel) characterized by minimalist architecture and cinematic aesthetics.
@@ -9,7 +10,7 @@ In an era where identities are increasingly fluid and virtual, VOID WEAR serves 
 
 ## 🛠️ TECHNICAL ARCHITECTURE
 
-The platform is built on a cutting-edge "Neo-Tokyo" stack:
+The platform is built on a high-performance "Neo-Tokyo" stack:
 
 - **Framework**: [Next.js 15 (App Router)](https://nextjs.org/) - Optimized for high-speed neural rendering and server-side performance.
 - **Database**: [Firebase Firestore](https://firebase.google.com/products/firestore) - Real-time synchronization of inventory and transmissions.
@@ -17,7 +18,7 @@ The platform is built on a cutting-edge "Neo-Tokyo" stack:
 - **AI Engine**: [Genkit](https://firebase.google.com/docs/genkit) - Powers the **Neural Stylist**, an experimental LLM interface for outfit curation.
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [ShadCN UI](https://ui.shadcn.com/) - A custom-themed component library with cinematic "Glow" utilities.
 - **Animations**: [Framer Motion](https://www.framer.com/motion/) - Provides smooth, fluid transitions across the digital void.
-- **Logistics**: [Razorpay](https://razorpay.com/) - Secure payment gateway for global expedition credits.
+- **Logistics**: [Razorpay](https://razorpay.com/) - Secure payment gateway for global expedition credits in Rupees (₹).
 
 ---
 
@@ -42,7 +43,7 @@ The platform is built on a cutting-edge "Neo-Tokyo" stack:
 
 ## 🔐 SECURITY PROTOCOLS
 
-- **Master Override**: The platform uses hardened Firestore Security Rules (v10.0) that prioritize the Master Administrator for cross-collection queries.
+- **Master Override**: The platform uses hardened Firestore Security Rules (v12.0) that prioritize the Master Administrator for cross-collection queries and global entity listings.
 - **Guarded Queries**: Admin pages utilize "Query Guarding" to prevent unauthorized Firestore link attempts before identity verification.
 - **Encryption**: All transactions are protected by Razorpay's HMAC signature verification and standard SSL/TLS protocols.
 

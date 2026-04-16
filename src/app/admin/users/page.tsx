@@ -1,25 +1,32 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
 
 export default function AdminUsersPage() {
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
 
-  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAdmin = mounted && currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const usersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collection(db, 'users');
   }, [db, isAdmin]);
 
-  const { data: users, isLoading } = useCollection(usersQuery);
+  const { data: users, isLoading: isCollectionLoading } = useCollection(usersQuery);
 
   const toggleBlockStatus = async (userId: string, currentStatus: boolean) => {
     if (!db) return;
@@ -38,10 +45,21 @@ export default function AdminUsersPage() {
     }
   };
 
+  if (!mounted || isUserLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+          <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
-        Authenticating Protocol...
+        ACCESS DENIED // MASTER ONLY
       </div>
     );
   }
@@ -75,7 +93,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {isLoading ? (
+                {isCollectionLoading ? (
                   [1, 2, 3].map(i => (
                     <tr key={i} className="animate-pulse">
                       <td colSpan={4} className="px-10 py-12 bg-white/[0.01]" />

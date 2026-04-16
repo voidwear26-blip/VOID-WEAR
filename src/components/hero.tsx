@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -24,7 +25,6 @@ export function Hero() {
   }, []);
 
   // Personalized greeting: use user email prefix if logged in
-  // Default to 'WELCOME' on server to avoid hydration mismatch
   const userGreeting = (mounted && user) 
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
     : 'WELCOME';
@@ -109,7 +109,7 @@ export function Hero() {
         className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
       >
         <div className="w-px h-16 bg-gradient-to-b from-white/30 to-transparent"></div>
-        <span className="text-[8px] tracking-[1.2em] text-white/10 uppercase">DESCEND</span>
+        <span className="text-[8px] tracking-[1.2em] text-white/10 uppercase font-bold">DESCEND</span>
       </motion.div>
     </section>
   );

@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -24,7 +25,7 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isAdmin = user?.email === 'voidwear26@gmail.com';
+  const isAdmin = mounted && user?.email === 'voidwear26@gmail.com';
 
   const iconMotionProps = {
     whileHover: { scale: 1.2, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))" },
@@ -45,12 +46,12 @@ export function Navbar() {
             </Link>
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
-              <Link href="/products" className="text-white/30 hover:text-white transition-all duration-500">COLLECTION</Link>
-              <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500">AI LAB</Link>
-              <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500">STORY</Link>
-              <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500">CONTACT</Link>
-              {mounted && isAdmin && (
-                <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5">ADMIN COMMAND</Link>
+              <Link href="/products" className="text-white/30 hover:text-white transition-all duration-500 uppercase">Collection</Link>
+              <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500 uppercase">AI Lab</Link>
+              <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500 uppercase">Story</Link>
+              <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500 uppercase">Contact</Link>
+              {isAdmin && (
+                <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5 uppercase">Admin Command</Link>
               )}
             </div>
           </div>

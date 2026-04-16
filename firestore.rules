@@ -7,7 +7,17 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == 'voidwear26@gmail.com';
     }
 
-    // Product Catalog Permissions
+    // User Collection Listing (Needed for Admin Dashboard)
+    match /users {
+      allow list: if isAdmin();
+    }
+
+    // Product Collection Listing
+    match /products {
+      allow list: if true;
+    }
+
+    // Product Catalog Documents
     match /products/{productId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -24,15 +34,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Global Search & Listing (Needed for Admin Dashboard)
+    // Global Search & Listing (Needed for Transmissions)
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin();
     }
 
-    // Root Level Fallback
+    // Root Level Fallback for Administrative Control
     match /{document=**} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
   }
 }
