@@ -29,7 +29,7 @@ export function Hero() {
   const userGreeting = user ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') : 'WELCOME';
   
   const content = {
-    title: config?.heroTitle || 'VOID WEAR',
+    title: config?.heroTitle || 'SYSTEM01',
     subtitle: userGreeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   };
@@ -63,7 +63,7 @@ export function Hero() {
             transition={{ delay: 1, duration: 1.5 }}
           >
             <span className="text-[10px] md:text-xs font-bold tracking-[1.2em] text-white/30 uppercase">
-              VOID WEAR // {content.subtitle}
+              SYSTEM01 // {content.subtitle}
             </span>
           </motion.div>
           
@@ -93,7 +93,7 @@ export function Hero() {
           className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12"
         >
           <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none transition-all duration-700">
-            <Link href="/products">ENTER VOID</Link>
+            <Link href="/products">ENTER SYSTEM</Link>
           </Button>
           <Button variant="outline" asChild className="border-white/10 text-white hover:border-white px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none bg-transparent transition-all duration-700">
             <Link href="/assistant">NEURAL LAB</Link>

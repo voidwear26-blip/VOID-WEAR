@@ -43,13 +43,13 @@ export function AIAssistant() {
                 <motion.div {...iconMotionProps}>
                   <Sparkles className="w-4 h-4" />
                 </motion.div>
-                <span>AI STYLE LAB / NEURAL ENGINE</span>
+                <span>SYSTEM01 STYLE LAB / NEURAL ENGINE</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight glow-text">
                 DEFINE YOUR <br /> DIGITAL AVATAR
               </h2>
               <p className="text-white/60 tracking-widest text-sm leading-relaxed max-w-md">
-                INPUT YOUR VIBE, OCCASION, OR DESIRED AESTHETIC. OUR NEURAL NETWORK WILL CURATE THE PERFECT VOID ASSEMBLAGE.
+                INPUT YOUR VIBE, OCCASION, OR DESIRED AESTHETIC. OUR NEURAL NETWORK WILL CURATE THE PERFECT SYSTEM ASSEMBLAGE.
               </p>
             </div>
 

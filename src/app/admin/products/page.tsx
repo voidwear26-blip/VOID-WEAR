@@ -1,5 +1,4 @@
-
-'use client';
+"use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
@@ -72,7 +71,7 @@ export default function AdminProductsPage() {
       await batch.commit();
       toast({
         title: "NEURAL SEED COMPLETE",
-        description: "INITIAL CATALOGUE SYNCED TO VOID.",
+        description: "INITIAL CATALOGUE SYNCED TO SYSTEM.",
       });
     } catch (e) {
       console.error(e);

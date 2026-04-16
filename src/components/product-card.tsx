@@ -1,5 +1,4 @@
-
-'use client';
+"use client"
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -101,7 +100,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="p-8 space-y-4">
           <div className="flex justify-between items-start">
             <h3 className="text-sm font-medium tracking-[0.3em] uppercase max-w-[70%]">{product.name}</h3>
-            <span className="text-[10px] font-bold text-white/40 tracking-widest">${product.basePrice}</span>
+            <span className="text-[10px] font-bold text-white/40 tracking-widest">₹{product.basePrice}</span>
           </div>
           <div className="h-[1px] w-0 group-hover:w-full bg-white/10 transition-all duration-700"></div>
         </div>

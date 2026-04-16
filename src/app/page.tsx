@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -76,7 +75,7 @@ export default function Home() {
       <footer className="py-48 bg-transparent border-t border-white/5">
         <div className="container mx-auto px-6 grid md:grid-cols-4 gap-24">
           <div className="md:col-span-2 space-y-12">
-            <Link href="/" className="text-3xl font-black tracking-[0.3em] glow-text">VOID WEAR</Link>
+            <Link href="/" className="text-3xl font-black tracking-[0.3em] glow-text">SYSTEM01</Link>
             <p className="text-white/30 text-[10px] max-w-sm tracking-[0.4em] leading-loose uppercase font-light">
               REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD. EST 2024.
             </p>
@@ -110,7 +109,7 @@ export default function Home() {
         </div>
         
         <div className="container mx-auto px-6 mt-48 text-center">
-          <p className="text-[8px] text-white/10 tracking-[1.5em] uppercase">© 2024 VOID WEAR INC. SECURED TRANSMISSION.</p>
+          <p className="text-[8px] text-white/10 tracking-[1.5em] uppercase">© 2024 SYSTEM01 INC. SECURED TRANSMISSION.</p>
         </div>
       </footer>
     </div>

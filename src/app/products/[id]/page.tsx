@@ -113,7 +113,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 {product?.category}
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{product?.name}</h1>
-              <p className="text-2xl font-light tracking-widest text-white/80">${product?.basePrice}</p>
+              <p className="text-2xl font-light tracking-widest text-white/80">₹{product?.basePrice}</p>
             </div>
 
             <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase">

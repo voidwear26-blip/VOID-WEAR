@@ -1,5 +1,4 @@
-
-'use client';
+"use client"
 
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -114,7 +113,7 @@ export default function NewProductPage() {
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                 className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
-                placeholder="E.G. VOID NEON JACKET"
+                placeholder="E.G. NEON JACKET"
               />
             </div>
             <div className="space-y-3">

@@ -73,7 +73,7 @@ export default function LoginPage() {
             <motion.div {...iconMotionProps}>
               <Zap className="w-8 h-8 group-hover:text-white transition-all duration-700" />
             </motion.div>
-            <span className="text-3xl font-black tracking-[0.8em] glow-text">VOID WEAR</span>
+            <span className="text-3xl font-black tracking-[0.8em] glow-text">SYSTEM01</span>
           </Link>
           <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase">AUTHENTICATION PROTOCOL</p>
         </div>

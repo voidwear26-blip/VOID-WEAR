@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/navbar';
@@ -9,7 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'VOID WEAR | ASCEND THE VOID',
+  title: 'SYSTEM01 | ASCEND THE VOID',
   description: 'Premium futuristic technical shells for the digital migration.',
 };
 
