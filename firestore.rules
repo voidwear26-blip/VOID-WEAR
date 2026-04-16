@@ -3,8 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Security Rules Architecture v1.5
+     * VOID WEAR - Security Rules Architecture v1.7
      * Optimized for Master Administrative Command and Global Logistics.
+     * Fixed: Collection Group Query authorization for orders and global user lists.
      * Deployment Trigger: Root-level Administrative Email Authorization Sync.
      */
 
@@ -26,14 +27,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
     // --- MASTER OVERRIDE ---
     // Universal access for the Master Administrator.
     // This recursive wildcard match handles both single documents and collection group queries.
     match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // --- COLLECTION GROUP RULES ---
+    // Specifically allow global list queries on orders for administrators.
+    // This is required for collectionGroup('orders') queries in the dashboard.
+    match /{path=**}/orders/{orderId} {
       allow read, write: if isAdmin();
     }
 
@@ -44,26 +48,11 @@ service cloud.firestore {
       // Admins can list all entities; users can only see themselves.
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isExistingOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId) || isAdmin();
+      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId) || isAdmin();
 
       // Sub-collections inherit owner/admin access.
-      match /addresses/{addressId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-
-      match /carts/active_cart {
-        allow read, write: if isOwner(userId) || isAdmin();
-        match /items/{itemId} {
-          allow read, write: if isOwner(userId) || isAdmin();
-        }
-      }
-
-      match /orders/{orderId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-
-      match /wishlist/{wishlistId} {
+      match /{allSubcollections=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
@@ -79,7 +68,7 @@ service cloud.firestore {
       allow get, list: if true; // Publicly readable.
       allow create, update, delete: if isAdmin();
 
-      match /variants/{variantId} {
+      match /{allSubcollections=**} {
         allow get, list: if true;
         allow create, update, delete: if isAdmin();
       }

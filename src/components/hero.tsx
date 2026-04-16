@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -60,7 +59,7 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Cinematic Text Content - pt-32 added for mobile safety */}
+      {/* Cinematic Text Content - pt-32 ensures it stays below header on mobile */}
       <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-32 md:pt-20">
         <div className="space-y-4">
           <motion.div
