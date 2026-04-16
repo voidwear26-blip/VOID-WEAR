@@ -95,6 +95,23 @@ export const products: Product[] = [
     stockQuantity: 150
   },
   {
+    id: 'void-016',
+    name: 'SYNTHETIC CORE V2',
+    description: 'Heavyweight oversized T-shirt with reinforced double-stitch seams and industrial wash finish.',
+    basePrice: 85,
+    imageUrls: ['https://picsum.photos/seed/void16/800/1000'],
+    category: 'TOPS',
+    slug: 'synthetic-core-v2',
+    details: [
+      '400GSM heavy cotton blend',
+      'Industrial enzyme wash finish',
+      'Boxy architectural fit',
+      'Double-stitched stress points',
+      'Discrete tactical utility loop'
+    ],
+    stockQuantity: 180
+  },
+  {
     id: 'void-002',
     name: 'ECLIPSE PANTS',
     description: 'Ergonomic techwear pants designed for high-density urban exploration and stealth.',
