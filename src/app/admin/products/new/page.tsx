@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ChevronLeft, Save, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -15,7 +15,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
 export default function NewProductPage() {
-  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -95,7 +94,7 @@ export default function NewProductPage() {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
-        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold text-center">INITIALIZING INTERFACE...</div>
       </div>
     );
   }
@@ -108,7 +107,7 @@ export default function NewProductPage() {
             <ChevronLeft className="w-3 h-3" />
             BACK TO ASSEMBLAGES
           </Link>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Initialize Module</h1>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Initialize Module</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
@@ -119,7 +118,7 @@ export default function NewProductPage() {
                 required
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
                 placeholder="E.G. NEON JACKET"
               />
             </div>
@@ -129,7 +128,7 @@ export default function NewProductPage() {
                 required
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
                 placeholder="E.G. OUTERWEAR"
               />
             </div>
@@ -153,7 +152,7 @@ export default function NewProductPage() {
                 required
                 value={formData.color}
                 onChange={e => setFormData({ ...formData, color: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
                 placeholder="E.G. OBSIDIAN BLACK"
               />
             </div>
@@ -170,7 +169,7 @@ export default function NewProductPage() {
                     onCheckedChange={() => handleSizeToggle(size)}
                     className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-black"
                   />
-                  <Label htmlFor={`size-${size}`} className="text-[10px] tracking-widest text-white/60 cursor-pointer">{size}</Label>
+                  <Label htmlFor={`size-${size}`} className="text-[10px] tracking-widest text-white/60 cursor-pointer font-bold">{size}</Label>
                 </div>
               ))}
             </div>

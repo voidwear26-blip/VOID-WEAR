@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -23,13 +24,15 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  // Personalized greeting: use user email prefix if logged in, but ensure it's client-only to avoid hydration mismatches
+  // Use a stable brand name for the server render to prevent hydration flicker
+  const primaryTitle = "VOID WEAR";
+  
   const userGreeting = mounted && user
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
     : 'WELCOME';
   
   const content = {
-    title: config?.heroTitle || 'VOID WEAR',
+    title: config?.heroTitle || primaryTitle,
     subtitle: userGreeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   };
@@ -71,7 +74,7 @@ export function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.3, duration: 1.5 }}
-            className="text-4xl md:text-7xl lg:text-8xl font-black tracking-[0.2em] leading-tight glow-text uppercase"
+            className="text-4xl md:text-7xl lg:text-8xl font-black tracking-[0.2em] leading-tight glow-text uppercase text-white"
           >
             {content.title}
           </motion.h1>
