@@ -5,18 +5,13 @@ service cloud.firestore {
     /**
      * VOID WEAR - Master Administrative Security Rules v3.9
      * Primary Administrator: voidwear26@gmail.com
-     * Updated: Global recursive permission override for Master Admin.
-     * Note: Explicitly authorizes collection-level listing and collectionGroup queries.
+     * Note: Absolute authority for the Master Admin account at the root level.
      */
 
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** 
-     * Master Admin Authorization.
-     * Checks for the master email or admin role in the database.
-     */
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.email.lower() == "voidwear26@gmail.com" || 
@@ -29,14 +24,12 @@ service cloud.firestore {
     }
 
     // --- MASTER OVERRIDE ---
-    // Absolute authority for the Master Admin account at the root level.
-    // This allows listing root collections like /users and /products.
+    // Grants full access to all paths for the Master Admin.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- COLLECTION GROUP RULES ---
-    // Required for the Admin Dashboard to aggregate items globally.
     match /{path=**}/orders/{orderId} {
       allow read, write: if isAdmin();
     }

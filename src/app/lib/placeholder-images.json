@@ -8,6 +8,30 @@
       "imageHint": "cyberpunk jacket"
     },
     {
+      "id": "product-12",
+      "description": "ORBITAL T-SHIRT",
+      "imageUrl": "https://picsum.photos/seed/void12/800/1000",
+      "imageHint": "technical tshirt"
+    },
+    {
+      "id": "product-13",
+      "description": "NEURAL PRINT TEE",
+      "imageUrl": "https://picsum.photos/seed/void13/800/1000",
+      "imageHint": "futuristic tshirt"
+    },
+    {
+      "id": "product-14",
+      "description": "THERMAL REGULATION BASE",
+      "imageUrl": "https://picsum.photos/seed/void14/800/1000",
+      "imageHint": "compression shirt"
+    },
+    {
+      "id": "product-15",
+      "description": "GEOMETRIC COMPRESSION TOP",
+      "imageUrl": "https://picsum.photos/seed/void15/800/1000",
+      "imageHint": "techwear shirt"
+    },
+    {
       "id": "product-2",
       "description": "ECLIPSE PANTS",
       "imageUrl": "https://picsum.photos/seed/void2/800/1000",
@@ -18,24 +42,6 @@
       "description": "PARTICLE BOOTS",
       "imageUrl": "https://picsum.photos/seed/void3/800/1000",
       "imageHint": "futuristic boots"
-    },
-    {
-      "id": "product-4",
-      "description": "NEBULA MASK",
-      "imageUrl": "https://picsum.photos/seed/void4/800/1000",
-      "imageHint": "cyberpunk mask"
-    },
-    {
-      "id": "product-5",
-      "description": "GEOMETRIC VEST",
-      "imageUrl": "https://picsum.photos/seed/void5/800/1000",
-      "imageHint": "tactical vest"
-    },
-    {
-      "id": "product-6",
-      "description": "VOID GLOVES",
-      "imageUrl": "https://picsum.photos/seed/void6/800/1000",
-      "imageHint": "techwear gloves"
     },
     {
       "id": "hero-bg",

@@ -1,6 +1,6 @@
 /**
  * Static mock products aligned with Firestore schema.
- * Expanded with a full seasonal range.
+ * Expanded with a full seasonal range including technical T-shirts.
  */
 export interface Product {
   id: string;
@@ -25,6 +25,50 @@ export const products: Product[] = [
     slug: 'void-neon-jacket',
     details: ['Waterproof shell', 'Neon fiber optics', 'Modular pockets', 'Internal heating core'],
     stockQuantity: 24
+  },
+  {
+    id: 'void-012',
+    name: 'ORBITAL T-SHIRT',
+    description: 'Technical base-layer T-shirt with anti-microbial silver threading and moisture-wicking technology.',
+    basePrice: 95,
+    imageUrls: ['https://picsum.photos/seed/void12/800/1000'],
+    category: 'TOPS',
+    slug: 'orbital-t-shirt',
+    details: ['Odor resistant', 'Moisture wicking', 'Seamless construction', 'Athletic fit', 'Silver-threaded fabric'],
+    stockQuantity: 200
+  },
+  {
+    id: 'void-013',
+    name: 'NEURAL PRINT TEE',
+    description: 'High-density cotton blend T-shirt featuring reactive ink that shifts color with body temperature.',
+    basePrice: 110,
+    imageUrls: ['https://picsum.photos/seed/void13/800/1000'],
+    category: 'TOPS',
+    slug: 'neural-print-tee',
+    details: ['Thermoreactive ink', 'Bio-washed cotton', 'Drop shoulder fit', 'Reinforced neckband', 'Reflective hem tag'],
+    stockQuantity: 120
+  },
+  {
+    id: 'void-014',
+    name: 'THERMAL REGULATION BASE',
+    description: 'Advanced compression T-shirt designed to maintain core temperature in extreme urban environments.',
+    basePrice: 135,
+    imageUrls: ['https://picsum.photos/seed/void14/800/1000'],
+    category: 'TOPS',
+    slug: 'thermal-regulation-base',
+    details: ['Phase-change material', 'Targeted ventilation', '4-way compression', 'UV protection 50+', 'Flatlock seams'],
+    stockQuantity: 85
+  },
+  {
+    id: 'void-015',
+    name: 'GEOMETRIC COMPRESSION TOP',
+    description: 'Minimalist T-shirt with integrated geometric support panels for improved posture and airflow.',
+    basePrice: 125,
+    imageUrls: ['https://picsum.photos/seed/void15/800/1000'],
+    category: 'TOPS',
+    slug: 'geometric-compression-top',
+    details: ['Ergonomic architecture', 'Laser-cut perforations', 'Lightweight mesh panels', 'Silicone grip hem', 'Quick-dry finish'],
+    stockQuantity: 150
   },
   {
     id: 'void-002',
@@ -71,61 +115,6 @@ export const products: Product[] = [
     stockQuantity: 30
   },
   {
-    id: 'void-006',
-    name: 'VOID GLOVES',
-    description: 'Haptic feedback gloves for the modern cyber-athlete and terminal operator.',
-    basePrice: 180,
-    imageUrls: ['https://picsum.photos/seed/void6/800/1000'],
-    category: 'ACCESSORIES',
-    slug: 'void-gloves',
-    details: ['Touchscreen compatible', 'Leather grip', 'Haptic modules', 'Conductive fingertips'],
-    stockQuantity: 60
-  },
-  {
-    id: 'void-007',
-    name: 'SOLARIS HOODIE',
-    description: 'Mid-layer thermal regulation hoodie with photoluminescent printing.',
-    basePrice: 220,
-    imageUrls: ['https://picsum.photos/seed/void7/800/1000'],
-    category: 'TOPS',
-    slug: 'solaris-hoodie',
-    details: ['UV protection', 'Thumb-hole cuffs', 'Glow-in-the-dark print', 'Scuba hood'],
-    stockQuantity: 50
-  },
-  {
-    id: 'void-008',
-    name: 'CYBER-TRUCKER CAP',
-    description: 'Low-profile headwear with holographic VOID WEAR branding.',
-    basePrice: 85,
-    imageUrls: ['https://picsum.photos/seed/void8/800/1000'],
-    category: 'ACCESSORIES',
-    slug: 'cyber-trucker-cap',
-    details: ['Laser-cut vents', 'Adjustable snapback', 'Holographic patch', 'Sweat-wicking liner'],
-    stockQuantity: 150
-  },
-  {
-    id: 'void-009',
-    name: 'TITAN CARGO SHORTS',
-    description: 'Heavy-duty cargo shorts for temperate urban conditions.',
-    basePrice: 195,
-    imageUrls: ['https://picsum.photos/seed/void9/800/1000'],
-    category: 'PANTS',
-    slug: 'titan-cargo-shorts',
-    details: ['Oversized pockets', 'D-ring attachment', 'Ripstop fabric', 'Reinforced seat'],
-    stockQuantity: 35
-  },
-  {
-    id: 'void-010',
-    name: 'OBSIDIAN RAINCOAT',
-    description: 'Ultra-thin, packable raincoat with reflective geometric patterns.',
-    basePrice: 380,
-    imageUrls: ['https://picsum.photos/seed/void10/800/1000'],
-    category: 'OUTERWEAR',
-    slug: 'obsidian-raincoat',
-    details: ['3-layer Gore-Tex', 'Seam-sealed', 'Underarm vents', 'Reflective panels'],
-    stockQuantity: 20
-  },
-  {
     id: 'void-011',
     name: 'GRAVITY SLING BAG',
     description: 'Compact sling bag with magnetic Fidlock closures for daily essentials.',
@@ -135,16 +124,5 @@ export const products: Product[] = [
     slug: 'gravity-sling-bag',
     details: ['Waterproof zippers', 'Padded tablet sleeve', 'Key tether', 'Quick-adjust strap'],
     stockQuantity: 80
-  },
-  {
-    id: 'void-012',
-    name: 'ORBITAL T-SHIRT',
-    description: 'Technical base-layer T-shirt with anti-microbial silver threading.',
-    basePrice: 95,
-    imageUrls: ['https://picsum.photos/seed/void12/800/1000'],
-    category: 'TOPS',
-    slug: 'orbital-t-shirt',
-    details: ['Odor resistant', 'Moisture wicking', 'Seamless construction', 'Athletic fit'],
-    stockQuantity: 200
   }
 ];

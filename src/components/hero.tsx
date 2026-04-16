@@ -54,8 +54,8 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Hero Content - significant padding-top for mobile overlap fix */}
-      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-64 md:pt-20">
+      {/* Hero Content - increased padding-top for mobile overlap fix */}
+      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-72 md:pt-20">
         <div className="space-y-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
