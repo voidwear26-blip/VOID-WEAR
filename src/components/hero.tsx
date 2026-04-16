@@ -24,15 +24,13 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  const primaryTitle = "VOID WEAR";
-  
-  // Safe greeting that defaults to something stable for SSR
+  // Use a stable greeting for the server, update only on client after mount
   const greeting = mounted && user 
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
     : 'OPERATOR';
   
   const content = {
-    title: config?.heroTitle || primaryTitle,
+    title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   };

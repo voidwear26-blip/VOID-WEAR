@@ -2,8 +2,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // UNRESTRICTED ACCESS FOR PROTOTYPING
-    // Allowing all operations on all collections to ensure no "insufficient permissions" errors.
+    // SYSTEM OVERRIDE: MASTER AUTHORITY V22.0
+    // Granting unrestricted read/write access to all collections to resolve permission conflicts.
+    // This allows immediate data entry and management for the VOID WEAR catalog.
     match /{document=**} {
       allow read, write: if true;
     }

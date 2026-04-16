@@ -74,7 +74,7 @@ export default function NewProductPage() {
         updatedAt: new Date().toISOString()
       };
 
-      // Direct write to collection - permissions set to 'true' in firestore.rules
+      // Direct write to collection - security rules allow unrestricted access
       await addDoc(collection(db, 'products'), productData);
 
       toast({
