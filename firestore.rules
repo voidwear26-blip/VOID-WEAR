@@ -3,24 +3,21 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v2.1
+     * VOID WEAR - Master Administrative Security Rules v3.0
      * Primary Administrator: voidwear26@gmail.com
-     * Status: Master Override Enabled
      */
-
-    // --- HELPER FUNCTIONS ---
 
     function isSignedIn() {
       return request.auth != null;
     }
 
     /** 
-     * @description Master Admin Authorization.
-     * Grants full root-level access to the designated administrator.
+     * Master Admin Authorization.
+     * Checks for the master email or admin role in the database.
      */
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == "voidwear26@gmail.com" || 
+        request.auth.token.email.lower() == "voidwear26@gmail.com" || 
         exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid))
       );
     }
@@ -30,48 +27,34 @@ service cloud.firestore {
     }
 
     // --- MASTER OVERRIDE ---
-    // This is the absolute authority rule for the Command Center.
-    // It permits all operations at any path (including collectionGroups) for the admin.
+    // Absolute authority for the Master Admin account.
+    // This covers all collections and collectionGroup queries.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- COLLECTION RULES (FALLBACKS FOR STANDARD USERS) ---
+    // --- FALLBACK COLLECTION RULES ---
 
-    // Users & Profiles
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId);
-      allow update: if (isOwner(userId) || isAdmin());
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
 
-      // Sub-collections (orders, cart, wishlist)
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
-    // Global App Configuration
     match /app_config/{configId} {
-      allow get, list: if true; // Publicly readable for branding.
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
-    // Product Catalog
     match /products/{productId} {
-      allow get, list: if true; // Publicly readable.
+      allow get, list: if true;
       allow create, update, delete: if isAdmin();
-
-      match /{allSubcollections=**} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
-      }
-    }
-
-    // Root-level orders (for collectionGroup queries)
-    match /users/{userId}/orders/{orderId} {
-      allow read, write: if isOwner(userId) || isAdmin();
     }
   }
 }

@@ -25,7 +25,7 @@ export function Hero() {
 
   if (!mounted) return null;
 
-  // Dynamic Subtitle Logic: User ID if logged in, else Welcome
+  // Personalize greeting: use user email prefix if logged in
   const userGreeting = user ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') : 'WELCOME';
   
   const content = {
@@ -44,23 +44,18 @@ export function Hero() {
         className="absolute inset-0 flex items-center justify-center z-10"
       >
         <div className="relative w-[280px] h-[280px] md:w-[450px] md:h-[450px]">
-          {/* Breathing Aura */}
           <div className="eclipse-glow" />
-          
-          {/* Main Eclipse Body */}
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 eclipse-logo"
           />
-          
-          {/* Subtle Outer Orbital Ring */}
           <div className="absolute inset-[-40px] border border-white/5 rounded-full" />
         </div>
       </motion.div>
 
-      {/* Cinematic Text Content - pt-48 ensures safe clearance on mobile */}
-      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-48 md:pt-20">
+      {/* Hero Content - pt-56 for mobile safe zone to avoid Navbar overlap */}
+      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-56 md:pt-20">
         <div className="space-y-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -106,7 +101,6 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

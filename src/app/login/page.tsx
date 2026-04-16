@@ -19,7 +19,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Automatically redirect if already authenticated
   useEffect(() => {
     if (user && !isUserLoading) {
       router.push('/profile');
@@ -43,10 +42,8 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = () => {
-    // Calling initiateGoogleSignIn immediately to minimize "auth/popup-blocked"
-    // caused by delayed state updates or async interruptions in strict browsers.
-    setLoading(true);
-    initiateGoogleSignIn(auth).finally(() => setLoading(false));
+    // Calling immediately without state delays to prevent "popup-blocked"
+    initiateGoogleSignIn(auth);
   };
 
   const handleGuestSignIn = async () => {
@@ -134,7 +131,6 @@ export default function LoginPage() {
               <Button 
                 variant="outline" 
                 onClick={handleGoogleSignIn}
-                disabled={loading}
                 className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
                 <motion.div {...iconMotionProps} className="mr-3">
