@@ -59,8 +59,8 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Cinematic Text Content - pt-32 ensures it stays below header on mobile */}
-      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-32 md:pt-20">
+      {/* Cinematic Text Content - pt-48 ensures safe clearance on mobile */}
+      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-48 md:pt-20">
         <div className="space-y-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
