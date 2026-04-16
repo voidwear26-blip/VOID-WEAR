@@ -3,9 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v5.0
+     * VOID WEAR - Master Administrative Security Rules v6.0
      * Primary Administrator: voidwear26@gmail.com
-     * System: Absolute Authority Override (Root-Level)
+     * Absolute Authority Override (Recursive Wildcard Support)
      */
 
     function isSignedIn() {
@@ -23,14 +23,13 @@ service cloud.firestore {
     }
 
     // --- MASTER OVERRIDE ---
-    // Grants absolute authority to the Master Admin account for ALL paths and Collection Groups.
+    // This rule is prioritized to allow the Master Admin absolute access to all paths,
+    // including collectionGroup queries (e.g., /orders across all users).
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- STANDARD USER RULES ---
-    // Standard access rules for non-admin entities.
-
+    // --- STANDARD ENTITY RULES ---
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -49,6 +48,6 @@ service cloud.firestore {
       allow get, list: if true;
     }
     
-    // Deployment Comment: Synchronizing Master Authority v5.0 for Root Access
+    // Deployment Comment: Synchronizing Master Authority v6.0 - Full Root Access
   }
 }

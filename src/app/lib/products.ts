@@ -1,6 +1,6 @@
 /**
  * Static mock products aligned with Firestore schema.
- * Expanded with a full seasonal range including technical T-shirts.
+ * Expanded with a full seasonal range including advanced technical T-shirts.
  */
 export interface Product {
   id: string;

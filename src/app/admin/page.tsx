@@ -3,7 +3,7 @@
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, collectionGroup, writeBatch, doc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Lock, Loader2, Database, RefreshCw } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Lock, Loader2, Database, RefreshCw, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { products as fallbackProducts } from '@/app/lib/products';
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
 
   const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
-  // Guarded Queries: Only initiate if isAdmin is confirmed
+  // Guarded Queries: Only initiate if isAdmin is confirmed to prevent permission errors on load
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collectionGroup(db, 'orders');
@@ -113,11 +113,15 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">SYSTEM COMMAND // DASHBOARD</span>
             <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Control Center</h1>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
+             <div className="bg-white/5 border border-white/10 px-6 py-4 flex items-center gap-4 backdrop-blur-md">
+                <ShieldAlert className="w-4 h-4 text-white/40" />
+                <span className="text-[10px] tracking-[0.3em] font-bold text-white/40 uppercase">MASTER AUTHORITY ACTIVE</span>
+             </div>
              <Button 
                 onClick={handleSeedData} 
                 disabled={seeding}
-                className="bg-white/5 border border-white/10 px-8 py-7 h-auto rounded-none text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase hover:bg-white hover:text-black transition-all group"
+                className="bg-white text-black hover:bg-white/90 border border-white/10 px-8 py-7 h-auto rounded-none text-[10px] tracking-[0.3em] font-bold uppercase transition-all group"
              >
                 {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />}
                 {seeding ? 'SYNCING...' : 'SYNC INITIAL CATALOG'}
