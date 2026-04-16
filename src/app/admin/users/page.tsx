@@ -1,21 +1,23 @@
-
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2 } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminUsersPage() {
+  const { user: currentUser } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
 
+  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
   const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return collection(db, 'users');
-  }, [db]);
+  }, [db, isAdmin]);
 
   const { data: users, isLoading } = useCollection(usersQuery);
 
@@ -36,16 +38,24 @@ export default function AdminUsersPage() {
     }
   };
 
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
+        Authenticating Protocol...
+      </div>
+    );
+  }
+
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase">Entities</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Entities</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
             <ShieldAlert className="w-4 h-4 text-white/40" />
@@ -77,7 +87,7 @@ export default function AdminUsersPage() {
                       <td className="px-10 py-8">
                         <span className="text-[10px] font-mono tracking-widest text-white/80">{user.id.slice(0, 16)}...</span>
                       </td>
-                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest">
+                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest font-bold">
                         {user.email}
                       </td>
                       <td className="px-10 py-8">
@@ -98,7 +108,7 @@ export default function AdminUsersPage() {
                           variant="ghost" 
                           size="sm" 
                           onClick={() => toggleBlockStatus(user.id, user.isBlocked || false)}
-                          className={`text-[9px] tracking-widest uppercase h-10 rounded-none px-6 border ${user.isBlocked ? 'border-green-500/20 text-green-500 hover:bg-green-500/10' : 'border-red-500/20 text-red-500 hover:bg-red-500/10'}`}
+                          className={`text-[9px] tracking-widest uppercase h-10 rounded-none px-6 border font-bold ${user.isBlocked ? 'border-green-500/20 text-green-500 hover:bg-green-500/10' : 'border-red-500/20 text-red-500 hover:bg-red-500/10'}`}
                         >
                           {user.isBlocked ? (
                             <>
@@ -116,7 +126,7 @@ export default function AdminUsersPage() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="px-10 py-32 text-center opacity-20">
-                      <p className="text-[10px] tracking-[1em] uppercase">NO ENTITIES DETECTED</p>
+                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">NO ENTITIES DETECTED</p>
                     </td>
                   </tr>
                 )}

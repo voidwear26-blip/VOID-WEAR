@@ -3,9 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v3.9
+     * VOID WEAR - Master Administrative Security Rules v4.0
      * Primary Administrator: voidwear26@gmail.com
-     * Note: Absolute authority for the Master Admin account at the root level.
+     * System: Absolute Authority Override
      */
 
     function isSignedIn() {
@@ -14,8 +14,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email.lower() == "voidwear26@gmail.com" || 
-        exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid))
+        request.auth.token.email.lower() == "voidwear26@gmail.com"
       );
     }
 
@@ -24,42 +23,33 @@ service cloud.firestore {
     }
 
     // --- MASTER OVERRIDE ---
-    // Grants full access to all paths for the Master Admin.
+    // Grants absolute authority to the Master Admin account across the entire database.
+    // This allows collection group queries and global list operations.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- COLLECTION GROUP RULES ---
-    match /{path=**}/orders/{orderId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /{path=**}/items/{itemId} {
-      allow read, write: if isAdmin();
-    }
-
-    // --- STANDARD COLLECTION RULES ---
+    // --- STANDARD USER RULES ---
+    // Rules for non-admin entities navigating the void.
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      allow get: if isOwner(userId);
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow update: if isOwner(userId);
 
       match /{allSubcollections=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId);
       }
     }
 
     match /app_config/{configId} {
       allow get, list: if true;
-      allow write: if isAdmin();
     }
 
     match /products/{productId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
     }
+    
+    // Deployment Comment: Triggering rules sync for Master Authority v4.0
   }
 }

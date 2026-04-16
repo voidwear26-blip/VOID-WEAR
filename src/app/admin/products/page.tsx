@@ -1,10 +1,8 @@
-
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc } from 'firebase/firestore';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -13,14 +11,17 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminProductsPage() {
+  const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
 
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
   const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return collection(db, 'products');
-  }, [db]);
+  }, [db, isAdmin]);
 
   const { data: products, isLoading } = useCollection(productsQuery);
 
@@ -35,26 +36,33 @@ export default function AdminProductsPage() {
       await deleteDoc(doc(db, 'products', id));
       toast({
         title: "MODULE DELETED",
-        description: "CATALOGUE UPDATED SUCCESSFULLY.",
+        description: "CATALOGUE UPDATED.",
       });
     } catch (e) {
       console.error(e);
     }
   };
 
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
+        Authenticating Protocol...
+      </div>
+    );
+  }
+
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Assemblages</h1>
-            <p className="text-[10px] text-white/40 tracking-[0.4em] uppercase">Manage the physical catalog</p>
           </div>
-          <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em]">
+          <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
             <Link href="/admin/products/new">
               <Plus className="w-4 h-4 mr-3" />
               ADD NEW MODULE
@@ -68,7 +76,7 @@ export default function AdminProductsPage() {
             placeholder="FILTER BY NAME OR CATEGORY..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-widest focus-visible:ring-0 focus-visible:border-white/40"
+            className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-widest focus-visible:ring-0 focus-visible:border-white/40 font-bold"
           />
         </div>
 
@@ -105,23 +113,21 @@ export default function AdminProductsPage() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-[10px] font-bold tracking-widest uppercase">{product.name}</p>
-                          <p className="text-[8px] text-white/20 font-mono">UID: {product.id.slice(0, 8)}</p>
+                          <p className="text-[8px] text-white/20 font-mono font-bold uppercase">UID: {product.id.slice(0, 8)}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest uppercase">
+                    <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest uppercase font-bold">
                       {product.category}
                     </td>
-                    <td className="px-10 py-8 text-[10px] font-bold tracking-widest">
+                    <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase">
                       ${product.basePrice}
                     </td>
-                    <td className="px-10 py-8">
-                      <span className="text-[10px] font-mono tracking-widest">
-                        {product.stockQuantity || '--'}
-                      </span>
+                    <td className="px-10 py-8 font-mono text-[10px] tracking-widest text-white/40">
+                      {product.stockQuantity || '--'}
                     </td>
                     <td className="px-10 py-8 text-right">
-                      <div className="flex items-center justify-end gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-4">
                         <Button variant="ghost" size="icon" asChild className="text-white/20 hover:text-white transition-colors">
                           <Link href={`/admin/products/${product.id}`}>
                             <Edit2 className="w-4 h-4" />
@@ -144,7 +150,7 @@ export default function AdminProductsPage() {
                   <td colSpan={5} className="px-10 py-32 text-center opacity-20">
                     <div className="flex flex-col items-center gap-6">
                       <Package className="w-12 h-12 stroke-[0.5px]" />
-                      <p className="text-[10px] tracking-[1em] uppercase">NO MODULES LOGGED</p>
+                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">NO MODULES LOGGED</p>
                     </div>
                   </td>
                 </tr>

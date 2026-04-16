@@ -1,10 +1,8 @@
-
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collectionGroup, query, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
-import { motion } from 'framer-motion';
-import { ShoppingBag, ChevronLeft, ExternalLink, ShieldAlert, Truck, CheckCircle, Package, Clock, Hash } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ExternalLink, ShieldAlert, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,18 +11,21 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
 export default function AdminOrdersPage() {
+  const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
   const allOrdersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return query(
       collectionGroup(db, 'orders'),
       orderBy('createdAt', 'desc'),
       limit(50)
     );
-  }, [db]);
+  }, [db, isAdmin]);
 
   const { data: orders, isLoading } = useCollection(allOrdersQuery);
 
@@ -38,7 +39,7 @@ export default function AdminOrdersPage() {
       });
       toast({
         title: "LOGISTICS UPDATED",
-        description: `ORDER ${orderId.slice(0, 8)} STATUS SET TO ${newStatus.toUpperCase()}.`,
+        description: `ORDER STATUS SET TO ${newStatus.toUpperCase()}.`,
       });
     } catch (e) {
       console.error(e);
@@ -52,12 +53,11 @@ export default function AdminOrdersPage() {
       const orderRef = doc(db, 'users', userId, 'orders', orderId);
       await updateDoc(orderRef, { 
         trackingId,
-        courierPartner: 'SHIPROCKET',
         updatedAt: new Date().toISOString()
       });
       toast({
         title: "TRACKING SYNCED",
-        description: `LINKED TRACKING ID ${trackingId} TO TRANSMISSION.`,
+        description: `LINKED TRACKING ID ${trackingId}.`,
       });
     } catch (e) {
       console.error(e);
@@ -66,16 +66,24 @@ export default function AdminOrdersPage() {
     }
   };
 
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
+        Authenticating Protocol...
+      </div>
+    );
+  }
+
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase">Transmissions</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Transmissions</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
             <ShieldAlert className="w-4 h-4 text-white/40" />
@@ -108,11 +116,11 @@ export default function AdminOrdersPage() {
                       <td className="px-10 py-8">
                         <div className="space-y-1">
                           <span className="text-[10px] font-mono tracking-widest text-white/80">{order.id.slice(0, 16)}...</span>
-                          <p className="text-[8px] text-white/20 uppercase tracking-[0.2em]">${order.totalAmount} / {order.userId.slice(0, 8)}</p>
+                          <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold">${order.totalAmount} / {order.userId.slice(0, 8)}</p>
                         </div>
                       </td>
-                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest">
-                        {new Date(order.orderDate).toLocaleDateString()}
+                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest font-bold">
+                        {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-10 py-8">
                         <Select 
@@ -153,7 +161,7 @@ export default function AdminOrdersPage() {
                     <td colSpan={5} className="px-10 py-32 text-center opacity-20">
                       <div className="flex flex-col items-center gap-6">
                         <ShoppingBag className="w-12 h-12 stroke-[0.5px]" />
-                        <p className="text-[10px] tracking-[1em] uppercase">NO SYSTEM LOGS FOUND</p>
+                        <p className="text-[10px] tracking-[1em] uppercase font-bold">NO SYSTEM LOGS FOUND</p>
                       </div>
                     </td>
                   </tr>
