@@ -3,8 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Security Rules Architecture
-     * Optimized for Administrative Command and Global Logistics.
+     * VOID WEAR - Security Rules Architecture v1.2
+     * Optimized for Master Administrative Command and Global Logistics.
+     * Deployment Trigger: Explicit Admin Email Authorization Update.
      */
 
     // --- HELPER FUNCTIONS ---
@@ -14,8 +15,8 @@ service cloud.firestore {
     }
 
     /** 
-     * @description Checks if the user is the designated system administrator.
-     * Prioritizes the master email for instant access, then falls back to DBAC.
+     * @description Master Admin Authorization.
+     * Checks for the hardcoded master email or presence in the admin roles collection.
      */
     function isAdmin() {
       return isSignedIn() && (
@@ -32,73 +33,52 @@ service cloud.firestore {
       return isOwner(userId) && resource != null;
     }
 
-    // --- GLOBAL ADMINISTRATIVE OVERRIDE ---
-    // Grant full system access to the primary administrator email.
+    // --- MASTER OVERRIDE ---
+    // Universal access for the Master Administrator.
     match /{document=**} {
-      allow read, write: if isSignedIn() && request.auth.token.email == "voidwear26@gmail.com";
-    }
-
-    // --- COLLECTION GROUP RULES ---
-    // Required for the Admin Dashboard to aggregate transmissions (orders) globally.
-    match /{path=**}/orders/{orderId} {
-      allow list, get: if isAdmin();
-    }
-
-    match /{path=**}/items/{itemId} {
-      allow list, get: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
     // --- COLLECTION RULES ---
 
+    // Users & Profiles
     match /users/{userId} {
+      // Admins can list all entities; users can only see themselves.
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if (isExistingOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId) || isAdmin();
 
+      // Sub-collections inherit owner/admin access.
       match /addresses/{addressId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) || isAdmin();
-        allow delete: if isExistingOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || isAdmin();
       }
 
       match /carts/active_cart {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId);
-        allow delete: if isExistingOwner(userId);
-
+        allow read, write: if isOwner(userId) || isAdmin();
         match /items/{itemId} {
-          allow get, list: if isOwner(userId) || isAdmin();
-          allow create: if isOwner(userId);
-          allow update: if isExistingOwner(userId);
-          allow delete: if isExistingOwner(userId);
+          allow read, write: if isOwner(userId) || isAdmin();
         }
       }
 
       match /orders/{orderId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) || isAdmin();
-        allow delete: if isExistingOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || isAdmin();
       }
 
       match /wishlist/{wishlistId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId);
-        allow delete: if isExistingOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
+    // Global App Configuration
     match /app_config/{configId} {
-      allow get, list: if true;
+      allow get, list: if true; // Publicly readable for branding.
       allow write: if isAdmin();
     }
 
+    // Product Catalog
     match /products/{productId} {
-      allow get, list: if true;
+      allow get, list: if true; // Publicly readable.
       allow create, update, delete: if isAdmin();
 
       match /variants/{variantId} {
@@ -107,10 +87,16 @@ service cloud.firestore {
       }
     }
 
+    // System Roles (Read-only for identification)
     match /app_roles/admin/{adminId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
-      allow create, update, delete: if false;
+      allow write: if false; // Only manageable via Firebase Console.
+    }
+
+    // Collection Group Access (Required for Admin Dashboard queries)
+    match /{path=**}/orders/{orderId} {
+      allow list, get: if isAdmin();
     }
   }
 }
