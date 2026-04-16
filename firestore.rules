@@ -1,18 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // MASTER AUTHORITY PROTOCOL
+    // MASTER AUTHORITY PROTOCOL v14.0
+    // Explicitly grants absolute authority to the master administrator account.
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'voidwear26@gmail.com';
+      return request.auth != null && 
+             request.auth.token.email != null && 
+             request.auth.token.email.lower() == 'voidwear26@gmail.com';
     }
 
     // 1. ABSOLUTE ADMINISTRATIVE OVERRIDE
-    // This grants full access to all paths for the admin entity.
+    // Grants full recursive read/write access to any document if identified as Admin.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // 2. PUBLIC PRODUCT CATALOG
+    // Allows anyone to browse and view product modules.
     match /products {
       allow list: if true;
     }
@@ -26,16 +30,17 @@ service cloud.firestore {
     }
 
     // 4. USER SPECIFIC DATA
+    // Allows entities to manage their own orders, addresses, and wishlist.
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // 5. GLOBAL SEARCH (For Admin Logistics)
+    // 5. GLOBAL SEARCH & LOGISTICS
+    // Explicitly permits cross-collection group queries for admin logistics.
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin();
     }
     
-    // 6. ENTITY LISTING (For Admin Moderation)
     match /users {
       allow list: if isAdmin();
     }

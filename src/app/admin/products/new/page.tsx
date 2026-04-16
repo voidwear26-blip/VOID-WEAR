@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
@@ -53,7 +52,9 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !isAdmin) {
+    if (!db) return;
+
+    if (!isAdmin) {
       toast({
         variant: "destructive",
         title: "ACCESS DENIED",
@@ -89,11 +90,11 @@ export default function NewProductPage() {
       });
       router.push('/admin/products');
     } catch (e: any) {
-      console.error(e);
+      console.error('[PRODUCT_ADD_ERROR]', e);
       toast({
         variant: "destructive",
         title: "SYSTEM ERROR",
-        description: e.message || "FAILED TO INITIALIZE MODULE.",
+        description: e.message || "FAILED TO INITIALIZE MODULE. CHECK PERMISSIONS.",
       });
     } finally {
       setLoading(false);
@@ -111,8 +112,16 @@ export default function NewProductPage() {
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
-        ACCESS DENIED // MASTER ONLY
+      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center bg-black">
+        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-red-500">ACCESS DENIED</h2>
+        <p className="text-[10px] text-white/40 tracking-[0.3em] max-w-xs uppercase leading-relaxed font-bold">
+          MASTER AUTHORITY REQUIRED TO INITIALIZE NEW ASSEMBLAGES.
+        </p>
+        <Link href="/admin">
+          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all uppercase font-bold mt-8">
+            BACK TO SYSTEM
+          </button>
+        </Link>
       </div>
     );
   }
@@ -136,7 +145,7 @@ export default function NewProductPage() {
                 required
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                 placeholder="E.G. NEON JACKET"
               />
             </div>
@@ -146,7 +155,7 @@ export default function NewProductPage() {
                 required
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                 placeholder="E.G. OUTERWEAR"
               />
             </div>
@@ -160,7 +169,7 @@ export default function NewProductPage() {
                 type="number"
                 value={formData.basePrice}
                 onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                 placeholder="0.00"
               />
             </div>
@@ -170,7 +179,7 @@ export default function NewProductPage() {
                 required
                 value={formData.color}
                 onChange={e => setFormData({ ...formData, color: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                 placeholder="E.G. OBSIDIAN BLACK"
               />
             </div>
@@ -199,7 +208,7 @@ export default function NewProductPage() {
                 <Input 
                   value={formData.imageUrl}
                   onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                   placeholder="HTTPS://..."
                 />
               </div>
@@ -210,7 +219,7 @@ export default function NewProductPage() {
                   type="number"
                   value={formData.stockQuantity}
                   onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                   placeholder="0"
                 />
               </div>
@@ -222,7 +231,7 @@ export default function NewProductPage() {
               required
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40"
+              className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white"
               placeholder="ENTER PRODUCT STORY..."
             />
           </div>
@@ -232,12 +241,13 @@ export default function NewProductPage() {
             <Textarea 
               value={formData.details}
               onChange={e => setFormData({ ...formData, details: e.target.value })}
-              className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40"
+              className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white"
               placeholder="WATERPROOF SHELL&#10;NEON FIBER OPTICS"
             />
           </div>
 
           <Button 
+            type="submit"
             disabled={loading}
             className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           >

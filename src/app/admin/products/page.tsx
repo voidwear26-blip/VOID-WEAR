@@ -41,7 +41,9 @@ export default function AdminProductsPage() {
   );
 
   const handleDelete = async (id: string) => {
-    if (!db || !isAdmin) {
+    if (!db) return;
+
+    if (!isAdmin) {
       toast({
         variant: "destructive",
         title: "ACCESS DENIED",
@@ -59,11 +61,11 @@ export default function AdminProductsPage() {
         description: "CATALOGUE UPDATED.",
       });
     } catch (e: any) {
-      console.error(e);
+      console.error('[PRODUCT_DELETE_ERROR]', e);
       toast({
         variant: "destructive",
         title: "SYSTEM ERROR",
-        description: e.message || "FAILED TO DELETE MODULE."
+        description: e.message || "FAILED TO DELETE MODULE. CHECK PERMISSIONS."
       });
     }
   };
@@ -87,7 +89,7 @@ export default function AdminProductsPage() {
         description: "INITIAL CATALOGUE SYNCED TO SYSTEM.",
       });
     } catch (e: any) {
-      console.error(e);
+      console.error('[SEED_ERROR]', e);
       toast({ 
         variant: "destructive", 
         title: "SYNC FAILED",
@@ -109,8 +111,16 @@ export default function AdminProductsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
-        ACCESS DENIED // MASTER ONLY
+      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center bg-black">
+        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-red-500">ACCESS DENIED</h2>
+        <p className="text-[10px] text-white/40 tracking-[0.3em] max-w-xs uppercase leading-relaxed font-bold">
+          MASTER AUTHORITY REQUIRED TO MANAGE ASSEMBLAGES.
+        </p>
+        <Link href="/admin">
+          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all uppercase font-bold mt-8">
+            BACK TO SYSTEM
+          </button>
+        </Link>
       </div>
     );
   }
@@ -151,7 +161,7 @@ export default function AdminProductsPage() {
             placeholder="FILTER BY NAME OR CATEGORY..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-widest focus-visible:ring-0 focus-visible:border-white/40 font-bold"
+            className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-widest focus-visible:ring-0 focus-visible:border-white/40 font-bold text-white"
           />
         </div>
 
