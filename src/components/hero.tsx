@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -24,8 +23,8 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  // Personalized greeting: use user email prefix if logged in
-  const userGreeting = (mounted && user) 
+  // Personalized greeting: use user email prefix if logged in, but ensure it's client-only to avoid hydration mismatches
+  const userGreeting = mounted && user
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
     : 'WELCOME';
   

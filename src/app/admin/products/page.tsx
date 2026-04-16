@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -42,7 +41,15 @@ export default function AdminProductsPage() {
   );
 
   const handleDelete = async (id: string) => {
-    if (!db || !isAdmin) return;
+    if (!db || !isAdmin) {
+      toast({
+        variant: "destructive",
+        title: "ACCESS DENIED",
+        description: "MASTER AUTHORITY REQUIRED FOR THIS OPERATION.",
+      });
+      return;
+    }
+
     if (!confirm('CONFIRM DESTRUCTION OF PRODUCT MODULE?')) return;
     
     try {

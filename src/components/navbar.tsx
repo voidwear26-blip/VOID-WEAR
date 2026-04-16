@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from 'next/link';
@@ -25,7 +24,7 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isAdmin = mounted && user?.email === 'voidwear26@gmail.com';
+  const isAdmin = mounted && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const iconMotionProps = {
     whileHover: { scale: 1.2, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))" },
