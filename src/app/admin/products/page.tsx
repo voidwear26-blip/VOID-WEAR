@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { products as actualProducts } from '@/app/lib/products';
 
 export default function AdminProductsPage() {
-  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +50,7 @@ export default function AdminProductsPage() {
       toast({
         variant: "destructive",
         title: "SYSTEM ERROR",
-        description: e.message || "FAILED TO DELETE MODULE. CHECK PERMISSIONS."
+        description: e.message || "FAILED TO DELETE MODULE."
       });
     }
   };
@@ -90,7 +89,7 @@ export default function AdminProductsPage() {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
-        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+        <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">INITIALIZING INTERFACE...</div>
       </div>
     );
   }

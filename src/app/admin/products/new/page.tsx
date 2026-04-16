@@ -3,7 +3,7 @@
 
 import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Sparkles } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -50,7 +50,10 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!db) {
+      toast({ variant: "destructive", title: "SYSTEM ERROR", description: "DATABASE NOT INITIALIZED." });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -71,7 +74,7 @@ export default function NewProductPage() {
         updatedAt: new Date().toISOString()
       };
 
-      // Direct write to collection - permissions set to public 'true' in firestore.rules
+      // Direct write to collection - permissions set to 'true' in firestore.rules
       await addDoc(collection(db, 'products'), productData);
 
       toast({

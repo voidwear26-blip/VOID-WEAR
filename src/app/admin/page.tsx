@@ -3,12 +3,12 @@
 
 import { useUser } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Lock, Loader2, ShieldCheck } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 export default function AdminDashboard() {
-  const { user, isUserLoading } = useUser();
+  const { isUserLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function AdminDashboard() {
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">
           <Loader2 className="w-10 h-10 animate-spin text-white/20" />
-          <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+          <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">INITIALIZING SYSTEM...</div>
         </div>
       </div>
     );
@@ -35,8 +35,8 @@ export default function AdminDashboard() {
             <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Control Center</h1>
           </div>
           <div className="bg-white/5 border border-white/10 px-6 py-4 flex items-center gap-4 backdrop-blur-md">
-            <ShieldCheck className="w-4 h-4 text-green-500" />
-            <span className="text-[10px] tracking-[0.3em] font-bold text-green-500 uppercase">NEURAL UPLINK SECURE</span>
+            <ShieldCheck className="w-4 h-4 text-white" />
+            <span className="text-[10px] tracking-[0.3em] font-bold text-white uppercase">NEURAL UPLINK SECURE</span>
           </div>
         </div>
 
@@ -65,10 +65,10 @@ export default function AdminDashboard() {
             <div className="space-y-6">
                <div className="flex justify-between items-center text-[10px] text-white/40 tracking-widest uppercase">
                   <span>DATABASE UPTIME</span>
-                  <span className="font-mono text-white">99.98%</span>
+                  <span className="font-mono text-white">99.99%</span>
                </div>
                <div className="w-full h-1 bg-white/5 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: "99.98%" }} transition={{ duration: 2 }} className="h-full bg-white shadow-[0_0_10px_white]" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: "99.99%" }} transition={{ duration: 2 }} className="h-full bg-white shadow-[0_0_10px_white]" />
                </div>
             </div>
             <div className="pt-6 border-t border-white/5 flex items-center gap-2 text-white/20">

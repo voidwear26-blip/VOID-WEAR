@@ -24,16 +24,16 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  // Use a stable brand name for the server render to prevent hydration flicker
   const primaryTitle = "VOID WEAR";
   
-  const userGreeting = mounted && user
+  // Safe greeting that defaults to something stable for SSR
+  const greeting = mounted && user 
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
-    : 'WELCOME';
+    : 'OPERATOR';
   
   const content = {
     title: config?.heroTitle || primaryTitle,
-    subtitle: userGreeting,
+    subtitle: greeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   };
 
