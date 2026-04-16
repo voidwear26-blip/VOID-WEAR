@@ -71,6 +71,7 @@ export default function NewProductPage() {
         updatedAt: new Date().toISOString()
       };
 
+      // Direct write to collection - permissions set to public 'true' in firestore.rules
       await addDoc(collection(db, 'products'), productData);
 
       toast({
@@ -83,7 +84,7 @@ export default function NewProductPage() {
       toast({
         variant: "destructive",
         title: "TRANSMISSION FAILED",
-        description: e.message || "COULD NOT SYNC WITH DATABASE. CHECK SYSTEM LOGS.",
+        description: e.message || "COULD NOT SYNC WITH DATABASE.",
       });
     } finally {
       setLoading(false);
