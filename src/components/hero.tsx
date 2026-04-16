@@ -5,11 +5,12 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
 export function Hero() {
   const [mounted, setMounted] = useState(false);
+  const { user } = useUser();
   const db = useFirestore();
 
   const configRef = useMemoFirebase(() => {
@@ -25,9 +26,12 @@ export function Hero() {
 
   if (!mounted) return null;
 
+  // Dynamic Subtitle Logic: User ID if logged in, else Welcome
+  const userGreeting = user ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') : 'WELCOME';
+  
   const content = {
     title: config?.heroTitle || 'VOID WEAR',
-    subtitle: config?.heroSubtitle || 'SYSTEM 01',
+    subtitle: userGreeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   };
 
@@ -56,8 +60,8 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Cinematic Text Content */}
-      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 mt-20">
+      {/* Cinematic Text Content - pt-32 added for mobile safety */}
+      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-32 md:pt-20">
         <div className="space-y-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -73,7 +77,7 @@ export function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.3, duration: 1.5 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-[0.2em] leading-tight glow-text uppercase"
+            className="text-4xl md:text-7xl lg:text-8xl font-black tracking-[0.2em] leading-tight glow-text uppercase"
           >
             {content.title}
           </motion.h1>
