@@ -35,7 +35,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
+    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
       {/* Cinematic Solar Eclipse */}
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
@@ -54,7 +54,7 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Hero Content - increased padding-top to avoid header overlap on mobile */}
+      {/* Hero Content - significant padding-top for mobile overlap fix */}
       <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-64 md:pt-20">
         <div className="space-y-4">
           <motion.div
@@ -105,7 +105,7 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 3, duration: 2 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
       >
         <div className="w-px h-16 bg-gradient-to-b from-white/30 to-transparent"></div>
         <span className="text-[8px] tracking-[1.2em] text-white/10 uppercase">DESCEND</span>
