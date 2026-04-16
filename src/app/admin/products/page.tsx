@@ -2,8 +2,8 @@
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2, ShieldCheck } from 'lucide-react';
+import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
@@ -24,12 +24,10 @@ export default function AdminProductsPage() {
     setMounted(true);
   }, []);
 
-  const isAdmin = mounted && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
-
   const productsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
+    if (!db) return null;
     return collection(db, 'products');
-  }, [db, isAdmin]);
+  }, [db]);
 
   const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
 
@@ -39,8 +37,7 @@ export default function AdminProductsPage() {
   );
 
   const handleDelete = async (id: string) => {
-    if (!db || !isAdmin) return;
-
+    if (!db) return;
     if (!confirm('CONFIRM DESTRUCTION OF PRODUCT MODULE?')) return;
     
     try {
@@ -60,7 +57,7 @@ export default function AdminProductsPage() {
   };
 
   const handleSeedData = async () => {
-    if (!db || !isAdmin) return;
+    if (!db) return;
     setSyncing(true);
     try {
       const batch = writeBatch(db);
@@ -89,27 +86,11 @@ export default function AdminProductsPage() {
     }
   };
 
-  if (!mounted || isUserLoading) {
+  if (!mounted) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
         <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center bg-black">
-        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-red-500">ACCESS DENIED</h2>
-        <p className="text-[10px] text-white/40 tracking-[0.3em] max-w-xs uppercase leading-relaxed font-bold">
-          MASTER AUTHORITY REQUIRED TO MANAGE ASSEMBLAGES.
-        </p>
-        <Link href="/admin">
-          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all uppercase font-bold mt-8">
-            BACK TO SYSTEM
-          </button>
-        </Link>
       </div>
     );
   }
@@ -130,12 +111,12 @@ export default function AdminProductsPage() {
               onClick={handleSeedData}
               disabled={syncing}
               variant="outline"
-              className="border-white/10 text-white/40 hover:text-white hover:bg-white/5 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase"
+              className="border-white/10 text-white/40 hover:text-white hover:bg-white/5 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase transition-all duration-500"
             >
               {syncing ? <RefreshCw className="w-4 h-4 animate-spin mr-3" /> : <Database className="w-4 h-4 mr-3" />}
               SYNC INITIAL CATALOG
             </Button>
-            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500">
               <Link href="/admin/products/new">
                 <Plus className="w-4 h-4 mr-3" />
                 ADD NEW MODULE

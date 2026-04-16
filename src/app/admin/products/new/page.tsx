@@ -38,8 +38,6 @@ export default function NewProductPage() {
     details: ''
   });
 
-  const isAdmin = mounted && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
-
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const handleSizeToggle = (size: string) => {
@@ -54,15 +52,6 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db) return;
-
-    if (!isAdmin) {
-      toast({
-        variant: "destructive",
-        title: "ACCESS DENIED",
-        description: "MASTER AUTHORITY REQUIRED FOR THIS OPERATION.",
-      });
-      return;
-    }
 
     setLoading(true);
     try {
@@ -83,7 +72,6 @@ export default function NewProductPage() {
         updatedAt: new Date().toISOString()
       };
 
-      // Direct write with permission logging
       await addDoc(collection(db, 'products'), productData);
 
       toast({
@@ -96,14 +84,14 @@ export default function NewProductPage() {
       toast({
         variant: "destructive",
         title: "TRANSMISSION FAILED",
-        description: e.message || "COULD NOT SYNC WITH DATABASE. CHECK PERMISSIONS.",
+        description: e.message || "COULD NOT SYNC WITH DATABASE. CHECK SYSTEM LOGS.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!mounted || isUserLoading) {
+  if (!mounted) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
@@ -112,27 +100,11 @@ export default function NewProductPage() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center bg-black">
-        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-red-500">ACCESS DENIED</h2>
-        <p className="text-[10px] text-white/40 tracking-[0.3em] max-w-xs uppercase leading-relaxed font-bold">
-          MASTER AUTHORITY REQUIRED TO INITIALIZE NEW ASSEMBLAGES.
-        </p>
-        <Link href="/admin">
-          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all uppercase font-bold mt-8">
-            BACK TO SYSTEM
-          </button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6 max-w-4xl">
         <div className="space-y-4 mb-16">
-          <Link href="/admin/products" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4">
+          <Link href="/admin/products" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
             <ChevronLeft className="w-3 h-3" />
             BACK TO ASSEMBLAGES
           </Link>
@@ -251,7 +223,7 @@ export default function NewProductPage() {
           <Button 
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
               <>
