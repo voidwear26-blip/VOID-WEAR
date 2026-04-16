@@ -4,12 +4,24 @@ service cloud.firestore {
 
     /**
      * VOID WEAR - Security Rules Architecture
+     * Optimized for Administrative Command and Global Logistics.
      */
 
     // --- HELPER FUNCTIONS ---
 
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    /** 
+     * @description Checks if the user is the designated system administrator.
+     * Prioritizes the master email for instant access, then falls back to DBAC.
+     */
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "voidwear26@gmail.com" ||
+        exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid))
+      );
     }
 
     function isOwner(userId) {
@@ -20,19 +32,19 @@ service cloud.firestore {
       return isOwner(userId) && resource != null;
     }
 
-    /** 
-     * @description Checks if the user is an admin via DBAC or specific email identifier.
-     */
-    function isAdmin() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid)) ||
-        request.auth.token.email == "voidwear26@gmail.com"
-      );
+    // --- GLOBAL ADMINISTRATIVE OVERRIDE ---
+    // Grant full system access to the primary administrator email.
+    match /{document=**} {
+      allow read, write: if isSignedIn() && request.auth.token.email == "voidwear26@gmail.com";
     }
 
     // --- COLLECTION GROUP RULES ---
-    // Required for the Admin Dashboard to list all orders across all user paths.
+    // Required for the Admin Dashboard to aggregate transmissions (orders) globally.
     match /{path=**}/orders/{orderId} {
+      allow list, get: if isAdmin();
+    }
+
+    match /{path=**}/items/{itemId} {
       allow list, get: if isAdmin();
     }
 
