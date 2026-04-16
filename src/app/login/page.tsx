@@ -43,21 +43,15 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    // Calling initiateGoogleSignIn immediately to minimize "auth/popup-blocked"
+    // caused by delayed state updates in strict browsers.
     setLoading(true);
-    try {
-      await initiateGoogleSignIn(auth);
-    } finally {
-      setLoading(false);
-    }
+    initiateGoogleSignIn(auth).finally(() => setLoading(false));
   };
 
   const handleGuestSignIn = async () => {
     setLoading(true);
-    try {
-      await initiateAnonymousSignIn(auth);
-    } finally {
-      setLoading(false);
-    }
+    initiateAnonymousSignIn(auth).finally(() => setLoading(false));
   };
 
   const iconMotionProps = {
@@ -143,14 +137,10 @@ export default function LoginPage() {
                 disabled={loading}
                 className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                  <>
-                    <motion.div {...iconMotionProps} className="mr-3">
-                      <Chrome className="w-4 h-4 group-hover:glow-icon transition-all" />
-                    </motion.div>
-                    GOOGLE
-                  </>
-                )}
+                <motion.div {...iconMotionProps} className="mr-3">
+                  <Chrome className="w-4 h-4 group-hover:glow-icon transition-all" />
+                </motion.div>
+                GOOGLE
               </Button>
 
               <Button 
@@ -159,14 +149,10 @@ export default function LoginPage() {
                 disabled={loading}
                 className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                  <>
-                    <motion.div {...iconMotionProps} className="mr-3">
-                      <Sparkles className="w-4 h-4 group-hover:glow-icon transition-all" />
-                    </motion.div>
-                    GUEST
-                  </>
-                )}
+                <motion.div {...iconMotionProps} className="mr-3">
+                  <Sparkles className="w-4 h-4 group-hover:glow-icon transition-all" />
+                </motion.div>
+                GUEST
               </Button>
             </div>
           </div>

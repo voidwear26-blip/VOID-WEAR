@@ -76,8 +76,7 @@ export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential
   const provider = new GoogleAuthProvider();
   // Ensure the provider is clean for each attempt
   provider.setCustomParameters({ 
-    prompt: 'select_account',
-    display: 'popup'
+    prompt: 'select_account'
   });
   
   return signInWithPopup(authInstance, provider).catch(handleAuthError);
