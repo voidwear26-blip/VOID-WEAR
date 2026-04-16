@@ -1,13 +1,14 @@
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, collectionGroup } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp, Settings, ShieldAlert } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, TrendingUp, Settings, ShieldAlert, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
 export default function AdminDashboard() {
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
 
   const ordersQuery = useMemoFirebase(() => {
@@ -34,6 +35,33 @@ export default function AdminDashboard() {
     const totalSales = orders.reduce((acc, order) => acc + (order.totalAmount || 0), 0);
     return { totalSales, orderCount: orders.length };
   }, [orders]);
+
+  const isAdmin = user?.email === 'voidwear26@gmail.com';
+
+  if (isUserLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-[10px] tracking-[1em] animate-pulse">AUTHENTICATING...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center space-y-8 p-6 text-center">
+        <Lock className="w-12 h-12 text-white/20" />
+        <h2 className="text-xl font-bold tracking-[0.5em] glow-text">ACCESS DENIED</h2>
+        <p className="text-[10px] text-white/40 tracking-[0.3em] max-w-xs uppercase leading-relaxed">
+          THIS TERMINAL IS RESTRICTED TO AUTHORIZED ADMINISTRATORS ONLY.
+        </p>
+        <Link href="/">
+          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all">
+            RETURN TO SURFACE
+          </button>
+        </Link>
+      </div>
+    );
+  }
 
   const iconMotionProps = {
     whileHover: { scale: 1.2, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },

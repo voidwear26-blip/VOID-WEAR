@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link';
-import { ShoppingBag, User, Zap, LogOut } from 'lucide-react';
+import { ShoppingBag, User, Zap, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
@@ -32,6 +32,8 @@ export function Navbar() {
   const { data: cartItems } = useCollection(cartItemsQuery);
   const itemCount = cartItems?.length || 0;
 
+  const isAdmin = user?.email === 'voidwear26@gmail.com';
+
   const iconMotionProps = {
     whileHover: { scale: 1.2, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))" },
     whileTap: { scale: 0.9 },
@@ -55,6 +57,9 @@ export function Navbar() {
               <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500">AI LAB</Link>
               <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500">STORY</Link>
               <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500">CONTACT</Link>
+              {isAdmin && (
+                <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5">ADMIN COMMAND</Link>
+              )}
             </div>
           </div>
 

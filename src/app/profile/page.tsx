@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ArrowRight, ShoppingBag, MapPin, Heart, FileText, Plus, Trash2 } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ArrowRight, ShoppingBag, MapPin, Heart, FileText, Plus, Trash2, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -38,6 +37,8 @@ export default function ProfilePage() {
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
   const { data: addresses } = useCollection(addressesQuery);
   const { data: wishlistItems } = useCollection(wishlistQuery);
+
+  const isAdmin = user?.email === 'voidwear26@gmail.com';
 
   if (isUserLoading) {
     return (
@@ -77,10 +78,19 @@ export default function ProfilePage() {
               </p>
             </div>
 
+            {isAdmin && (
+              <Link href="/admin">
+                <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] mb-8">
+                  <Settings className="w-4 h-4 mr-3" />
+                  ADMIN COMMAND
+                </Button>
+              </Link>
+            )}
+
             <div className="p-8 border border-white/5 bg-white/[0.02] space-y-6 backdrop-blur-sm">
               <div className="flex items-center gap-4 text-white/40">
                 <ShieldCheck className="w-4 h-4" />
-                <span className="text-[9px] tracking-[0.3em] uppercase">Security Level: Standard</span>
+                <span className="text-[9px] tracking-[0.3em] uppercase">Security Level: {isAdmin ? 'Administrator' : 'Standard'}</span>
               </div>
               <div className="flex items-center gap-4 text-white/40">
                 <Clock className="w-4 h-4" />

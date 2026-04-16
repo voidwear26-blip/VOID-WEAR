@@ -4,64 +4,51 @@ service cloud.firestore {
 
     /**
      * VOID WEAR - Security Rules Architecture
-     *
-     * Core Philosophy: 
-     * This ruleset enforces a strict user-ownership model where private data is nested under user-specific paths.
-     * It utilizes Database-Backed Access Control (DBAC) for administrative privileges and focuses on
-     * authorization independence through denormalization.
      */
 
     // --- HELPER FUNCTIONS ---
 
-    /** @description Checks if the user is authenticated. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if the user is an owner and the document exists (for updates/deletes). */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
-    /** @description Checks if the authenticated user has administrative privileges via DBAC. */
+    /** 
+     * @description Checks if the user is an admin via DBAC or specific email identifier.
+     */
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid)) ||
+        request.auth.token.email == "voidwear26@gmail.com"
+      );
     }
 
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Rules for individual user profile documents.
-     * @path /users/{userId}
-     */
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if (isExistingOwner(userId) || isAdmin()) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId) || isAdmin();
 
-      /**
-       * @description Rules for shipping and billing addresses.
-       */
       match /addresses/{addressId} {
         allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if (isExistingOwner(userId) || isAdmin()) && request.resource.data.userId == resource.data.userId;
+        allow create: if isOwner(userId);
+        allow update: if isExistingOwner(userId) || isAdmin();
         allow delete: if isExistingOwner(userId) || isAdmin();
       }
 
-      /**
-       * @description Rules for the user's active shopping cart.
-       */
       match /carts/active_cart {
         allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow create: if isOwner(userId);
+        allow update: if isExistingOwner(userId);
         allow delete: if isExistingOwner(userId);
 
         match /items/{itemId} {
@@ -72,26 +59,13 @@ service cloud.firestore {
         }
       }
 
-      /**
-       * @description Rules for historical and pending user orders.
-       */
       match /orders/{orderId} {
         allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if (isExistingOwner(userId) || isAdmin()) && request.resource.data.userId == resource.data.userId;
+        allow create: if isOwner(userId);
+        allow update: if isExistingOwner(userId) || isAdmin();
         allow delete: if isExistingOwner(userId) || isAdmin();
-
-        match /items/{itemId} {
-          allow get, list: if isOwner(userId) || isAdmin();
-          allow create: if isOwner(userId);
-          allow update: if isExistingOwner(userId);
-          allow delete: if isExistingOwner(userId);
-        }
       }
 
-      /**
-       * @description Rules for the user's wishlist.
-       */
       match /wishlist/{wishlistId} {
         allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
@@ -100,19 +74,11 @@ service cloud.firestore {
       }
     }
 
-    /**
-     * @description Rules for global application configuration.
-     * @path /app_config/{configId}
-     */
     match /app_config/{configId} {
       allow get, list: if true;
       allow write: if isAdmin();
     }
 
-    /**
-     * @description Rules for the public product catalog.
-     * @path /products/{productId}
-     */
     match /products/{productId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
@@ -123,9 +89,6 @@ service cloud.firestore {
       }
     }
 
-    /**
-     * @description Rules for the administrative role mapping collection.
-     */
     match /app_roles/admin/{adminId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
