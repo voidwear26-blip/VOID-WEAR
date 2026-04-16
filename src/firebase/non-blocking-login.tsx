@@ -16,7 +16,11 @@ import { toast } from '@/hooks/use-toast';
  */
 const handleAuthError = (error: any) => {
   // Silence console error for intentional user cancellations
-  if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+  if (
+    error.code === 'auth/popup-closed-by-user' || 
+    error.code === 'auth/cancelled-popup-request' ||
+    error.code === 'auth/user-cancelled'
+  ) {
     toast({
       title: "LINK_CANCELLED",
       description: "AUTHENTICATION WINDOW CLOSED BY ENTITY.",
@@ -38,9 +42,11 @@ const handleAuthError = (error: any) => {
   } else if (error.code === 'auth/weak-password') {
     description = "ACCESS KEY STRENGTH INSUFFICIENT. MINIMUM 6 CHARACTERS REQUIRED.";
   } else if (error.code === 'auth/popup-blocked') {
-    description = "UPLINK BLOCKED BY BROWSER. ENABLE POPUPS TO PROCEED WITH GOOGLE LINK.";
+    description = "UPLINK BLOCKED BY BROWSER. ENABLE POPUPS IN YOUR SETTINGS TO PROCEED.";
   } else if (error.code === 'auth/network-request-failed') {
     description = "NEURAL LINK UNSTABLE. CHECK YOUR NETWORK CONNECTION.";
+  } else if (error.code === 'auth/operation-not-allowed') {
+    description = "THIS PROTOCOL IS CURRENTLY DISABLED IN SYSTEM SETTINGS.";
   }
 
   toast({
@@ -68,7 +74,11 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 /** Initiate Google Sign-In (non-blocking). */
 export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential | void> {
   const provider = new GoogleAuthProvider();
-  // Optional: Force account selection
-  provider.setCustomParameters({ prompt: 'select_account' });
+  // Ensure the provider is clean for each attempt
+  provider.setCustomParameters({ 
+    prompt: 'select_account',
+    display: 'popup'
+  });
+  
   return signInWithPopup(authInstance, provider).catch(handleAuthError);
 }

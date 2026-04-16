@@ -38,8 +38,7 @@ export default function LoginPage() {
         await initiateEmailSignIn(auth, email, password);
       }
     } finally {
-      // Small delay to prevent flickering if redirect happens immediately
-      setTimeout(() => setLoading(false), 500);
+      setLoading(false);
     }
   };
 
@@ -96,7 +95,7 @@ export default function LoginPage() {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5" 
+                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
                 placeholder="ID@NETWORK.COM"
                 required
                 disabled={loading}
@@ -108,7 +107,7 @@ export default function LoginPage() {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5" 
+                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
                 placeholder="••••••••"
                 required
                 disabled={loading}
@@ -146,7 +145,9 @@ export default function LoginPage() {
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                   <>
-                    <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
+                    <motion.div {...iconMotionProps} className="mr-3">
+                      <Chrome className="w-4 h-4 group-hover:glow-icon transition-all" />
+                    </motion.div>
                     GOOGLE
                   </>
                 )}
@@ -160,7 +161,9 @@ export default function LoginPage() {
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                   <>
-                    <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
+                    <motion.div {...iconMotionProps} className="mr-3">
+                      <Sparkles className="w-4 h-4 group-hover:glow-icon transition-all" />
+                    </motion.div>
                     GUEST
                   </>
                 )}
