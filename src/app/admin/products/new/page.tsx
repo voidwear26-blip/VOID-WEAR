@@ -2,8 +2,8 @@
 'use client';
 
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Sparkles } from 'lucide-react';
+import { collection, addDoc } from 'firebase/firestore';
+import { ChevronLeft, Save, Loader2, Sparkles, Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 export default function NewProductPage() {
   const db = useFirestore();
@@ -25,8 +27,21 @@ export default function NewProductPage() {
     description: '',
     imageUrl: '',
     stockQuantity: '',
+    color: '',
+    sizes: ['S', 'M', 'L', 'XL'],
     details: ''
   });
+
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  const handleSizeToggle = (size: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.includes(size) 
+        ? prev.sizes.filter(s => s !== size) 
+        : [...prev.sizes, size]
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +58,8 @@ export default function NewProductPage() {
         description: formData.description,
         imageUrls: [formData.imageUrl || 'https://picsum.photos/seed/' + Math.random() + '/800/1000'],
         stockQuantity: parseInt(formData.stockQuantity) || 0,
+        color: formData.color.toUpperCase(),
+        sizes: formData.sizes,
         details: detailsArray,
         slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
         createdAt: new Date().toISOString(),
@@ -103,7 +120,7 @@ export default function NewProductPage() {
 
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">BASE PRICE ($)</label>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (INR ₹)</label>
               <Input 
                 required
                 type="number"
@@ -114,26 +131,55 @@ export default function NewProductPage() {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">STOCK QUANTITY</label>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY COLOR</label>
               <Input 
                 required
-                type="number"
-                value={formData.stockQuantity}
-                onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
+                value={formData.color}
+                onChange={e => setFormData({ ...formData, color: e.target.value })}
                 className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
-                placeholder="0"
+                placeholder="E.G. OBSIDIAN BLACK"
               />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (IMAGE URL)</label>
-            <Input 
-              value={formData.imageUrl}
-              onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
-              placeholder="HTTPS://..."
-            />
+          <div className="space-y-6">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">AVAILABLE SIZES</label>
+            <div className="flex flex-wrap gap-8">
+              {availableSizes.map(size => (
+                <div key={size} className="flex items-center space-x-3">
+                  <Checkbox 
+                    id={`size-${size}`} 
+                    checked={formData.sizes.includes(size)}
+                    onCheckedChange={() => handleSizeToggle(size)}
+                    className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-black"
+                  />
+                  <Label htmlFor={`size-${size}`} className="text-[10px] tracking-widest text-white/60 cursor-pointer">{size}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-10">
+             <div className="space-y-3">
+                <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (IMAGE URL)</label>
+                <Input 
+                  value={formData.imageUrl}
+                  onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                  placeholder="HTTPS://..."
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">STOCK QUANTITY</label>
+                <Input 
+                  required
+                  type="number"
+                  value={formData.stockQuantity}
+                  onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
+                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                  placeholder="0"
+                />
+              </div>
           </div>
 
           <div className="space-y-3">

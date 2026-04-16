@@ -7,10 +7,19 @@ import { AIAssistant } from '@/components/ai-assistant';
 import { products as fallbackProducts } from '@/app/lib/products';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, limit, query } from 'firebase/firestore';
 
 export default function Home() {
-  // Use static library directly - database connection removed.
-  const products = fallbackProducts.slice(0, 6);
+  const db = useFirestore();
+  
+  const productsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), limit(6));
+  }, [db]);
+
+  const { data: dbProducts, isLoading } = useCollection(productsQuery);
+  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : fallbackProducts.slice(0, 6);
 
   return (
     <div className="space-y-0 bg-transparent text-white">
@@ -31,9 +40,13 @@ export default function Home() {
           </div>
 
           <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16 overflow-x-auto md:overflow-visible pb-12 -mx-6 px-6 md:mx-0 md:px-0 no-scrollbar snap-x snap-mandatory scroll-smooth">
-            {products.map((product) => (
+            {isLoading ? (
+              [1, 2, 3].map(i => (
+                <div key={i} className="min-w-[85vw] aspect-[3/4] bg-white/5 animate-pulse rounded-none" />
+              ))
+            ) : products.map((product) => (
               <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
-                <ProductCard product={product} />
+                <ProductCard product={product as any} />
               </div>
             ))}
           </div>

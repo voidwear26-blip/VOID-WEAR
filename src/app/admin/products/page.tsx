@@ -1,20 +1,23 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, deleteDoc } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search } from 'lucide-react';
+import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { products as dummyProducts } from '@/app/lib/products';
 
 export default function AdminProductsPage() {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [syncing, setSyncing] = useState(false);
 
   const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
@@ -23,7 +26,10 @@ export default function AdminProductsPage() {
     return collection(db, 'products');
   }, [db, isAdmin]);
 
-  const { data: products, isLoading } = useCollection(productsQuery);
+  const { data: dbProducts, isLoading } = useCollection(productsQuery);
+  
+  // Use DB products if available, otherwise show dummy data
+  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : dummyProducts;
 
   const filteredProducts = products?.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -40,6 +46,37 @@ export default function AdminProductsPage() {
       });
     } catch (e) {
       console.error(e);
+      toast({
+        variant: "destructive",
+        title: "PERMISSION ERROR",
+        description: "DATABASE ACCESS RESTRICTED."
+      });
+    }
+  };
+
+  const handleSeedData = async () => {
+    if (!db || !isAdmin) return;
+    setSyncing(true);
+    try {
+      const batch = writeBatch(db);
+      dummyProducts.forEach(p => {
+        const ref = doc(collection(db, 'products'));
+        batch.set(ref, {
+          ...p,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      });
+      await batch.commit();
+      toast({
+        title: "NEURAL SEED COMPLETE",
+        description: "INITIAL CATALOGUE SYNCED TO VOID.",
+      });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: "destructive", title: "SYNC FAILED" });
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -62,12 +99,23 @@ export default function AdminProductsPage() {
             </Link>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Assemblages</h1>
           </div>
-          <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-            <Link href="/admin/products/new">
-              <Plus className="w-4 h-4 mr-3" />
-              ADD NEW MODULE
-            </Link>
-          </Button>
+          <div className="flex gap-4">
+             <Button 
+              onClick={handleSeedData}
+              disabled={syncing}
+              variant="outline"
+              className="border-white/10 text-white/40 hover:text-white hover:bg-white/5 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase"
+            >
+              {syncing ? <RefreshCw className="w-4 h-4 animate-spin mr-3" /> : <Database className="w-4 h-4 mr-3" />}
+              SYNC INITIAL CATALOG
+            </Button>
+            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+              <Link href="/admin/products/new">
+                <Plus className="w-4 h-4 mr-3" />
+                ADD NEW MODULE
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mb-12 relative max-w-md">
@@ -86,7 +134,7 @@ export default function AdminProductsPage() {
               <tr className="border-b border-white/5 bg-white/[0.02]">
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CATEGORY</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">PRICE</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">PRICE (INR)</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">STOCK</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">COMMANDS</th>
               </tr>
@@ -121,7 +169,7 @@ export default function AdminProductsPage() {
                       {product.category}
                     </td>
                     <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase">
-                      ${product.basePrice}
+                      ₹{product.basePrice}
                     </td>
                     <td className="px-10 py-8 font-mono text-[10px] tracking-widest text-white/40">
                       {product.stockQuantity || '--'}
