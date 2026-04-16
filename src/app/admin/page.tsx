@@ -8,14 +8,13 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 export default function AdminDashboard() {
-  const { isUserLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || isUserLoading) {
+  if (!mounted) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">

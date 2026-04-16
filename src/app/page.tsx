@@ -19,7 +19,6 @@ export default function Home() {
   }, [db]);
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);
-  // Strictly use database products only
   const products = dbProducts || [];
 
   return (
@@ -59,8 +58,6 @@ export default function Home() {
             )}
           </div>
         </div>
-        
-        <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
       </section>
 
       <div className="relative border-y border-white/5 bg-transparent">

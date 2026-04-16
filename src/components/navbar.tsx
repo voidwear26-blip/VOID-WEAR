@@ -48,12 +48,10 @@ export function Navbar() {
               <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500 uppercase font-bold">AI LAB</Link>
               <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500 uppercase font-bold">STORY</Link>
               <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
-              {mounted && (
-                <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5 uppercase flex items-center gap-2 font-bold">
-                  <ShieldAlert className="w-3 h-3 text-white animate-pulse" />
-                  COMMAND CENTER
-                </Link>
-              )}
+              <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5 uppercase flex items-center gap-2 font-bold">
+                <ShieldAlert className="w-3 h-3 text-white animate-pulse" />
+                COMMAND CENTER
+              </Link>
             </div>
           </div>
 

@@ -71,7 +71,7 @@ export default function AdminProductsPage() {
       await batch.commit();
       toast({
         title: "NEURAL SEED COMPLETE",
-        description: "INITIAL CATALOGUE SYNCED TO SYSTEM.",
+        description: "INITIAL CATALOG SYNCED TO SYSTEM.",
       });
     } catch (e: any) {
       console.error('[SEED_ERROR]', e);
