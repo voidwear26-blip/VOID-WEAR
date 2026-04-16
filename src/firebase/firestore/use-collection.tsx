@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   onSnapshot,
   Query,
@@ -13,6 +13,10 @@ import {
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
+/**
+ * PRODUCTION HARDENED: useCollection hook
+ * Safely extracts query paths and handles cross-collection group permissions.
+ */
 export function useCollection<T = DocumentData>(
   targetRefOrQuery: Query<T> | CollectionReference<T> | null | undefined
 ) {
@@ -42,12 +46,20 @@ export function useCollection<T = DocumentData>(
         setError(null);
       },
       async (serverError: FirestoreError) => {
-        const path = (targetRefOrQuery as any).path || 'complex-query';
+        // Safe path extraction for different query types
+        let path = 'unknown';
+        if ((targetRefOrQuery as any).path) {
+          path = (targetRefOrQuery as any).path;
+        } else if ((targetRefOrQuery as any)._query?.path?.canonicalString) {
+          path = (targetRefOrQuery as any)._query.path.canonicalString();
+        }
+
         const permissionError = new FirestorePermissionError({
           path,
           operation: 'list',
         } satisfies SecurityRuleContext);
 
+        // DO NOT log to console; handled by FirebaseErrorListener
         errorEmitter.emit('permission-error', permissionError);
         setError(permissionError);
         setIsLoading(false);

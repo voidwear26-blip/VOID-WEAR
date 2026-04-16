@@ -28,7 +28,7 @@ export default function AdminProductsPage() {
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);
   
-  // Use DB products if available, otherwise show dummy data
+  // Efficient fallback logic: prioritize DB data, then dummy data for prototyping
   const products = (dbProducts && dbProducts.length > 0) ? dbProducts : dummyProducts;
 
   const filteredProducts = products?.filter(p => 
@@ -37,7 +37,9 @@ export default function AdminProductsPage() {
   );
 
   const handleDelete = async (id: string) => {
-    if (!db || !confirm('CONFIRM DESTRUCTION OF PRODUCT MODULE?')) return;
+    if (!db || !isAdmin) return;
+    if (!confirm('CONFIRM DESTRUCTION OF PRODUCT MODULE?')) return;
+    
     try {
       await deleteDoc(doc(db, 'products', id));
       toast({

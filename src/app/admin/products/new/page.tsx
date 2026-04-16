@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ChevronLeft, Save, Loader2, Sparkles, Plus, X } from 'lucide-react';
 import Link from 'next/link';
@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
 export default function NewProductPage() {
+  const { user } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -32,6 +33,8 @@ export default function NewProductPage() {
     details: ''
   });
 
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const handleSizeToggle = (size: string) => {
@@ -45,7 +48,7 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!db || !isAdmin) return;
 
     setLoading(true);
     try {
@@ -82,6 +85,14 @@ export default function NewProductPage() {
       setLoading(false);
     }
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
+        Authenticating Protocol...
+      </div>
+    );
+  }
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">

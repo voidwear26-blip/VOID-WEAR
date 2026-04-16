@@ -34,6 +34,14 @@
     "/products/{productId}": {
       "schema": "Product",
       "description": "Global product catalog."
+    },
+    "/users/{userId}/orders/{orderId}": {
+      "schema": "object",
+      "description": "User transaction logs."
+    },
+    "/app_config/global": {
+      "schema": "object",
+      "description": "Global brand settings."
     }
   }
 }
