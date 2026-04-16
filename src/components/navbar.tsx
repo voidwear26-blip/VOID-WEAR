@@ -11,10 +11,12 @@ import { useUser, useAuth } from '@/firebase';
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user } = useUser();
   const auth = useAuth();
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
@@ -47,14 +49,14 @@ export function Navbar() {
               <Link href="/assistant" className="text-white/30 hover:text-white transition-all duration-500">AI LAB</Link>
               <Link href="/about" className="text-white/30 hover:text-white transition-all duration-500">STORY</Link>
               <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500">CONTACT</Link>
-              {isAdmin && (
+              {mounted && isAdmin && (
                 <Link href="/admin" className="text-white border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-all duration-500 bg-white/5">ADMIN COMMAND</Link>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            {user ? (
+            {mounted && user ? (
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
                   <Link href="/profile">

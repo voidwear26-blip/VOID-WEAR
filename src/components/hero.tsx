@@ -23,10 +23,11 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
-
   // Personalized greeting: use user email prefix if logged in
-  const userGreeting = user ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') : 'WELCOME';
+  // Default to 'WELCOME' on server to avoid hydration mismatch
+  const userGreeting = (mounted && user) 
+    ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
+    : 'WELCOME';
   
   const content = {
     title: config?.heroTitle || 'VOID WEAR',
@@ -54,7 +55,7 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Hero Content - increased padding-top for mobile overlap fix */}
+      {/* Hero Content */}
       <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-72 md:pt-20">
         <div className="space-y-4">
           <motion.div
