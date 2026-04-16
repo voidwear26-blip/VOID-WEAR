@@ -3,9 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR - Master Administrative Security Rules v6.0
+     * VOID WEAR - Master Administrative Security Rules v7.0
      * Primary Administrator: voidwear26@gmail.com
-     * Absolute Authority Override (Recursive Wildcard Support)
+     * Absolute Authority Override (Recursive Wildcard + Collection Group Support)
      */
 
     function isSignedIn() {
@@ -23,19 +23,38 @@ service cloud.firestore {
     }
 
     // --- MASTER OVERRIDE ---
-    // This rule is prioritized to allow the Master Admin absolute access to all paths,
-    // including collectionGroup queries (e.g., /orders across all users).
+    // Grants absolute access to all paths for the Master Administrator.
     match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // --- COLLECTION GROUP OVERRIDES ---
+    // Specifically allow admin to query 'orders' across all user nodes.
+    match /{path=**}/orders/{orderId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /{path=**}/items/{itemId} {
       allow read, write: if isAdmin();
     }
 
     // --- STANDARD ENTITY RULES ---
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow get, create, update: if isOwner(userId);
 
-      match /{allSubcollections=**} {
+      match /orders/{orderId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /carts/{cartId}/{allSubcollections=**} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /wishlist/{wishId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /addresses/{addrId} {
         allow read, write: if isOwner(userId);
       }
     }
@@ -48,6 +67,6 @@ service cloud.firestore {
       allow get, list: if true;
     }
     
-    // Deployment Comment: Synchronizing Master Authority v6.0 - Full Root Access
+    // Deployment Comment: Initializing Master Authority v7.0 - Full Collection Group Support
   }
 }

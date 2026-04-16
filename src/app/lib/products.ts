@@ -1,6 +1,6 @@
 /**
  * Static mock products aligned with Firestore schema.
- * Expanded with a full seasonal range including advanced technical T-shirts.
+ * Expanded with a full technical range including advanced technical T-shirts.
  */
 export interface Product {
   id: string;
@@ -34,7 +34,13 @@ export const products: Product[] = [
     imageUrls: ['https://picsum.photos/seed/void12/800/1000'],
     category: 'TOPS',
     slug: 'orbital-t-shirt',
-    details: ['Odor resistant', 'Moisture wicking', 'Seamless construction', 'Athletic fit', 'Silver-threaded fabric'],
+    details: [
+      'Odor resistant silver-thread weave',
+      'Advanced moisture wicking protocol',
+      'Zero-friction seamless construction',
+      'Ergonomic athletic silhouette',
+      'Static-dissipative fabric technology'
+    ],
     stockQuantity: 200
   },
   {
@@ -45,7 +51,13 @@ export const products: Product[] = [
     imageUrls: ['https://picsum.photos/seed/void13/800/1000'],
     category: 'TOPS',
     slug: 'neural-print-tee',
-    details: ['Thermoreactive ink', 'Bio-washed cotton', 'Drop shoulder fit', 'Reinforced neckband', 'Reflective hem tag'],
+    details: [
+      'Dynamic thermoreactive ink print',
+      'Bio-washed high-density cotton',
+      'Reinforced structural neckband',
+      'Dropped shoulder oversized fit',
+      'Reflective 3M hem identification'
+    ],
     stockQuantity: 120
   },
   {
@@ -56,7 +68,13 @@ export const products: Product[] = [
     imageUrls: ['https://picsum.photos/seed/void14/800/1000'],
     category: 'TOPS',
     slug: 'thermal-regulation-base',
-    details: ['Phase-change material', 'Targeted ventilation', '4-way compression', 'UV protection 50+', 'Flatlock seams'],
+    details: [
+      'Phase-change material for heat sync',
+      'Targeted laser-cut ventilation',
+      '4-way dynamic compression',
+      'UV-Shield 50+ protection',
+      'Internal flatlock friction-less seams'
+    ],
     stockQuantity: 85
   },
   {
@@ -67,7 +85,13 @@ export const products: Product[] = [
     imageUrls: ['https://picsum.photos/seed/void15/800/1000'],
     category: 'TOPS',
     slug: 'geometric-compression-top',
-    details: ['Ergonomic architecture', 'Laser-cut perforations', 'Lightweight mesh panels', 'Silicone grip hem', 'Quick-dry finish'],
+    details: [
+      'Posture-corrective architecture',
+      'Micro-perforated airflow zones',
+      'Lightweight technical mesh panels',
+      'Silicone-grip secure hem',
+      'Rapid-dry synthetic polymer'
+    ],
     stockQuantity: 150
   },
   {

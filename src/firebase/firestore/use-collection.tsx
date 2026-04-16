@@ -39,7 +39,7 @@ export interface InternalQuery extends Query<DocumentData> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
- * Handles nullable references/queries.
+ * Handles nullable references/queries with robust path extraction for diagnostics.
  */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
@@ -84,7 +84,8 @@ export function useCollection<T = any>(
           } else {
             // Handle different internal query structures for robustness
             const internal = memoizedTargetRefOrQuery as unknown as any;
-            path = internal._query?.path?.canonicalString() || internal.path || 'query';
+            // Fallback for complex queries like collectionGroup which may lack a simple canonical path
+            path = internal._query?.path?.canonicalString() || internal.path || 'complex-query';
           }
         } catch (e) {
           path = 'query-execution-failure';

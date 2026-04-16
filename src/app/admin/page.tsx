@@ -16,9 +16,10 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [seeding, setSeeding] = useState(false);
 
+  // Hardened Identity Verification
   const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
-  // Guarded Queries: Only initiate if isAdmin is confirmed to prevent permission errors on load
+  // Guarded Queries: Explicitly wait for admin verification to prevent premature query denial
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collectionGroup(db, 'orders');
@@ -60,7 +61,7 @@ export default function AdminDashboard() {
       await batch.commit();
       toast({
         title: "SYSTEM SYNC COMPLETE",
-        description: "INITIAL ASSEMBLAGE CATALOGUE DEPLOYED.",
+        description: "ALL ASSEMBLAGES (INCLUDING TECHNICAL TOPS) INITIALIZED.",
       });
     } catch (e) {
       console.error(e);
