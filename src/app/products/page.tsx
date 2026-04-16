@@ -1,4 +1,3 @@
-
 "use client"
 
 import { products as staticProducts } from '@/app/lib/products';

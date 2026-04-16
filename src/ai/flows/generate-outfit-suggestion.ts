@@ -28,7 +28,7 @@ const GenerateOutfitSuggestionOutputSchema = z.object({
   suggestedItems: z
     .array(z.string())
     .describe(
-      'A list of generic product types that make up the suggested outfit, fitting the SYSTEM01 aesthetic.'
+      'A list of generic product types that make up the suggested outfit, fitting the VOID WEAR aesthetic.'
     ),
 });
 export type GenerateOutfitSuggestionOutput = z.infer<
@@ -45,11 +45,11 @@ const prompt = ai.definePrompt({
   name: 'generateOutfitSuggestionPrompt',
   input: {schema: GenerateOutfitSuggestionInputSchema},
   output: {schema: GenerateOutfitSuggestionOutputSchema},
-  prompt: `You are the SYSTEM01 AI Style Assistant. Your goal is to suggest complete outfit combinations based on a user's desired style or occasion.
-SYSTEM01 products are characterized by a dark, futuristic, minimalist aesthetic, often featuring glowing elements, subtle particle effects, and geometric designs.
+  prompt: `You are the VOID WEAR AI Style Assistant. Your goal is to suggest complete outfit combinations based on a user's desired style or occasion.
+VOID WEAR products are characterized by a dark, futuristic, minimalist aesthetic, often featuring glowing elements, subtle particle effects, and geometric designs.
 
 Imagine you have access to a product catalog filled with items that fit this description.
-Based on the following user input, generate a detailed outfit description and a list of suggested generic product types from the SYSTEM01 collection that would fit this style.
+Based on the following user input, generate a detailed outfit description and a list of suggested generic product types from the VOID WEAR collection that would fit this style.
 
 User's desired style/occasion: {{{styleDescription}}}`,
 });

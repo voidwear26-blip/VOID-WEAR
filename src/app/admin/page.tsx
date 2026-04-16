@@ -2,7 +2,7 @@
 
 import { useUser } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Lock, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Lock, Loader2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboard() {

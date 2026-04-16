@@ -22,28 +22,20 @@ export default function BrandControlPage() {
   const { data: config, isLoading: configLoading } = useDoc(configRef);
 
   const [formData, setFormData] = useState({
-    heroTitle: '',
-    heroSubtitle: '',
-    heroTagline: '',
-    activeSeason: '',
+    heroTitle: 'VOID WEAR',
+    heroSubtitle: 'AUTHENTICATED',
+    heroTagline: 'EMBRACE THE UNKNOWN',
+    activeSeason: 'SEASON 01',
   });
 
   useEffect(() => {
     if (config) {
       setFormData({
         heroTitle: config.heroTitle || 'VOID WEAR',
-        heroSubtitle: config.heroSubtitle || 'SYSTEM 01',
+        heroSubtitle: config.heroSubtitle || 'AUTHENTICATED',
         heroTagline: config.heroTagline || 'EMBRACE THE UNKNOWN',
         activeSeason: config.activeSeason || 'SEASON 01',
       });
-    } else {
-        // Default fallbacks if no config exists
-        setFormData({
-            heroTitle: 'VOID WEAR',
-            heroSubtitle: 'SYSTEM 01',
-            heroTagline: 'EMBRACE THE UNKNOWN',
-            activeSeason: 'SEASON 01',
-          });
     }
   }, [config]);
 
