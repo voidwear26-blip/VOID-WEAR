@@ -30,6 +30,12 @@ service cloud.firestore {
       );
     }
 
+    // --- COLLECTION GROUP RULES ---
+    // Required for the Admin Dashboard to list all orders across all user paths.
+    match /{path=**}/orders/{orderId} {
+      allow list, get: if isAdmin();
+    }
+
     // --- COLLECTION RULES ---
 
     match /users/{userId} {
