@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -6,9 +7,10 @@ import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, init
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { Zap, ArrowRight, Sparkles, Loader2, Chrome } from 'lucide-react';
+import { ArrowRight, Loader2, Chrome, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -42,18 +44,12 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = () => {
-    // Calling immediately without state delays to prevent "popup-blocked"
     initiateGoogleSignIn(auth);
   };
 
   const handleGuestSignIn = async () => {
     setLoading(true);
     initiateAnonymousSignIn(auth).finally(() => setLoading(false));
-  };
-
-  const iconMotionProps = {
-    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
-    transition: { type: "spring", stiffness: 400, damping: 10 }
   };
 
   return (
@@ -68,12 +64,21 @@ export default function LoginPage() {
         transition={{ duration: 1 }}
         className="w-full max-w-md space-y-12 relative z-10"
       >
-        <div className="text-center space-y-6">
-          <Link href="/" className="inline-flex flex-col items-center gap-4 group">
-            <motion.div {...iconMotionProps}>
-              <Zap className="w-8 h-8 group-hover:text-white transition-all duration-700" />
+        <div className="text-center space-y-10 flex flex-col items-center">
+          <Link href="/" className="group">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              <Image 
+                src="/logo.png" 
+                alt="VOID WEAR" 
+                width={240} 
+                height={60} 
+                className="h-12 w-auto object-contain brightness-200 grayscale"
+                priority
+              />
             </motion.div>
-            <span className="text-3xl font-black tracking-[0.8em] glow-text">VOID WEAR</span>
           </Link>
           <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase">AUTHENTICATION PROTOCOL</p>
         </div>
@@ -133,9 +138,7 @@ export default function LoginPage() {
                 onClick={handleGoogleSignIn}
                 className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
-                <motion.div {...iconMotionProps} className="mr-3">
-                  <Chrome className="w-4 h-4 group-hover:glow-icon transition-all" />
-                </motion.div>
+                <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
                 GOOGLE
               </Button>
 
@@ -145,9 +148,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
               >
-                <motion.div {...iconMotionProps} className="mr-3">
-                  <Sparkles className="w-4 h-4 group-hover:glow-icon transition-all" />
-                </motion.div>
+                <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
                 GUEST
               </Button>
             </div>

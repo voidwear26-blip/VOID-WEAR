@@ -2,7 +2,8 @@
 "use client"
 
 import Link from 'next/link';
-import { ShoppingBag, User, Zap, LogOut } from 'lucide-react';
+import Image from 'next/image';
+import { ShoppingBag, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
@@ -26,8 +27,8 @@ export function Navbar() {
   }, []);
 
   const iconMotionProps = {
-    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))" },
-    whileTap: { scale: 0.9 },
+    whileHover: { scale: 1.1, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))" },
+    whileTap: { scale: 0.95 },
     transition: { type: "spring", stiffness: 400, damping: 17 }
   };
 
@@ -36,11 +37,17 @@ export function Navbar() {
       <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-black/90 backdrop-blur-xl py-4 border-b border-white/5' : 'bg-transparent py-10'}`}>
         <div className="container mx-auto px-10 flex items-center justify-between">
           <div className="flex items-center gap-16">
-            <Link href="/" className="text-xl font-black tracking-[0.8em] flex items-center gap-4 group">
+            <Link href="/" className="group flex items-center">
               <motion.div {...iconMotionProps}>
-                <Zap className="w-4 h-4 group-hover:text-white transition-all duration-700" />
+                <Image 
+                  src="/logo.png" 
+                  alt="VOID WEAR" 
+                  width={140} 
+                  height={40} 
+                  className="h-7 w-auto object-contain brightness-200 grayscale"
+                  priority
+                />
               </motion.div>
-              <span className="glow-text uppercase">VOID WEAR</span>
             </Link>
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
