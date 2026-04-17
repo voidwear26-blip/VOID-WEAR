@@ -1,19 +1,24 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ArrowRight, ShoppingBag, MapPin, Heart, FileText, Plus, Trash2, Settings } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ArrowRight, ShoppingBag, MapPin, Heart, FileText, Plus, Trash2, Settings, Star, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { ProductCard } from '@/components/product-card';
+import { submitReview } from '@/firebase/review-actions';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('orders');
 
   const ordersQuery = useMemoFirebase(() => {
@@ -66,7 +71,6 @@ export default function ProfilePage() {
     <div className="pt-48 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid lg:grid-cols-4 gap-16 md:gap-24">
-          {/* User Info Sidebar */}
           <div className="space-y-12">
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">ENTITY // PROFILE</span>
@@ -94,7 +98,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center gap-4 text-white/40">
                 <Clock className="w-4 h-4" />
-                <span className="text-[9px] tracking-[0.3em] uppercase">Last Sync: Today</span>
+                <span className="text-[9px] tracking-[0.3em] uppercase">Status: Online</span>
               </div>
             </div>
             
@@ -111,7 +115,6 @@ export default function ProfilePage() {
             </nav>
           </div>
 
-          {/* Main Content Area */}
           <div className="lg:col-span-3">
             <AnimatePresence mode="wait">
               {activeTab === 'orders' && (
@@ -140,8 +143,8 @@ export default function ProfilePage() {
                           key={order.id}
                           className="group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-8"
                         >
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-3">
+                          <div className="space-y-4 flex-1">
+                            <div className="flex flex-wrap items-center gap-3">
                               <Package className="w-4 h-4 text-white/40" />
                               <span className="text-[10px] font-bold tracking-widest uppercase">{order.orderNumber}</span>
                               <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
@@ -152,18 +155,30 @@ export default function ProfilePage() {
                                 {order.shippingStatus || 'processing'}
                               </span>
                             </div>
-                            <div className="text-[9px] text-white/40 tracking-widest uppercase">
-                              INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+                            <div className="flex flex-col gap-1">
+                              <div className="text-[9px] text-white/40 tracking-widest uppercase">
+                                INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+                              </div>
+                              {order.trackingId && (
+                                <div className="text-[9px] text-white font-mono tracking-widest flex items-center gap-2">
+                                  <span className="text-white/20">TRACKING:</span> {order.trackingId}
+                                </div>
+                              )}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-12">
+                          <div className="flex items-center gap-8 md:gap-12">
                             <div className="text-right">
-                              <div className="text-[10px] font-bold tracking-widest">${order.totalAmount}</div>
+                              <div className="text-[10px] font-bold tracking-widest">₹{order.totalAmount}</div>
                               <div className="text-[8px] text-white/20 tracking-widest uppercase mt-1">
                                 {order.paymentStatus}
                               </div>
                             </div>
+                            
+                            {order.shippingStatus === 'delivered' && (
+                              <ReviewDialog order={order} userId={user.uid} userName={user.email?.split('@')[0] || 'Entity'} db={db} />
+                            )}
+                            
                             <Button variant="ghost" size="icon" className="text-white/20 hover:text-white transition-colors">
                               <FileText className="w-4 h-4" />
                             </Button>
@@ -266,6 +281,86 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ReviewDialog({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleReviewSubmit = async () => {
+    if (!comment.trim()) {
+      toast({ title: "INPUT REQUIRED", description: "FEEDBACK COMMENT CANNOT BE EMPTY." });
+      return;
+    }
+    setLoading(true);
+    try {
+      // For simplicity in this proto, we review the first item or the order as a whole
+      // In a full app, we'd map over products in the order
+      await submitReview(db, {
+        productId: 'global_order_review', // Or specific ID if available
+        userId,
+        userName,
+        orderId: order.id,
+        rating,
+        comment,
+        createdAt: new Date().toISOString()
+      });
+      toast({ title: "FEEDBACK TRANSMITTED", description: "SYSTEM LOG UPDATED." });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-white/20 hover:text-white transition-colors">
+          <MessageSquare className="w-4 h-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-black border-white/10 rounded-none text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-bold tracking-[0.5em] uppercase mb-4">Transmit Feedback</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">AESTHETIC RATING</label>
+            <div className="flex gap-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button 
+                  key={star} 
+                  onClick={() => setRating(star)}
+                  className={`transition-all ${star <= rating ? 'text-white' : 'text-white/10'}`}
+                >
+                  <Star className="w-6 h-6" fill={star <= rating ? 'currentColor' : 'none'} />
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">TRANSMISSION LOG (COMMENT)</label>
+            <Textarea 
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="bg-white/5 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+              placeholder="ENTER EXPERIENCE DATA..."
+            />
+          </div>
+          <Button 
+            disabled={loading}
+            onClick={handleReviewSubmit}
+            className="w-full bg-white text-black hover:bg-white/90 h-14 text-[10px] font-bold tracking-[0.4em] rounded-none"
+          >
+            {loading ? 'SYNCING...' : 'SYNC FEEDBACK'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -25,6 +25,22 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "basePrice", "category"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer feedback for a technical module.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "orderId": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "userId", "rating"]
     }
   },
   "auth": {
@@ -46,6 +62,10 @@
     "/app_config/global": {
       "schema": "object",
       "description": "Global brand settings."
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Global customer reviews."
     }
   }
 }
