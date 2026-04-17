@@ -1,9 +1,7 @@
-
 'use client';
 
 import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { products as fallbackProducts } from '@/app/lib/products';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, ChevronRight, Share2, Heart, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,9 +25,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return doc(db, 'products', id);
   }, [db, id]);
 
-  const { data: dbProduct, isLoading } = useDoc(productRef);
-  const fallbackProduct = fallbackProducts.find(p => p.id === id);
-  const product = dbProduct || (fallbackProduct as any);
+  const { data: product, isLoading } = useDoc(productRef);
 
   if (!isLoading && !product) {
     notFound();
@@ -46,7 +42,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
     setAdding(true);
     try {
-      await addToCart(db, user.uid, product.id);
+      await addToCart(db, user.uid, (product as any).id);
       toast({ title: "MODULE ADDED", description: `SIZE ${selectedSize} ASSEMBLAGE LOGGED.` });
     } catch (e) {
       console.error(e);
@@ -63,7 +59,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     );
   }
 
-  const displayImage = product?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
+  const displayImage = (product as any)?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   return (
@@ -74,7 +70,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <ChevronRight className="w-3 h-3" />
           <Link href="/products" className="hover:text-white transition-colors">COLLECTION</Link>
           <ChevronRight className="w-3 h-3" />
-          <span className="text-white">{product?.name}</span>
+          <span className="text-white">{(product as any)?.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-24 items-start">
@@ -82,7 +78,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/5">
               <Image 
                 src={displayImage} 
-                alt={product?.name || 'Product'} 
+                alt={(product as any)?.name || 'Product'} 
                 fill 
                 className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
                 unoptimized
@@ -95,14 +91,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">
                 <span className="w-8 h-[1px] bg-white/40"></span>
-                {product?.category}
+                {(product as any)?.category}
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{product?.name}</h1>
-              <p className="text-2xl font-light tracking-widest text-white/80">₹{product?.basePrice}</p>
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{(product as any)?.name}</h1>
+              <p className="text-2xl font-light tracking-widest text-white/80">₹{(product as any)?.basePrice}</p>
             </div>
 
             <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase">
-              {product?.description}
+              {(product as any)?.description}
             </p>
 
             <div className="space-y-8">
@@ -110,7 +106,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
                   {availableSizes.map(size => {
-                    const isOutOfStock = product?.stockBySize && (product.stockBySize[size] || 0) <= 0;
+                    const isOutOfStock = (product as any)?.stockBySize && ((product as any).stockBySize[size] || 0) <= 0;
                     return (
                       <button 
                         key={size} 
@@ -148,7 +144,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SPECIFICATIONS</h4>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/40">
-                  {product?.details?.map((detail: string, idx: number) => (
+                  {(product as any)?.details?.map((detail: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 uppercase">
                       <span className="w-1 h-1 bg-white rounded-full"></span>
                       {detail}

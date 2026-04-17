@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -16,8 +15,7 @@ export default function Home() {
     return query(collection(db, 'products'), limit(6));
   }, [db]);
 
-  const { data: dbProducts, isLoading } = useCollection(productsQuery);
-  const products = dbProducts || [];
+  const { data: products, isLoading } = useCollection(productsQuery);
 
   return (
     <div className="space-y-0 bg-transparent text-white">
@@ -42,7 +40,7 @@ export default function Home() {
               [1, 2, 3].map(i => (
                 <div key={i} className="min-w-[85vw] aspect-[3/4] bg-white/5 animate-pulse rounded-none" />
               ))
-            ) : products.length > 0 ? (
+            ) : products && products.length > 0 ? (
               products.map((product) => (
                 <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
                   <ProductCard product={product as any} />
@@ -51,7 +49,7 @@ export default function Home() {
             ) : (
               <div className="col-span-full py-32 text-center opacity-20 border border-dashed border-white/10 w-full flex flex-col items-center justify-center gap-6">
                 <Package className="w-12 h-12 stroke-[0.5px]" />
-                <p className="text-[10px] tracking-[0.8em] uppercase font-bold">SYSTEM AWAITING NEURAL SEED</p>
+                <p className="text-[10px] tracking-[0.8em] uppercase font-bold text-center px-6">NO ASSEMBLAGES DETECTED IN DATABASE</p>
               </div>
             )}
           </div>

@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2, Info } from 'lucide-react';
+import { collection, doc, deleteDoc } from 'firebase/firestore';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
@@ -11,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { products as actualProducts } from '@/app/lib/products';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function AdminProductsPage() {
@@ -20,7 +18,6 @@ export default function AdminProductsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [syncing, setSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -67,41 +64,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleSeedData = async () => {
-    if (!db) return;
-    setSyncing(true);
-    try {
-      const batch = writeBatch(db);
-      actualProducts.forEach(p => {
-        const ref = doc(collection(db, 'products'));
-        // Convert static mock to new stock structure
-        const initialStock = { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 2 };
-        const total = Object.values(initialStock).reduce((a, b) => a + b, 0);
-        batch.set(ref, {
-          ...p,
-          stockBySize: initialStock,
-          stockQuantity: total,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      });
-      await batch.commit();
-      toast({
-        title: "NEURAL SEED COMPLETE",
-        description: "INITIAL CATALOG SYNCED TO SYSTEM WITH SIZE-SPECIFIC STOCK.",
-      });
-    } catch (e: any) {
-      console.error('[SEED_ERROR]', e);
-      toast({ 
-        variant: "destructive", 
-        title: "SYNC FAILED",
-        description: e.message 
-      });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   if (!mounted || isUserLoading || !isAdmin) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
@@ -122,15 +84,6 @@ export default function AdminProductsPage() {
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Assemblages</h1>
           </div>
           <div className="flex gap-4">
-             <Button 
-              onClick={handleSeedData}
-              disabled={syncing}
-              variant="outline"
-              className="border-white/10 text-white/40 hover:text-white hover:bg-white/5 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase transition-all duration-500"
-            >
-              {syncing ? <RefreshCw className="w-4 h-4 animate-spin mr-3" /> : <Database className="w-4 h-4 mr-3" />}
-              SYNC INITIAL CATALOG
-            </Button>
             <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500">
               <Link href="/admin/products/new">
                 <Plus className="w-4 h-4 mr-3" />
