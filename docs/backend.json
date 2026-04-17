@@ -14,9 +14,13 @@
         "category": { "type": "string" },
         "color": { "type": "string" },
         "sizes": { "type": "array", "items": { "type": "string" } },
+        "stockBySize": { 
+          "type": "object",
+          "description": "Stock quantity mapped to specific size keys (e.g., { 'S': 5, 'M': 7 })."
+        },
         "slug": { "type": "string" },
         "details": { "type": "array", "items": { "type": "string" } },
-        "stockQuantity": { "type": "number" },
+        "stockQuantity": { "type": "number", "description": "Total sum of stockBySize units." },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

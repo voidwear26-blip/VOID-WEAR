@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2, Upload, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,19 +11,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import Image from 'next/image';
 
 export default function NewProductPage() {
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!isUserLoading && !isAdmin) {
+      router.push('/');
+    }
+  }, [isUserLoading, isAdmin, router]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -31,29 +37,41 @@ export default function NewProductPage() {
     basePrice: '',
     description: '',
     imageUrl: '',
-    stockQuantity: '',
     color: '',
-    sizes: ['S', 'M', 'L', 'XL'],
     details: ''
   });
 
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  const [stockBySize, setStockBySize] = useState<{ [key: string]: number }>({
+    'XS': 0,
+    'S': 0,
+    'M': 0,
+    'L': 0,
+    'XL': 0,
+    'XXL': 0
+  });
 
-  const handleSizeToggle = (size: string) => {
-    setFormData(prev => ({
-      ...prev,
-      sizes: prev.sizes.includes(size) 
-        ? prev.sizes.filter(s => s !== size) 
-        : [...prev.sizes, size]
-    }));
+  const totalStock = Object.values(stockBySize).reduce((a, b) => a + (b || 0), 0);
+
+  const handleSizeStockChange = (size: string, value: string) => {
+    const num = parseInt(value) || 0;
+    setStockBySize(prev => ({ ...prev, [size]: Math.max(0, num) }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+        toast({ title: "VISUAL BUFFERED", description: "LOCAL ASSET CONVERTED TO DATA LINK." });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) {
-      toast({ variant: "destructive", title: "SYSTEM ERROR", description: "DATABASE NOT INITIALIZED." });
-      return;
-    }
+    if (!db || !isAdmin) return;
 
     setLoading(true);
     try {
@@ -65,9 +83,10 @@ export default function NewProductPage() {
         basePrice: parseFloat(formData.basePrice) || 0,
         description: formData.description,
         imageUrls: [formData.imageUrl || `https://picsum.photos/seed/${Math.random()}/800/1000`],
-        stockQuantity: parseInt(formData.stockQuantity) || 0,
+        stockBySize: stockBySize,
+        stockQuantity: totalStock,
         color: formData.color.toUpperCase(),
-        sizes: formData.sizes,
+        sizes: Object.keys(stockBySize).filter(size => stockBySize[size] > 0),
         details: detailsArray,
         slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
         createdAt: new Date().toISOString(),
@@ -93,7 +112,7 @@ export default function NewProductPage() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted || isUserLoading || !isAdmin) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
@@ -106,7 +125,7 @@ export default function NewProductPage() {
           <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Initialize Module</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
+        <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-12 backdrop-blur-xl">
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">MODULE NAME</label>
@@ -155,43 +174,61 @@ export default function NewProductPage() {
           </div>
 
           <div className="space-y-6">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">AVAILABLE SIZES</label>
-            <div className="flex flex-wrap gap-8">
-              {availableSizes.map(size => (
-                <div key={size} className="flex items-center space-x-3">
-                  <Checkbox 
-                    id={`size-${size}`} 
-                    checked={formData.sizes.includes(size)}
-                    onCheckedChange={() => handleSizeToggle(size)}
-                    className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-black"
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">STOCK CONFIGURATION</label>
+              <span className="text-[10px] font-bold tracking-[0.2em] text-white">TOTAL ASSEMBLAGE: {totalStock}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
+              {Object.keys(stockBySize).map(size => (
+                <div key={size} className="space-y-2">
+                  <Label className="text-[9px] tracking-widest text-white/40 font-bold uppercase">{size}</Label>
+                  <Input 
+                    type="number"
+                    value={stockBySize[size]}
+                    onChange={e => handleSizeStockChange(size, e.target.value)}
+                    className="bg-black/40 border-white/10 rounded-none h-10 text-[10px] tracking-widest text-white focus:border-white/40"
                   />
-                  <Label htmlFor={`size-${size}`} className="text-[10px] tracking-widest text-white/60 cursor-pointer font-bold">{size}</Label>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-10">
-             <div className="space-y-3">
-                <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (IMAGE URL)</label>
+          <div className="space-y-6">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (IMAGE)</label>
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="relative group w-full md:w-48 aspect-[3/4] bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-all overflow-hidden">
+                {formData.imageUrl ? (
+                  <>
+                    <Image src={formData.imageUrl} alt="Preview" fill className="object-cover grayscale" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, imageUrl: '' }))} className="text-white">
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-white/20 mb-2" />
+                    <span className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-bold text-center px-4">LOCAL STORAGE UPLOAD</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                    />
+                  </>
+                )}
+              </div>
+              <div className="flex-1 space-y-4 w-full">
+                <label className="text-[9px] font-bold tracking-[0.2em] text-white/20 uppercase">OR REMOTE LINK</label>
                 <Input 
-                  value={formData.imageUrl}
+                  value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
                   onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                  className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/40 text-white"
                   placeholder="HTTPS://..."
                 />
               </div>
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">STOCK QUANTITY</label>
-                <Input 
-                  required
-                  type="number"
-                  value={formData.stockQuantity}
-                  onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  placeholder="0"
-                />
-              </div>
+            </div>
           </div>
 
           <div className="space-y-3">

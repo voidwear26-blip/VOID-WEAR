@@ -1,3 +1,4 @@
+
 'use client';
 
 import { use, useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { addToCart } from '@/firebase/cart-actions';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,6 +20,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { user } = useUser();
   const { toast } = useToast();
   const [adding, setAdding] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   const productRef = useMemoFirebase(() => {
     if (!db || !id) return null;
@@ -26,27 +29,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const { data: dbProduct, isLoading } = useDoc(productRef);
   const fallbackProduct = fallbackProducts.find(p => p.id === id);
-  const product = dbProduct || fallbackProduct;
+  const product = dbProduct || (fallbackProduct as any);
 
   if (!isLoading && !product) {
     notFound();
   }
 
   const handleAdd = async () => {
+    if (!selectedSize) {
+      toast({ title: "CONFIGURATION REQUIRED", description: "SELECT A SIZE MODULE TO PROCEED." });
+      return;
+    }
     if (!user || !db || !product) {
-      toast({
-        title: "ACCESS DENIED",
-        description: "AUTHENTICATION REQUIRED.",
-      });
+      toast({ title: "ACCESS DENIED", description: "AUTHENTICATION REQUIRED." });
       return;
     }
     setAdding(true);
     try {
       await addToCart(db, user.uid, product.id);
-      toast({
-        title: "MODULE ADDED",
-        description: "ASSEMBLAGE UPDATED SUCCESSFULLY.",
-      });
+      toast({ title: "MODULE ADDED", description: `SIZE ${selectedSize} ASSEMBLAGE LOGGED.` });
     } catch (e) {
       console.error(e);
     } finally {
@@ -63,11 +64,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   const displayImage = product?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   return (
     <div className="pt-32 pb-24 bg-transparent">
       <div className="container mx-auto px-6">
-        {/* Breadcrumbs */}
         <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/40 mb-12 uppercase">
           <Link href="/" className="hover:text-white transition-colors">HOME</Link>
           <ChevronRight className="w-3 h-3" />
@@ -77,7 +78,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         </div>
 
         <div className="grid lg:grid-cols-2 gap-24 items-start">
-          {/* Image Gallery */}
           <div className="space-y-8">
             <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/5">
               <Image 
@@ -85,27 +85,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 alt={product?.name || 'Product'} 
                 fill 
                 className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+                unoptimized
                 priority
               />
-              <div className="absolute top-8 right-8 flex flex-col gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <Button variant="ghost" size="icon" className="bg-black/50 backdrop-blur-md rounded-none hover:bg-white hover:text-black border border-white/10">
-                  <Share2 className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="bg-black/50 backdrop-blur-md rounded-none hover:bg-white hover:text-black border border-white/10">
-                  <Heart className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="relative aspect-[3/4] bg-white/5 cursor-pointer opacity-60 hover:opacity-100 transition-opacity border border-white/5">
-                   <Image src={displayImage} alt="Product view" fill className="object-cover grayscale" />
-                </div>
-              ))}
             </div>
           </div>
 
-          {/* Product Info */}
           <div className="space-y-12 lg:sticky lg:top-32">
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">
@@ -124,14 +109,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
-                  {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
-                    <button 
-                      key={size} 
-                      className="w-14 h-14 border border-white/20 flex items-center justify-center text-[10px] font-bold tracking-widest hover:border-white transition-all bg-white/[0.02] backdrop-blur-sm"
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {availableSizes.map(size => {
+                    const isOutOfStock = product?.stockBySize && (product.stockBySize[size] || 0) <= 0;
+                    return (
+                      <button 
+                        key={size} 
+                        disabled={isOutOfStock}
+                        onClick={() => setSelectedSize(size)}
+                        className={cn(
+                          "w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
+                          selectedSize === size ? "bg-white text-black border-white" : "border-white/20 hover:border-white bg-white/[0.02] text-white",
+                          isOutOfStock && "opacity-20 cursor-not-allowed line-through"
+                        )}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -154,20 +148,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SPECIFICATIONS</h4>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/40">
-                  {product?.details?.map((detail, idx) => (
+                  {product?.details?.map((detail: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 uppercase">
                       <span className="w-1 h-1 bg-white rounded-full"></span>
                       {detail}
                     </li>
                   ))}
                 </ul>
-              </div>
-              
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SHIPPING PROTOCOL</h4>
-                <p className="text-[10px] tracking-widest text-white/40 leading-relaxed uppercase">
-                  GLOBAL EXPEDITION AVAILABLE. DELIVERY WITHIN 3-5 ORBITAL CYCLES. SECURE NEURAL ENCRYPTION ON ALL TRANSACTIONS.
-                </p>
               </div>
             </div>
           </div>

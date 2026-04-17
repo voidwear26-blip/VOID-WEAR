@@ -3,7 +3,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { products as actualProducts } from '@/app/lib/products';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function AdminProductsPage() {
   const { user, isUserLoading } = useUser();
@@ -73,8 +74,13 @@ export default function AdminProductsPage() {
       const batch = writeBatch(db);
       actualProducts.forEach(p => {
         const ref = doc(collection(db, 'products'));
+        // Convert static mock to new stock structure
+        const initialStock = { XS: 5, S: 10, M: 15, L: 10, XL: 5, XXL: 2 };
+        const total = Object.values(initialStock).reduce((a, b) => a + b, 0);
         batch.set(ref, {
           ...p,
+          stockBySize: initialStock,
+          stockQuantity: total,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -82,7 +88,7 @@ export default function AdminProductsPage() {
       await batch.commit();
       toast({
         title: "NEURAL SEED COMPLETE",
-        description: "INITIAL CATALOG SYNCED TO SYSTEM.",
+        description: "INITIAL CATALOG SYNCED TO SYSTEM WITH SIZE-SPECIFIC STOCK.",
       });
     } catch (e: any) {
       console.error('[SEED_ERROR]', e);
@@ -151,7 +157,7 @@ export default function AdminProductsPage() {
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CATEGORY</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">PRICE (₹)</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">STOCK</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">TOTAL STOCK</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">COMMANDS</th>
               </tr>
             </thead>
@@ -188,8 +194,32 @@ export default function AdminProductsPage() {
                     <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase">
                       ₹{product.basePrice}
                     </td>
-                    <td className="px-10 py-8 font-mono text-[10px] tracking-widest text-white/40">
-                      {product.stockQuantity || '--'}
+                    <td className="px-10 py-8">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-[10px] tracking-widest text-white/40">
+                          {product.stockQuantity || 0}
+                        </span>
+                        {product.stockBySize && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-white/20 hover:text-white">
+                                <Info className="w-3 h-3" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-40 bg-black border-white/10 rounded-none p-4">
+                              <div className="space-y-2">
+                                <p className="text-[8px] tracking-widest text-white/40 uppercase font-bold border-b border-white/5 pb-2">SIZE BREAKDOWN</p>
+                                {Object.entries(product.stockBySize).map(([size, qty]) => (
+                                  <div key={size} className="flex justify-between text-[9px] tracking-widest">
+                                    <span className="text-white/40">{size}</span>
+                                    <span className="text-white font-mono">{qty as number}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </div>
                     </td>
                     <td className="px-10 py-8 text-right">
                       <div className="flex items-center justify-end gap-4">
