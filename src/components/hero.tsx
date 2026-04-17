@@ -70,16 +70,22 @@ export function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.3, duration: 1.5 }}
-            className="glow-text"
+            className="flex flex-col items-center gap-6"
           >
             <Image 
               src="/logo.png" 
-              alt={content.title} 
-              width={600} 
-              height={150} 
-              className="h-20 md:h-32 w-auto object-contain brightness-200 grayscale"
+              alt="VOID WEAR LOGO" 
+              width={120} 
+              height={120} 
+              className="h-24 w-auto object-contain brightness-200 grayscale opacity-80"
               priority
+              unoptimized
             />
+            <div className="glow-text">
+              <h1 className="text-5xl md:text-8xl font-black tracking-[0.3em] uppercase leading-none">
+                {content.title}
+              </h1>
+            </div>
           </motion.div>
           
           <motion.p 

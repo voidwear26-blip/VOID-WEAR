@@ -74,14 +74,16 @@ export default function Home() {
       <footer className="py-48 bg-transparent border-t border-white/5">
         <div className="container mx-auto px-6 grid md:grid-cols-4 gap-24">
           <div className="md:col-span-2 space-y-12">
-            <Link href="/" className="block w-fit">
+            <Link href="/" className="flex items-center gap-4 group">
               <Image 
                 src="/logo.png" 
                 alt="VOID WEAR" 
-                width={180} 
-                height={50} 
-                className="h-10 w-auto object-contain brightness-200 grayscale opacity-50 hover:opacity-100 transition-opacity"
+                width={40} 
+                height={40} 
+                className="h-8 w-auto object-contain brightness-200 grayscale opacity-50 group-hover:opacity-100 transition-opacity"
+                unoptimized
               />
+              <span className="text-xs font-black tracking-[0.4em] uppercase text-white/50 group-hover:text-white transition-colors">VOID WEAR</span>
             </Link>
             <p className="text-white/30 text-[10px] max-w-sm tracking-[0.4em] leading-loose uppercase font-light">
               REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD. EST 2024.

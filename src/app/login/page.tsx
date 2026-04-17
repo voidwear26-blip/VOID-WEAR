@@ -64,20 +64,23 @@ export default function LoginPage() {
         transition={{ duration: 1 }}
         className="w-full max-w-md space-y-12 relative z-10"
       >
-        <div className="text-center space-y-10 flex flex-col items-center">
-          <Link href="/" className="group">
+        <div className="text-center space-y-8 flex flex-col items-center">
+          <Link href="/" className="group flex flex-col items-center gap-6">
             <motion.div 
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              className="flex flex-col items-center gap-6"
             >
               <Image 
                 src="/logo.png" 
-                alt="VOID WEAR" 
-                width={240} 
-                height={60} 
-                className="h-12 w-auto object-contain brightness-200 grayscale"
+                alt="VOID WEAR LOGO" 
+                width={80} 
+                height={80} 
+                className="h-20 w-auto object-contain brightness-200 grayscale opacity-80"
                 priority
+                unoptimized
               />
+              <span className="text-2xl font-black tracking-[0.5em] text-white uppercase glow-text">VOID WEAR</span>
             </motion.div>
           </Link>
           <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase">AUTHENTICATION PROTOCOL</p>
