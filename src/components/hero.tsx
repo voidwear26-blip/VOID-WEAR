@@ -37,25 +37,26 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
+      {/* Background Eclipse Effect */}
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 4, ease: [0.22, 1, 0.36, 1] }}
         className="absolute inset-0 flex items-center justify-center z-10"
       >
-        <div className="relative w-[280px] h-[280px] md:w-[450px] md:h-[450px]">
+        <div className="relative w-[300px] h-[300px] md:w-[600px] md:h-[600px]">
           <div className="eclipse-glow" />
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 eclipse-logo"
           />
-          <div className="absolute inset-[-40px] border border-white/5 rounded-full" />
         </div>
       </motion.div>
 
-      <div className="relative z-20 text-center space-y-12 max-w-4xl px-6 pt-72 md:pt-20 flex flex-col items-center">
-        <div className="space-y-8 flex flex-col items-center">
+      <div className="relative z-20 text-center space-y-12 w-full max-w-7xl px-6 pt-32 flex flex-col items-center">
+        <div className="space-y-8 flex flex-col items-center w-full">
+          {/* Subtitle / Operator Tag */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -66,50 +67,54 @@ export function Hero() {
             </span>
           </motion.div>
           
+          {/* Massive Logo and Title */}
           <motion.div 
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.3, duration: 1.5 }}
-            className="flex flex-col items-center gap-6"
+            className="flex flex-col items-center gap-12 w-full"
           >
             <Image 
               src="/logo.png" 
               alt="VOID WEAR LOGO" 
-              width={120} 
-              height={120} 
-              className="h-24 w-auto object-contain brightness-200 grayscale opacity-80"
+              width={1000} 
+              height={1000} 
+              className="h-[45vh] w-auto object-contain brightness-200 grayscale opacity-80"
               priority
               unoptimized
             />
-            <div className="glow-text">
-              <h1 className="text-5xl md:text-8xl font-black tracking-[0.3em] uppercase leading-none">
+            <div className="glow-text w-full overflow-hidden">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.2em] uppercase leading-none whitespace-nowrap inline-block">
                 {content.title}
               </h1>
             </div>
           </motion.div>
           
+          {/* Slogan */}
           <motion.p 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.6, duration: 1.5 }}
-            className="text-[10px] md:text-xs text-white/40 max-w-md mx-auto tracking-[0.6em] uppercase font-light"
+            className="text-[10px] md:text-xs text-white/40 max-w-2xl mx-auto tracking-[0.8em] uppercase font-light"
           >
             {content.tagline}
           </motion.p>
         </div>
 
+        {/* Action Button */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 2, duration: 1.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12"
         >
-          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-12 py-7 text-[10px] font-bold tracking-[0.5em] rounded-none transition-all duration-700 font-bold">
+          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-700 font-bold shadow-[0_0_30px_rgba(255,255,255,0.1)]">
             <Link href="/products">ENTER SYSTEM</Link>
           </Button>
         </motion.div>
       </div>
 
+      {/* Scroll Indicator */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
