@@ -6,15 +6,35 @@ import { motion } from 'framer-motion';
 import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
+  useEffect(() => {
+    if (mounted && !isUserLoading && !isAdmin) {
+      router.push('/');
+    }
+  }, [mounted, isUserLoading, isAdmin, router]);
+
+  if (!mounted || isUserLoading || !isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+          <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">

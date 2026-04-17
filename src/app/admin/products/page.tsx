@@ -1,19 +1,22 @@
 
 "use client"
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Database, RefreshCw, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { products as actualProducts } from '@/app/lib/products';
 
 export default function AdminProductsPage() {
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [syncing, setSyncing] = useState(false);
@@ -23,10 +26,18 @@ export default function AdminProductsPage() {
     setMounted(true);
   }, []);
 
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
+  useEffect(() => {
+    if (mounted && !isUserLoading && !isAdmin) {
+      router.push('/');
+    }
+  }, [mounted, isUserLoading, isAdmin, router]);
+
   const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !isAdmin) return null;
     return collection(db, 'products');
-  }, [db]);
+  }, [db, isAdmin]);
 
   const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
 
@@ -85,7 +96,13 @@ export default function AdminProductsPage() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted || isUserLoading || !isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+      </div>
+    );
+  }
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
@@ -155,6 +172,7 @@ export default function AdminProductsPage() {
                             src={product.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/200/300'} 
                             alt={product.name} 
                             fill 
+                            unoptimized
                             className="object-cover grayscale"
                           />
                         </div>
