@@ -1,15 +1,17 @@
 "use client"
 
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { motion } from 'framer-motion';
 import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, MessageSquare, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { collection, collectionGroup, query } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const db = useFirestore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,6 +25,18 @@ export default function AdminDashboard() {
       router.push('/');
     }
   }, [mounted, isUserLoading, isAdmin, router]);
+
+  // Sync real-time data for stats
+  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
+  const ordersQuery = useMemoFirebase(() => collectionGroup(db, 'orders'), [db]);
+  const usersQuery = useMemoFirebase(() => collection(db, 'users'), [db]);
+
+  const { data: products } = useCollection(productsQuery);
+  const { data: orders } = useCollection(ordersQuery);
+  const { data: users } = useCollection(usersQuery);
+
+  const totalRevenue = orders?.reduce((acc, order) => acc + (order.totalAmount || 0), 0) || 0;
+  const totalInventoryUnits = products?.reduce((acc, prod) => acc + (prod.stockQuantity || 0), 0) || 0;
 
   if (!mounted || isUserLoading || !isAdmin) {
     return (
@@ -50,10 +64,10 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <StatCard icon={<DollarSign className="w-5 h-5" />} label="TOTAL REVENUE" value="₹0" />
-          <StatCard icon={<ShoppingBag className="w-5 h-5" />} label="TRANSMISSIONS" value="0" />
-          <StatCard icon={<Users className="w-5 h-5" />} label="ENTITIES" value="0" />
-          <StatCard icon={<Package className="w-5 h-5" />} label="INVENTORY" value="--" />
+          <StatCard icon={<DollarSign className="w-5 h-5" />} label="TOTAL REVENUE" value={`₹${totalRevenue.toLocaleString()}`} />
+          <StatCard icon={<ShoppingBag className="w-5 h-5" />} label="TRANSMISSIONS" value={orders?.length.toString() || "0"} />
+          <StatCard icon={<Users className="w-5 h-5" />} label="ENTITIES" value={users?.length.toString() || "0"} />
+          <StatCard icon={<Package className="w-5 h-5" />} label="INVENTORY" value={totalInventoryUnits.toString()} />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
