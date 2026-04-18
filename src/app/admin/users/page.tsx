@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -72,7 +73,7 @@ export default function AdminUsersPage() {
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Entity Dossier</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Entity Archive</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
             <ShieldAlert className="w-4 h-4 text-white/40" />
@@ -115,7 +116,7 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-10 py-8">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold">
+                          <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold uppercase">
                             <Mail className="w-3 h-3 text-white/20" /> {entity.email}
                           </div>
                           {entity.mobileNumber && (
@@ -145,22 +146,21 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => toggleBlockStatus(entity.id, entity.isBlocked || false)}
-                          className={`text-[9px] tracking-widest uppercase h-10 rounded-none px-6 border font-bold ${entity.isBlocked ? 'border-green-500/20 text-green-500 hover:bg-green-500/10' : 'border-red-500/20 text-red-500 hover:bg-red-500/10'}`}
-                        >
-                          {entity.isBlocked ? (
-                            <>
-                              <UserCheck className="w-3 h-3 mr-2" /> RESTORE ACCESS
-                            </>
-                          ) : (
-                            <>
-                              <UserMinus className="w-3 h-3 mr-2" /> SEVER LINK
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex items-center justify-end gap-3">
+                          <Link href={`/admin/users/${entity.id}`}>
+                            <Button variant="ghost" size="icon" className="text-white/20 hover:text-white">
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => toggleBlockStatus(entity.id, entity.isBlocked || false)}
+                            className={`text-[9px] tracking-widest uppercase h-10 rounded-none px-6 border font-bold ${entity.isBlocked ? 'border-green-500/20 text-green-500 hover:bg-green-500/10' : 'border-red-500/20 text-red-500 hover:bg-red-500/10'}`}
+                          >
+                            {entity.isBlocked ? 'RESTORE' : 'SEVER'}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
