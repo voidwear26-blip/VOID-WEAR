@@ -42,12 +42,6 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     }
   };
 
-  const iconMotionProps = {
-    whileHover: { scale: 1.1 },
-    whileTap: { scale: 0.9 },
-    transition: { type: "spring", stiffness: 400, damping: 10 }
-  };
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-black border-l border-white/5 text-white p-0 flex flex-col w-full sm:max-w-md backdrop-blur-xl">
@@ -58,7 +52,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-10 space-y-10 no-scrollbar">
           {!user ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40">
               <Package className="w-12 h-12 stroke-[0.5px]" />
@@ -82,7 +76,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                     <div className="relative w-24 aspect-[3/4] bg-white/5 border border-white/10 overflow-hidden">
                       <Image 
                         src={item.image || 'https://picsum.photos/seed/void/200/300'} 
-                        alt={item.name} 
+                        alt={item.name || 'Assemblage module'} 
                         fill 
                         className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                         unoptimized

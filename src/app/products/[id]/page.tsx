@@ -78,7 +78,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/5">
               <Image 
                 src={displayImage} 
-                alt={(product as any)?.name || 'Product'} 
+                alt={(product as any)?.name || 'Product module visualization'} 
                 fill 
                 className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
                 unoptimized

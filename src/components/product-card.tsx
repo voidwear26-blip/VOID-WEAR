@@ -68,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="relative aspect-[3/4] overflow-hidden">
           <Image
             src={displayImage}
-            alt={product.name}
+            alt={product.name || 'Assemblage Module'}
             fill
             className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 ease-out"
             data-ai-hint="cyberpunk product"
