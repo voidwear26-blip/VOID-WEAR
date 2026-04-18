@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -63,7 +64,7 @@ export function Hero() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1, duration: 1.5 }}
           >
-            <span className="text-[10px] md:text-xs font-bold tracking-[1.2em] text-white/60 uppercase">
+            <span className="text-[10px] md:text-xs font-bold tracking-[1.2em] text-white/80 uppercase">
               VOID WEAR // {content.subtitle}
             </span>
           </motion.div>
@@ -80,7 +81,7 @@ export function Hero() {
                 src="/logo.png" 
                 alt="VOID WEAR LOGO" 
                 fill
-                className="object-contain brightness-200 grayscale opacity-90"
+                className="object-contain brightness-200 grayscale opacity-100"
                 priority
                 unoptimized
               />
@@ -97,7 +98,7 @@ export function Hero() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.6, duration: 1.5 }}
-            className="text-[10px] md:text-xs text-white/70 max-w-2xl mx-auto tracking-[0.8em] uppercase font-light"
+            className="text-[10px] md:text-xs text-white/90 max-w-2xl mx-auto tracking-[0.8em] uppercase font-light"
           >
             {content.tagline}
           </motion.p>
@@ -123,8 +124,8 @@ export function Hero() {
         transition={{ delay: 3, duration: 2 }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
       >
-        <div className="w-px h-16 bg-gradient-to-b from-white/60 to-transparent"></div>
-        <span className="text-[8px] tracking-[1.2em] text-white/40 uppercase font-bold">DESCEND</span>
+        <div className="w-px h-16 bg-gradient-to-b from-white/80 to-transparent"></div>
+        <span className="text-[8px] tracking-[1.2em] text-white/60 uppercase font-bold">DESCEND</span>
       </motion.div>
     </section>
   );

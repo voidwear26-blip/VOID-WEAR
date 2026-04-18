@@ -7,6 +7,7 @@ service cloud.firestore {
      * VOID WEAR SECURITY RULES
      * 
      * MASTER AUTHORITY: voidwear26@gmail.com
+     * VERSION: 12.1 - PUBLIC READ ACCESS ENABLED
      */
 
     // --- Helper Functions ---
@@ -31,26 +32,26 @@ service cloud.firestore {
 
     /**
      * @description Public application configuration.
-     * Denied auth request triggered this update. Fixed to allow public read.
+     * Explicitly allowed get/list for unauthenticated Hero module sync.
      */
     match /app_config/{configId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
     /**
-     * @description Public brand narratives.
+     * @description Public brand narratives and arrival logs.
      */
     match /stories/{storyId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
     /**
-     * @description Public product catalog.
+     * @description Master product catalogue.
      */
     match /products/{productId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
@@ -58,27 +59,26 @@ service cloud.firestore {
      * @description Product feedback audit logs.
      */
     match /reviews/{reviewId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
     /**
-     * @description Rules for the User profile and nested collections.
+     * @description Rules for the User profile and nested mission logs.
      */
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow create: if isOwner(userId);
       allow update: if (isExistingOwner(userId) || isAdmin());
       allow delete: if isAdmin();
 
       match /carts/{cartId} {
         allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId) || isAdmin();
-        allow delete: if isExistingOwner(userId) || isAdmin();
+        allow update, delete: if isExistingOwner(userId) || isAdmin();
 
-        match /cartItems/{cartItemId} {
+        match /items/{itemId} {
           allow get, list: if isOwner(userId) || isAdmin();
           allow create: if isOwner(userId);
           allow update, delete: if isExistingOwner(userId) || isAdmin();
@@ -88,14 +88,7 @@ service cloud.firestore {
       match /orders/{orderId} {
         allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
-        allow update: if isAdmin();
-        allow delete: if isAdmin();
-
-        match /orderItems/{orderItemId} {
-          allow get, list: if isOwner(userId) || isAdmin();
-          allow create: if isOwner(userId);
-          allow update, delete: if isAdmin();
-        }
+        allow update, delete: if isAdmin();
       }
 
       match /wishlist/{productId} {
@@ -104,7 +97,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Collection Group rules for Global Order Monitoring (Admin only).
+     * @description Collection Group rules for Global Mission Audits (Admin only).
      */
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin();

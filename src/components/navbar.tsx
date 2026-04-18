@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -45,7 +46,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-black/90 backdrop-blur-xl py-4 border-b border-white/5' : 'bg-transparent py-10'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-black/90 backdrop-blur-xl py-4 border-b border-white/10' : 'bg-transparent py-10'}`}>
         <div className="container mx-auto px-10 flex items-center justify-between">
           <div className="flex items-center gap-16">
             <Link href="/" className="group flex items-center gap-4">
@@ -64,16 +65,16 @@ export function Navbar() {
             </Link>
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
-              <Link href="/products" className="text-white/60 hover:text-white transition-all duration-500 uppercase font-bold">COLLECTION</Link>
-              <Link href="/story" className="text-white/60 hover:text-white transition-all duration-500 uppercase font-bold">STORY</Link>
-              <Link href="/contact" className="text-white/60 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
+              <Link href="/products" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">COLLECTION</Link>
+              <Link href="/story" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">STORY</Link>
+              <Link href="/contact" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/70 hover:text-white rounded-none">
+                <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none">
                   <Link href="/profile">
                     <motion.div {...iconMotionProps}>
                       <User className="w-4 h-4" />
@@ -84,7 +85,7 @@ export function Navbar() {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => auth.signOut()}
-                  className="hover:bg-white/5 h-12 w-12 text-white/70 hover:text-white rounded-none"
+                  className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none"
                 >
                   <motion.div {...iconMotionProps}>
                     <LogOut className="w-4 h-4" />
@@ -92,7 +93,7 @@ export function Navbar() {
                 </Button>
               </div>
             ) : (
-              <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/70 hover:text-white rounded-none">
+              <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none">
                 <Link href="/login">
                   <motion.div {...iconMotionProps}>
                     <User className="w-4 h-4" />
@@ -104,13 +105,13 @@ export function Navbar() {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="hover:bg-white/5 h-12 w-12 text-white relative group rounded-none"
+              className="hover:bg-white/10 h-12 w-12 text-white relative group rounded-none"
               onClick={() => setIsCartOpen(true)}
             >
               <motion.div {...iconMotionProps}>
                 <ShoppingBag className="w-4 h-4 group-hover:glow-text" />
                 {itemCount > 0 && (
-                  <span className="absolute top-2 right-2 w-3.5 h-3.5 bg-white text-black text-[8px] font-bold rounded-full flex items-center justify-center animate-in zoom-in-50">
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-white text-black text-[9px] font-bold rounded-full flex items-center justify-center animate-in zoom-in-50">
                     {itemCount}
                   </span>
                 )}

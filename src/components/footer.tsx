@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -29,13 +30,13 @@ export function Footer() {
                   alt="VOID WEAR" 
                   width={40} 
                   height={40} 
-                  className="h-10 w-auto object-contain brightness-200 grayscale opacity-90 group-hover:opacity-100 transition-opacity"
+                  className="h-10 w-auto object-contain brightness-200 grayscale opacity-100 group-hover:opacity-100 transition-opacity"
                   unoptimized
                 />
-                <span className="text-sm font-black tracking-[0.4em] uppercase text-white/90 group-hover:text-white transition-colors glow-text">VOID WEAR</span>
+                <span className="text-sm font-black tracking-[0.4em] uppercase text-white group-hover:text-white transition-colors glow-text">VOID WEAR</span>
               </motion.div>
             </Link>
-            <p className="text-white/70 text-[10px] md:text-xs max-w-sm tracking-[0.4em] leading-relaxed uppercase font-light">
+            <p className="text-white/80 text-[10px] md:text-xs max-w-sm tracking-[0.4em] leading-relaxed uppercase font-light">
               REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD.
             </p>
             <div className="flex flex-wrap gap-8 md:gap-12">
@@ -43,7 +44,7 @@ export function Footer() {
                 <a 
                   key={social} 
                   href="#" 
-                  className="text-[9px] font-bold tracking-[0.4em] text-white/60 hover:text-white transition-all duration-300 hover:glow-text uppercase"
+                  className="text-[9px] font-bold tracking-[0.4em] text-white/70 hover:text-white transition-all duration-300 hover:glow-text uppercase"
                 >
                   {social}
                 </a>
@@ -53,10 +54,10 @@ export function Footer() {
           
           <div className="space-y-8">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-4 bg-white/40"></div>
-              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase">RESOURCES</h4>
+              <div className="w-1 h-4 bg-white/60"></div>
+              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white uppercase">RESOURCES</h4>
             </div>
-            <div className="flex flex-col gap-5 text-[9px] text-white/60 tracking-[0.3em] uppercase font-bold">
+            <div className="flex flex-col gap-5 text-[9px] text-white/70 tracking-[0.3em] uppercase font-bold">
               <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
               <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
               <Link href="/about" className="hover:text-white transition-colors">OUR STORY</Link>
@@ -66,21 +67,21 @@ export function Footer() {
 
           <div className="space-y-8">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-4 bg-white/40"></div>
-              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase">UPLINK</h4>
+              <div className="w-1 h-4 bg-white/60"></div>
+              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white uppercase">UPLINK</h4>
             </div>
             <div className="space-y-4">
-              <p className="text-[9px] text-white/60 tracking-[0.3em] leading-relaxed uppercase font-bold">VOIDWEAR26@GMAIL.COM</p>
-              <p className="text-[8px] text-white/40 tracking-[0.4em] uppercase font-bold">NEURAL LINK ACTIVE</p>
+              <p className="text-[9px] text-white/80 tracking-[0.3em] leading-relaxed uppercase font-bold">VOIDWEAR26@GMAIL.COM</p>
+              <p className="text-[8px] text-white/60 tracking-[0.4em] uppercase font-bold">NEURAL LINK ACTIVE</p>
             </div>
           </div>
         </div>
         
-        <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-          <p className="text-[9px] text-white/50 tracking-[1em] uppercase font-bold">© 2026 VOID WEAR INC. LICENSED TRANSMISSION.</p>
+        <div className="pt-16 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8">
+          <p className="text-[9px] text-white/60 tracking-[1em] uppercase font-bold">© 2026 VOID WEAR INC. LICENSED TRANSMISSION.</p>
           <div className="flex items-center gap-6">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-[8px] tracking-[0.5em] text-white/40 uppercase font-black">SYSTEM_STATUS: STABLE</span>
+            <span className="text-[8px] tracking-[0.5em] text-white/60 uppercase font-black">SYSTEM_STATUS: STABLE</span>
           </div>
         </div>
       </div>
