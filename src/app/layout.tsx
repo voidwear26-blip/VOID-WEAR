@@ -5,7 +5,6 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { CustomCursor } from '@/components/custom-cursor';
-import { SpaceBackground } from '@/components/space-background';
 import { FirebaseClientProvider } from '@/firebase';
 import Script from 'next/script';
 
@@ -55,7 +54,6 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-black text-white selection:bg-white selection:text-black overflow-x-hidden">
         <FirebaseClientProvider>
-          <SpaceBackground />
           <div className="noise-overlay" />
           <CustomCursor />
           <Navbar />
