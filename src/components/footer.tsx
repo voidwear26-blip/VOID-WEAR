@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -11,7 +10,7 @@ export function Footer() {
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 mb-32">
           <div className="md:col-span-2 space-y-10">
-            <Link href="/" className="flex items-center gap-4 group w-fit">
+            <Link href="/" className="group flex items-center gap-4 group w-fit">
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center gap-4"
@@ -28,7 +27,7 @@ export function Footer() {
               </motion.div>
             </Link>
             <p className="text-white/50 text-[10px] md:text-xs max-w-sm tracking-[0.4em] leading-relaxed uppercase font-light">
-              REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD. EST 2024.
+              REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD.
             </p>
             <div className="flex flex-wrap gap-8 md:gap-12">
               {['INSTAGRAM', 'TWITTER', 'DISCORD', 'TELEGRAM'].map((social) => (
@@ -62,14 +61,14 @@ export function Footer() {
               <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">TRANSMISSIONS</h4>
             </div>
             <div className="space-y-4">
-              <p className="text-[9px] text-white/40 tracking-[0.3em] leading-relaxed uppercase font-bold">BASE COMMAND: NEO-TOKYO / GRID 7-A</p>
               <p className="text-[9px] text-white/40 tracking-[0.3em] leading-relaxed uppercase font-bold">UPLINK: VOIDWEAR26@GMAIL.COM</p>
+              <p className="text-[8px] text-white/20 tracking-[0.4em] uppercase font-bold">NEURAL LINK ACTIVE</p>
             </div>
           </div>
         </div>
         
         <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-          <p className="text-[9px] text-white/40 tracking-[1em] uppercase font-bold">© 2024 VOID WEAR INC. SECURED TRANSMISSION.</p>
+          <p className="text-[9px] text-white/40 tracking-[1em] uppercase font-bold">© 2025 VOID WEAR INC. LICENSED TRANSMISSION.</p>
           <div className="flex items-center gap-6">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-[8px] tracking-[0.5em] text-white/20 uppercase font-black">SYSTEM_STATUS: STABLE</span>
