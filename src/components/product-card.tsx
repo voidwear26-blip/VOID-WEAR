@@ -64,7 +64,7 @@ export function ProductCard({ product }: ProductCardProps) {
       }}
       className="group relative"
     >
-      <Link href={`/products/${product.id}`} className="block relative overflow-hidden bg-black border border-white/5 group-hover:border-white/20 transition-all duration-500 glow-border">
+      <Link href={`/products/${product.id}`} className="block relative overflow-hidden bg-black border border-white/10 group-hover:border-white/30 transition-all duration-500 glow-border">
         <div className="relative aspect-[3/4] overflow-hidden">
           <Image
             src={displayImage}
@@ -79,7 +79,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute top-6 right-6 z-20">
             <motion.button 
               {...iconMotionProps}
-              className="p-3 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 bg-black/40 text-white/40 hover:text-white"
+              className="p-3 rounded-full backdrop-blur-md border border-white/20 transition-all duration-300 bg-black/40 text-white/60 hover:text-white"
             >
               <Heart className="w-3.5 h-3.5" />
             </motion.button>
@@ -92,17 +92,17 @@ export function ProductCard({ product }: ProductCardProps) {
             <Plus className="w-6 h-6" />
           </motion.div>
 
-          <div className="absolute top-6 left-6 text-[8px] tracking-[0.5em] font-bold text-white/40 group-hover:text-white transition-colors">
-            {product.category?.toUpperCase() || 'UNCLASSIFIED'}
+          <div className="absolute top-6 left-6 text-[8px] tracking-[0.5em] font-bold text-white/70 group-hover:text-white transition-colors uppercase">
+            {product.category || 'UNCLASSIFIED'}
           </div>
         </div>
 
         <div className="p-8 space-y-4">
           <div className="flex justify-between items-start">
-            <h3 className="text-sm font-medium tracking-[0.3em] uppercase max-w-[70%]">{product.name}</h3>
-            <span className="text-[10px] font-bold text-white/40 tracking-widest">₹{product.basePrice}</span>
+            <h3 className="text-sm font-medium tracking-[0.3em] uppercase max-w-[70%] text-white">{product.name}</h3>
+            <span className="text-[10px] font-bold text-white/70 tracking-widest">₹{product.basePrice}</span>
           </div>
-          <div className="h-[1px] w-0 group-hover:w-full bg-white/10 transition-all duration-700"></div>
+          <div className="h-[1px] w-0 group-hover:w-full bg-white/20 transition-all duration-700"></div>
         </div>
       </Link>
     </motion.div>

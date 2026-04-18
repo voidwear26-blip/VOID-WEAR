@@ -64,16 +64,16 @@ export function Navbar() {
             </Link>
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
-              <Link href="/products" className="text-white/30 hover:text-white transition-all duration-500 uppercase font-bold">COLLECTION</Link>
-              <Link href="/story" className="text-white/30 hover:text-white transition-all duration-500 uppercase font-bold">STORY</Link>
-              <Link href="/contact" className="text-white/30 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
+              <Link href="/products" className="text-white/60 hover:text-white transition-all duration-500 uppercase font-bold">COLLECTION</Link>
+              <Link href="/story" className="text-white/60 hover:text-white transition-all duration-500 uppercase font-bold">STORY</Link>
+              <Link href="/contact" className="text-white/60 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
+                <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/70 hover:text-white rounded-none">
                   <Link href="/profile">
                     <motion.div {...iconMotionProps}>
                       <User className="w-4 h-4" />
@@ -84,7 +84,7 @@ export function Navbar() {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => auth.signOut()}
-                  className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none"
+                  className="hover:bg-white/5 h-12 w-12 text-white/70 hover:text-white rounded-none"
                 >
                   <motion.div {...iconMotionProps}>
                     <LogOut className="w-4 h-4" />
@@ -92,7 +92,7 @@ export function Navbar() {
                 </Button>
               </div>
             ) : (
-              <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
+              <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/70 hover:text-white rounded-none">
                 <Link href="/login">
                   <motion.div {...iconMotionProps}>
                     <User className="w-4 h-4" />

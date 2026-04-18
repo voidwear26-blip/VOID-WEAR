@@ -65,7 +65,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   return (
     <div className="pt-32 pb-24 bg-transparent">
       <div className="container mx-auto px-6">
-        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/40 mb-12 uppercase">
+        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/60 mb-12 uppercase">
           <Link href="/" className="hover:text-white transition-colors">HOME</Link>
           <ChevronRight className="w-3 h-3" />
           <Link href="/products" className="hover:text-white transition-colors">COLLECTION</Link>
@@ -75,7 +75,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
         <div className="grid lg:grid-cols-2 gap-24 items-start">
           <div className="space-y-8">
-            <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/5">
+            <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/10">
               <Image 
                 src={displayImage} 
                 alt={(product as any)?.name || 'Product module visualization'} 
@@ -89,21 +89,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           <div className="space-y-12 lg:sticky lg:top-32">
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">
+              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/70 uppercase">
                 <span className="w-8 h-[1px] bg-white/40"></span>
                 {(product as any)?.category}
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{(product as any)?.name}</h1>
-              <p className="text-2xl font-light tracking-widest text-white/80">₹{(product as any)?.basePrice}</p>
+              <p className="text-2xl font-light tracking-widest text-white/90">₹{(product as any)?.basePrice}</p>
             </div>
 
-            <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase">
+            <p className="text-sm tracking-widest leading-relaxed text-white/80 uppercase">
               {(product as any)?.description}
             </p>
 
             <div className="space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SELECT SIZE</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
                   {availableSizes.map(size => {
                     const isOutOfStock = (product as any)?.stockBySize && ((product as any).stockBySize[size] || 0) <= 0;
@@ -114,7 +114,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         onClick={() => setSelectedSize(size)}
                         className={cn(
                           "w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
-                          selectedSize === size ? "bg-white text-black border-white" : "border-white/20 hover:border-white bg-white/[0.02] text-white",
+                          selectedSize === size ? "bg-white text-black border-white" : "border-white/30 hover:border-white bg-white/[0.02] text-white",
                           isOutOfStock && "opacity-20 cursor-not-allowed line-through"
                         )}
                       >
@@ -134,7 +134,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ADD TO BAG'}
                   <ShoppingBag className="ml-4 w-4 h-4 group-hover:scale-110 transition-transform" />
                 </Button>
-                <Button variant="outline" size="icon" className="w-20 h-20 border-white/20 hover:bg-white hover:text-black rounded-none bg-transparent">
+                <Button variant="outline" size="icon" className="w-20 h-20 border-white/30 hover:bg-white hover:text-black rounded-none bg-transparent">
                   <Heart className="w-5 h-5" />
                 </Button>
               </div>
@@ -142,8 +142,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <div className="border-t border-white/10 pt-12 space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase">SPECIFICATIONS</h4>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/40">
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">SPECIFICATIONS</h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/60">
                   {(product as any)?.details?.map((detail: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 uppercase">
                       <span className="w-1 h-1 bg-white rounded-full"></span>
