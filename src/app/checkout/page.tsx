@@ -3,9 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, doc, setDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 type CheckoutStep = 'shipping' | 'review' | 'payment';
+type PaymentMethod = 'card' | 'upi' | 'wallet';
 
 export default function CheckoutPage() {
   const { user, isUserLoading } = useUser();
@@ -22,7 +23,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [step, setStep] = useState<CheckoutStep>('shipping');
   const [loading, setLoading] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<'card' | 'upi'>('upi');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('upi');
 
   const cartItemsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -45,6 +46,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (user) {
+      // Pre-fill with existing profile data if available
       setFormData(prev => ({
         ...prev,
         displayName: user.displayName || '',
@@ -60,7 +62,11 @@ export default function CheckoutPage() {
       const required = ['displayName', 'stateProvince', 'addressLine1', 'city', 'postalCode', 'mobileNumber', 'email'];
       const missing = required.filter(key => !formData[key as keyof typeof formData]);
       if (missing.length > 0) {
-        toast({ title: "LOGISTICS ERROR", description: "PLEASE FILL ALL REQUIRED FIELDS.", variant: "destructive" });
+        toast({ 
+          title: "LOGISTICS ERROR", 
+          description: "PLEASE FILL ALL REQUIRED FIELDS TO PROCEED.", 
+          variant: "destructive" 
+        });
         return;
       }
       setStep('review');
@@ -74,7 +80,6 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // 1. Initialize Razorpay Order
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +96,6 @@ export default function CheckoutPage() {
         description: 'SECURE TRANSMISSION',
         order_id: orderData.id,
         handler: async function (response: any) {
-          // Verify & Create Order
           const verifyRes = await fetch('/api/checkout/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -103,14 +107,14 @@ export default function CheckoutPage() {
             const orderId = `VOID-${Date.now()}`;
             const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
             
-            // Update User Profile with address
+            // SYSTEM_SYNC: Capture and store entity data in primary profile
             const userRef = doc(db, 'users', user.uid);
-            batch.update(userRef, {
+            batch.set(userRef, {
               ...formData,
               updatedAt: new Date().toISOString()
-            });
+            }, { merge: true });
 
-            // Set Order
+            // LOG_TRANSMISSION: Record order in mission logs
             batch.set(orderRef, {
               id: orderId,
               userId: user.uid,
@@ -122,10 +126,11 @@ export default function CheckoutPage() {
               paymentStatus: 'paid',
               paymentProviderId: response.razorpay_payment_id,
               paymentMethod: selectedMethod.toUpperCase(),
-              createdAt: new Date().toISOString()
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
             });
 
-            // Clear Cart
+            // CLEAR_BUFFER: Purge active cart
             const cartSnap = await getDocs(cartItemsRef!);
             cartSnap.docs.forEach(d => batch.delete(d.ref));
 
@@ -137,7 +142,7 @@ export default function CheckoutPage() {
         prefill: { 
           email: formData.email, 
           contact: formData.mobileNumber,
-          method: selectedMethod === 'upi' ? 'upi' : 'card'
+          method: selectedMethod
         },
         theme: { color: '#000000' },
         modal: {
@@ -158,7 +163,7 @@ export default function CheckoutPage() {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
-        <p className="text-[10px] tracking-[1em] text-white/40 uppercase">Syncing Protocols...</p>
+        <p className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Syncing Protocols...</p>
       </div>
     );
   }
@@ -173,7 +178,6 @@ export default function CheckoutPage() {
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="flex flex-col md:flex-row gap-16">
           <div className="flex-1 space-y-12">
-            {/* Stepper */}
             <div className="flex items-center gap-6 mb-12">
               <StepIndicator current={step} target="shipping" label="LOGISTICS" />
               <div className="h-[1px] w-8 bg-white/10" />
@@ -191,26 +195,30 @@ export default function CheckoutPage() {
                   exit={{ opacity: 0, x: 20 }}
                   className="space-y-10"
                 >
-                  <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
+                  <div className="space-y-4">
+                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
+                    <p className="text-[10px] tracking-[0.4em] text-white/20 uppercase font-bold">IDENTIFICATION & DESTINATION NODES</p>
+                  </div>
+                  
                   <div className="grid md:grid-cols-2 gap-8">
-                    <Field label="FULL NAME" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} required />
+                    <Field label="NAME" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} required />
                     <Field label="EMAIL" type="email" value={formData.email} onChange={v => setFormData({...formData, email: v})} required />
                     <Field label="CONTACT NUMBER" type="tel" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} required />
                     <Field label="STATE" value={formData.stateProvince} onChange={v => setFormData({...formData, stateProvince: v})} required />
                     <Field label="CITY / TOWN" value={formData.city} onChange={v => setFormData({...formData, city: v})} required />
-                    <Field label="PINCODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} required />
+                    <Field label="PIN CODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} required />
                     <div className="md:col-span-2">
                       <Field label="STREET ADDRESS" value={formData.addressLine1} onChange={v => setFormData({...formData, addressLine1: v})} required />
                     </div>
-                    <Field label="LANDMARK (OPTIONAL)" value={formData.landmark} onChange={v => setFormData({...formData, landmark: v})} />
+                    <Field label="LAND MARK (OPTIONAL)" value={formData.landmark} onChange={v => setFormData({...formData, landmark: v})} />
                     <div className="md:col-span-2">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">ADDITIONAL INFORMATION</label>
                         <Textarea 
                           value={formData.additionalInfo} 
                           onChange={e => setFormData({...formData, additionalInfo: e.target.value})}
-                          className="bg-white/5 border-white/10 rounded-none h-24 text-xs tracking-widest focus:border-white/40"
-                          placeholder="E.G. DELIVERY INSTRUCTIONS..."
+                          className="bg-white/5 border-white/10 rounded-none h-24 text-xs tracking-widest focus:border-white/40 text-white"
+                          placeholder="E.G. SPECIAL DELIVERY INSTRUCTIONS..."
                         />
                       </div>
                     </div>
@@ -242,21 +250,36 @@ export default function CheckoutPage() {
                   
                   <div className="grid md:grid-cols-2 gap-12 border-t border-white/5 pt-12">
                     <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ENTITY DESTINATION</h4>
-                      <div className="bg-white/5 p-8 border border-white/10 space-y-2">
-                        <p className="text-xs font-bold tracking-widest uppercase">{formData.displayName}</p>
-                        <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">
-                          {formData.addressLine1}, {formData.landmark && `${formData.landmark}, `}{formData.city}<br />
-                          {formData.stateProvince} - {formData.postalCode}
-                        </p>
-                        <p className="text-[10px] text-white/40 tracking-widest uppercase pt-4">CONTACT: {formData.mobileNumber}</p>
+                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ENTITY COORDINATES</h4>
+                      <div className="bg-white/5 p-8 border border-white/10 space-y-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-white/20 tracking-widest uppercase">NAME</p>
+                          <p className="text-xs font-bold tracking-widest uppercase">{formData.displayName}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-white/20 tracking-widest uppercase">DESTINATION</p>
+                          <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">
+                            {formData.addressLine1}, {formData.landmark && `${formData.landmark}, `}{formData.city}<br />
+                            {formData.stateProvince} - {formData.postalCode}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-white/20 tracking-widest uppercase">CONTACT</p>
+                            <p className="text-[10px] text-white/60 tracking-widest uppercase">{formData.mobileNumber}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-white/20 tracking-widest uppercase">EMAIL</p>
+                            <p className="text-[10px] text-white/60 tracking-widest uppercase truncate">{formData.email}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ADDITIONAL DATA</h4>
-                      <div className="bg-white/5 p-8 border border-white/10">
+                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">NARRATIVE LOGS</h4>
+                      <div className="bg-white/5 p-8 border border-white/10 min-h-[160px]">
                         <p className="text-[10px] text-white/40 tracking-widest leading-relaxed uppercase">
-                          {formData.additionalInfo || 'NO ADDITIONAL LOGS.'}
+                          {formData.additionalInfo || 'NO ADDITIONAL DATA LOGGED.'}
                         </p>
                       </div>
                     </div>
@@ -266,7 +289,7 @@ export default function CheckoutPage() {
                     onClick={handleNext} 
                     className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                   >
-                    CONFIRM & PROCEED TO PAYMENT
+                    CONFIRM & PROCEED TO UPLINK
                     <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
@@ -283,13 +306,13 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between">
                     <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Uplink Channel</h2>
                     <Button variant="ghost" onClick={() => setStep('review')} className="text-[10px] tracking-widest text-white/40 hover:text-white uppercase font-bold">
-                      <ArrowLeft className="mr-2 w-3 h-3" /> BACK TO AUDIT
+                      <ArrowLeft className="mr-2 w-3 h-3" /> BACK TO REVIEW
                     </Button>
                   </div>
 
                   <div className="bg-white/5 border border-white/10 p-12 space-y-10">
                     <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SELECT GATEWAY</h4>
+                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SELECT PAYMENT MODULE</h4>
                       <div className="grid gap-4">
                         <PaymentOption 
                           label="UPI TRANSMISSION (FASTEST)" 
@@ -303,6 +326,12 @@ export default function CheckoutPage() {
                           selected={selectedMethod === 'card'} 
                           onClick={() => setSelectedMethod('card')}
                         />
+                        <PaymentOption 
+                          label="DIGITAL WALLETS" 
+                          icon={<Wallet className="w-4 h-4" />} 
+                          selected={selectedMethod === 'wallet'} 
+                          onClick={() => setSelectedMethod('wallet')}
+                        />
                       </div>
                     </div>
 
@@ -312,7 +341,7 @@ export default function CheckoutPage() {
                         <span className="text-[9px] tracking-[0.3em] uppercase">ENCRYPTED TRANSACTION CHANNEL</span>
                       </div>
                       <p className="text-[9px] text-white/20 tracking-widest leading-relaxed uppercase">
-                        YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. ALL UPI AND CARD TRANSMISSIONS ARE ENCRYPTED.
+                        YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. ALL TRANSMISSIONS ARE ENCRYPTED AND LOGGED IN THE VOID.
                       </p>
                     </div>
 
@@ -334,10 +363,9 @@ export default function CheckoutPage() {
             </AnimatePresence>
           </div>
 
-          {/* Summary Sidebar */}
           <div className="w-full md:w-96 space-y-8">
             <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ASSEMBLAGE SUMMARY</h3>
+              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">MISSION ASSEMBLAGE</h3>
               <div className="space-y-6 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
                 {cartItems?.map(item => (
                   <div key={item.id} className="flex gap-4">
@@ -354,25 +382,17 @@ export default function CheckoutPage() {
               </div>
               <div className="pt-8 border-t border-white/5 space-y-4">
                 <div className="flex justify-between items-center text-[10px] tracking-widest">
-                  <span className="text-white/40 uppercase">SUBTOTAL</span>
+                  <span className="text-white/40 uppercase font-bold">SUBTOTAL</span>
                   <span className="font-bold">₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] tracking-widest">
-                  <span className="text-white/40 uppercase">EXPEDITION COST</span>
+                  <span className="text-white/40 uppercase font-bold">EXPEDITION</span>
                   <span className="text-green-500 font-bold">FREE</span>
                 </div>
                 <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                  <span className="text-[10px] font-black tracking-widest uppercase">MISSION TOTAL</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase">TOTAL MISSION COST</span>
                   <span className="text-2xl font-black tracking-tight glow-text">₹{subtotal}</span>
                 </div>
-              </div>
-            </div>
-            
-            <div className="p-8 border border-white/5 bg-white/[0.02] flex items-center gap-4">
-              <Package className="w-5 h-5 text-white/20" />
-              <div className="space-y-1">
-                <p className="text-[9px] font-bold tracking-widest uppercase">SHIPPING PROTOCOL</p>
-                <p className="text-[8px] text-white/20 tracking-widest uppercase">2-7 CYCLE EXPEDITION</p>
               </div>
             </div>
           </div>
@@ -398,13 +418,13 @@ function Field({ label, value, onChange, type = "text", required }: { label: str
   return (
     <div className="space-y-2">
       <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <Input 
         type={type} 
         value={value} 
         onChange={e => onChange(e.target.value)}
-        className="bg-white/5 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/40 text-white uppercase"
+        className="bg-white/5 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/40 text-white uppercase placeholder:text-white/5"
         placeholder={label}
       />
     </div>
