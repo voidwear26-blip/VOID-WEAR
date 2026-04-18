@@ -1,4 +1,3 @@
-
 export default function ShippingPage() {
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
@@ -34,10 +33,10 @@ export default function ShippingPage() {
             <div className="p-10 border border-white/10 bg-white/[0.02] backdrop-blur-md">
               <h3 className="text-xs font-bold tracking-widest uppercase mb-6">Current Transit Times</h3>
               <ul className="space-y-4 text-[10px] text-white/40 tracking-widest uppercase">
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>Metro Clusters (Delhi, Mumbai, BLR)</span><span>1-2 Cycles</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>Metro Clusters (Delhi, Mumbai, Bengaluru)</span><span>1-2 Cycles</span></li>
                 <li className="flex justify-between border-b border-white/5 pb-2"><span>Tier 1 Strategic Zones</span><span>2-3 Cycles</span></li>
                 <li className="flex justify-between border-b border-white/5 pb-2"><span>Regional Outposts</span><span>3-5 Cycles</span></li>
-                <li className="flex justify-between"><span>Remote Frontier Nodes</span><span>5-7 Cycles</span></li>
+                <li className="flex justify-between"><span>Remote Frontier Nodes (NE, J&K)</span><span>5-7 Cycles</span></li>
               </ul>
             </div>
           </div>
