@@ -4,7 +4,7 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, MapPin, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, Phone, Mail } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, MapPin, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, Phone, Mail, ExternalLink, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
-  // Other collections
+  // Transmissions (Orders)
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -39,6 +39,7 @@ export default function ProfilePage() {
     );
   }, [db, user]);
 
+  // Stasis (Wishlist)
   const wishlistQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'wishlist');
@@ -53,7 +54,8 @@ export default function ProfilePage() {
     city: '',
     stateProvince: '',
     postalCode: '',
-    addressLine1: ''
+    addressLine1: '',
+    landmark: ''
   });
 
   useEffect(() => {
@@ -64,7 +66,8 @@ export default function ProfilePage() {
         city: profile.city || '',
         stateProvince: profile.stateProvince || '',
         postalCode: profile.postalCode || '',
-        addressLine1: profile.addressLine1 || ''
+        addressLine1: profile.addressLine1 || '',
+        landmark: profile.landmark || ''
       });
     }
   }, [profile]);
@@ -114,8 +117,8 @@ export default function ProfilePage() {
         <h2 className="text-xl font-bold tracking-[0.5em] glow-text">ACCESS DENIED</h2>
         <p className="text-[10px] text-white/40 tracking-[0.3em]">PLEASE INITIALIZE AUTHENTICATION</p>
         <Link href="/login">
-          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all">
-            LOGIN
+          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all font-bold uppercase">
+            ESTABLISH LINK
           </button>
         </Link>
       </div>
@@ -141,7 +144,7 @@ export default function ProfilePage() {
               <Link href="/admin">
                 <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] mb-8">
                   <Settings className="w-4 h-4 mr-3" />
-                  ADMIN COMMAND
+                  COMMAND CENTER
                 </Button>
               </Link>
             )}
@@ -166,7 +169,7 @@ export default function ProfilePage() {
                 <button 
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-4 transition-all duration-300 ${activeTab === tab.id ? 'text-white pl-4 border-l border-white' : 'hover:text-white/60'}`}
+                  className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-white pl-4 border-l border-white' : 'hover:text-white/60'}`}
                 >
                   {tab.icon}
                   {tab.label}
@@ -192,7 +195,7 @@ export default function ProfilePage() {
                   <form onSubmit={handleUpdateProfile} className="bg-white/[0.02] border border-white/5 p-10 space-y-10 backdrop-blur-xl">
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">FULL IDENTIFIER (NAME)</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">FULL IDENTIFIER</label>
                         <Input 
                           value={formData.displayName}
                           onChange={e => setFormData({ ...formData, displayName: e.target.value })}
@@ -201,7 +204,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CONTACT PROTOCOL (MOBILE)</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CONTACT PROTOCOL</label>
                         <Input 
                           value={formData.mobileNumber}
                           onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
@@ -229,7 +232,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">POSTAL CODE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
                         <Input 
                           value={formData.postalCode}
                           onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
@@ -238,14 +241,24 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS</label>
-                      <Textarea 
-                        value={formData.addressLine1}
-                        onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
-                        className="bg-black/40 border-white/10 rounded-none min-h-[100px] text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
-                        placeholder="ENTER STREET ADDRESS"
-                      />
+                    <div className="grid md:grid-cols-2 gap-10">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS</label>
+                        <Input 
+                          value={formData.addressLine1}
+                          onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
+                          className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+                          placeholder="STREET ADDRESS"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">LANDMARK (OPTIONAL)</label>
+                        <Input 
+                          value={formData.landmark}
+                          onChange={e => setFormData({ ...formData, landmark: e.target.value })}
+                          className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+                        />
+                      </div>
                     </div>
 
                     <Button 
@@ -315,9 +328,9 @@ export default function ProfilePage() {
 
                           <div className="flex items-center gap-8 md:gap-12">
                             <div className="text-right">
-                              <div className="text-[11px] font-bold tracking-widest">₹{order.totalAmount}</div>
+                              <div className="text-[11px] font-bold tracking-widest uppercase">₹{order.totalAmount}</div>
                               <div className="text-[8px] text-white/20 tracking-widest uppercase mt-1 font-bold">
-                                {order.paymentStatus}
+                                {order.paymentStatus || 'PAYMENT_LOGGED'}
                               </div>
                             </div>
                             
@@ -440,7 +453,7 @@ function ReviewDialog({ order, userId, userName, db }: { order: any, userId: str
             </div>
           </div>
           <div className="space-y-4">
-            <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">TRANSMISSION LOG (COMMENT)</label>
+            <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">TRANSMISSION LOG</label>
             <Textarea 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
