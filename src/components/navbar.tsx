@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
 import { motion } from 'framer-motion';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -15,6 +16,15 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { user } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
+
+  const cartQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
+  }, [db, user]);
+
+  const { data: cartItems } = useCollection(cartQuery);
+  const itemCount = cartItems?.reduce((acc, item) => acc + (item.quantity || 0), 0) || 0;
 
   useEffect(() => {
     setMounted(true);
@@ -99,6 +109,11 @@ export function Navbar() {
             >
               <motion.div {...iconMotionProps}>
                 <ShoppingBag className="w-4 h-4 group-hover:glow-text" />
+                {itemCount > 0 && (
+                  <span className="absolute top-2 right-2 w-3.5 h-3.5 bg-white text-black text-[8px] font-bold rounded-full flex items-center justify-center animate-in zoom-in-50">
+                    {itemCount}
+                  </span>
+                )}
               </motion.div>
             </Button>
           </div>

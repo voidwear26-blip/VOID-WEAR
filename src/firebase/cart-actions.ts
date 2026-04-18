@@ -1,15 +1,22 @@
-
 'use client';
 
-import { doc, collection, setDoc, getDoc, Firestore } from 'firebase/firestore';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from './non-blocking-updates';
+import { doc, getDoc, setDoc, deleteDoc, Firestore } from 'firebase/firestore';
+import { updateDocumentNonBlocking } from './non-blocking-updates';
 
 /**
- * Adds a product variant to the user's active cart.
- * If the item already exists, it increments the quantity.
+ * Adds a product to the user's active cart.
+ * Stores essential metadata to avoid extra lookups in the cart view.
  */
-export async function addToCart(db: Firestore, userId: string, productId: string, quantity: number = 1) {
-  const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', productId);
+export async function addToCart(
+  db: Firestore, 
+  userId: string, 
+  product: { id: string, name: string, basePrice: number, imageUrls: string[] },
+  size: string,
+  quantity: number = 1
+) {
+  // Use a composite ID for unique product/size combinations in the cart
+  const cartItemId = `${product.id}_${size}`;
+  const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
   const itemSnap = await getDoc(itemRef);
 
   if (itemSnap.exists()) {
@@ -18,12 +25,24 @@ export async function addToCart(db: Firestore, userId: string, productId: string
       quantity: currentQty + quantity
     });
   } else {
+    // We use setDoc here as we want to initiate the write
     setDoc(itemRef, {
-      id: productId,
-      cartId: 'active_cart',
-      productVariantId: productId,
+      id: cartItemId,
+      productId: product.id,
+      name: product.name,
+      price: product.basePrice,
+      image: product.imageUrls[0] || 'https://picsum.photos/seed/void/400/600',
+      size: size,
       quantity: quantity,
       addedAt: new Date().toISOString()
     });
   }
+}
+
+/**
+ * Removes an item from the cart.
+ */
+export async function removeFromCart(db: Firestore, userId: string, cartItemId: string) {
+  const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
+  await deleteDoc(itemRef);
 }

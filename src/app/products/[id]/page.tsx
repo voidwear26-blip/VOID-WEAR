@@ -42,7 +42,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
     setAdding(true);
     try {
-      await addToCart(db, user.uid, (product as any).id);
+      await addToCart(db, user.uid, product as any, selectedSize);
       toast({ title: "MODULE ADDED", description: `SIZE ${selectedSize} ASSEMBLAGE LOGGED.` });
     } catch (e) {
       console.error(e);
