@@ -1,16 +1,20 @@
+
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc' | 'newest';
 
 export default function AdminProductsPage() {
   const { user, isUserLoading } = useUser();
@@ -18,6 +22,7 @@ export default function AdminProductsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -39,10 +44,37 @@ export default function AdminProductsPage() {
 
   const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
 
-  const filteredProducts = products?.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAndSortedProducts = useMemo(() => {
+    if (!products) return [];
+
+    let result = products.filter(p => 
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Sorting Logic
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'name-desc':
+          return (b.name || '').localeCompare(a.name || '');
+        case 'price-asc':
+          return (a.basePrice || 0) - (b.basePrice || 0);
+        case 'price-desc':
+          return (b.basePrice || 0) - (a.basePrice || 0);
+        case 'stock-asc':
+          return (a.stockQuantity || 0) - (b.stockQuantity || 0);
+        case 'stock-desc':
+          return (b.stockQuantity || 0) - (a.stockQuantity || 0);
+        case 'newest':
+        default:
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      }
+    });
+
+    return result;
+  }, [products, searchTerm, sortBy]);
 
   const handleDelete = async (id: string) => {
     if (!db) return;
@@ -93,14 +125,37 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        <div className="mb-12 relative max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-          <Input 
-            placeholder="FILTER BY NAME OR CATEGORY..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-widest focus-visible:ring-0 focus-visible:border-white/40 font-bold text-white"
-          />
+        <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
+          <div className="relative w-full md:w-96 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-white/60 transition-colors" />
+            <Input 
+              placeholder="SEARCH THE ASSEMBLAGE..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/40 font-bold text-white uppercase placeholder:text-white/10 transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/20 uppercase font-bold mr-2">
+              <SlidersHorizontal className="w-3 h-3" />
+              SORT_PROTOCOL:
+            </div>
+            <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
+              <SelectTrigger className="w-full md:w-64 bg-white/5 border-white/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase focus:ring-0 text-white font-bold transition-all hover:bg-white/10">
+                <SelectValue placeholder="SORT_BY" />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-white/10 text-white rounded-none">
+                <SelectItem value="newest" className="text-[9px] tracking-widest uppercase">RECENT ARRIVALS</SelectItem>
+                <SelectItem value="price-asc" className="text-[9px] tracking-widest uppercase">PRICE: LOW TO HIGH</SelectItem>
+                <SelectItem value="price-desc" className="text-[9px] tracking-widest uppercase">PRICE: HIGH TO LOW</SelectItem>
+                <SelectItem value="name-asc" className="text-[9px] tracking-widest uppercase">IDENTITY: A - Z</SelectItem>
+                <SelectItem value="name-desc" className="text-[9px] tracking-widest uppercase">IDENTITY: Z - A</SelectItem>
+                <SelectItem value="stock-desc" className="text-[9px] tracking-widest uppercase">INVENTORY: HIGH AVAILABILITY</SelectItem>
+                <SelectItem value="stock-asc" className="text-[9px] tracking-widest uppercase">INVENTORY: DEPLETING FAST</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="bg-white/[0.02] border border-white/5 overflow-hidden backdrop-blur-xl">
@@ -121,8 +176,8 @@ export default function AdminProductsPage() {
                     <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />
                   </tr>
                 ))
-              ) : filteredProducts && filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
+              ) : filteredAndSortedProducts && filteredAndSortedProducts.length > 0 ? (
+                filteredAndSortedProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-6">
@@ -149,7 +204,9 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-[10px] tracking-widest text-white/40">
+                        <span className={`font-mono text-[10px] tracking-widest ${
+                          (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/40'
+                        }`}>
                           {product.stockQuantity || 0}
                         </span>
                         {product.stockBySize && (
@@ -159,13 +216,13 @@ export default function AdminProductsPage() {
                                 <Info className="w-3 h-3" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-40 bg-black border-white/10 rounded-none p-4">
+                            <PopoverContent className="w-40 bg-black border-white/10 rounded-none p-4 shadow-2xl">
                               <div className="space-y-2">
                                 <p className="text-[8px] tracking-widest text-white/40 uppercase font-bold border-b border-white/5 pb-2">SIZE BREAKDOWN</p>
                                 {Object.entries(product.stockBySize).map(([size, qty]) => (
                                   <div key={size} className="flex justify-between text-[9px] tracking-widest">
                                     <span className="text-white/40">{size}</span>
-                                    <span className="text-white font-mono">{qty as number}</span>
+                                    <span className={`font-mono ${(qty as number) < 2 ? 'text-red-500' : 'text-white'}`}>{qty as number}</span>
                                   </div>
                                 ))}
                               </div>
