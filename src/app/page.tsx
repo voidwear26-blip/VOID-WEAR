@@ -4,14 +4,16 @@
 import { Hero } from '@/components/hero';
 import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
-import { Package, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Package } from 'lucide-react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
   const db = useFirestore();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [constraints, setConstraints] = useState({ left: 0, right: 0 });
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -26,11 +28,19 @@ export default function Home() {
   const { data: latestProducts, isLoading: latestLoading } = useCollection(latestProductsQuery);
   const { data: topProducts, isLoading: topLoading } = useCollection(topProductsQuery);
 
+  useEffect(() => {
+    if (containerRef.current && latestProducts) {
+      const scrollWidth = containerRef.current.scrollWidth;
+      const offsetWidth = containerRef.current.offsetWidth;
+      setConstraints({ left: -(scrollWidth - offsetWidth), right: 0 });
+    }
+  }, [latestProducts]);
+
   return (
     <div className="space-y-0 bg-transparent text-white">
       <Hero />
       
-      {/* Moving Gallery Section */}
+      {/* Interactive Gallery Section */}
       <section className="py-24 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-20 md:mb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -46,25 +56,22 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Moving Line Animation */}
-        <div className="relative flex overflow-hidden group">
+        {/* Draggable Gallery Module */}
+        <div className="relative cursor-grab active:cursor-grabbing px-6 md:px-0">
           <motion.div 
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ 
-              duration: 40, 
-              repeat: Infinity, 
-              ease: "linear" 
-            }}
-            className="flex gap-8 md:gap-16 whitespace-nowrap"
+            ref={containerRef}
+            drag="x"
+            dragConstraints={constraints}
+            className="flex gap-8 md:gap-16 whitespace-nowrap overflow-visible"
+            style={{ touchAction: 'none' }}
           >
             {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="w-[300px] md:w-[450px] aspect-[3/4] bg-white/5 animate-pulse" />
               ))
             ) : latestProducts && latestProducts.length > 0 ? (
-              // Double the products for seamless infinite loop
-              [...latestProducts, ...latestProducts].map((product, idx) => (
-                <div key={`${product.id}-${idx}`} className="w-[300px] md:w-[450px] shrink-0">
+              latestProducts.map((product) => (
+                <div key={product.id} className="w-[300px] md:w-[450px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
@@ -75,6 +82,12 @@ export default function Home() {
               </div>
             )}
           </motion.div>
+          
+          {/* Visual Indicator */}
+          <div className="mt-16 container mx-auto px-6 flex items-center gap-4 text-white/10">
+            <div className="text-[8px] tracking-[0.5em] uppercase font-bold">DRAG TO EXPLORE</div>
+            <div className="flex-1 h-[1px] bg-white/5"></div>
+          </div>
         </div>
       </section>
 
