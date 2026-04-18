@@ -32,9 +32,15 @@
   * {
     @apply border-border;
   }
+  html, body {
+    height: auto;
+    overflow-x: hidden;
+  }
   body {
-    @apply bg-background text-foreground selection:bg-white selection:text-black overflow-x-hidden;
+    @apply bg-background text-foreground selection:bg-white selection:text-black;
     font-family: 'Space Grotesk', sans-serif;
+    overflow-y: auto;
+    min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Orbitron', sans-serif;
@@ -113,9 +119,9 @@
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Hardened Visibility */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -123,9 +129,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
 }

@@ -126,10 +126,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="pt-48 pb-32 bg-transparent min-h-screen">
+    <div className="pt-48 pb-32 bg-transparent min-h-screen overflow-y-auto">
       <div className="container mx-auto px-6 md:px-10">
-        <div className="grid lg:grid-cols-4 gap-16 md:gap-24">
-          <div className="space-y-12">
+        <div className="grid lg:grid-cols-4 gap-16 md:gap-24 items-start">
+          <div className="space-y-12 lg:sticky lg:top-48">
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">ENTITY // PROFILE</span>
               <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none break-all">
@@ -178,7 +178,7 @@ export default function ProfilePage() {
             </nav>
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-h-[600px]">
             <AnimatePresence mode="wait">
               {activeTab === 'identity' && (
                 <motion.div 
@@ -232,7 +232,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
+                        <label className="text-[10px) font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
                         <Input 
                           value={formData.postalCode}
                           onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
