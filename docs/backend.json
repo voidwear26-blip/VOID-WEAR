@@ -35,6 +35,12 @@
         "email": { "type": "string" },
         "displayName": { "type": "string" },
         "mobileNumber": { "type": "string" },
+        "addressLine1": { "type": "string" },
+        "landmark": { "type": "string" },
+        "city": { "type": "string" },
+        "stateProvince": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "additionalInfo": { "type": "string" },
         "isBlocked": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       }

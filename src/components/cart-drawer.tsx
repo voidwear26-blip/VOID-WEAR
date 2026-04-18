@@ -1,13 +1,14 @@
+
 'use client';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, Trash2, Plus, Minus, Package, Loader2 } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, Package, Loader2, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import Image from 'next/image';
-import { CheckoutButton } from './checkout-button';
+import { useRouter } from 'next/navigation';
 import { removeFromCart } from '@/firebase/cart-actions';
 
 interface CartDrawerProps {
@@ -18,6 +19,7 @@ interface CartDrawerProps {
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { user } = useUser();
   const db = useFirestore();
+  const router = useRouter();
 
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -26,7 +28,6 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
   const { data: cartItems, isLoading } = useCollection(cartQuery);
 
-  // Safe subtotal calculation with number casting
   const subtotal = cartItems?.reduce((acc, item) => {
     const price = Number(item.price) || 0;
     const qty = Number(item.quantity) || 0;
@@ -50,13 +51,18 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     }
   };
 
+  const handleCheckout = () => {
+    onOpenChange(false);
+    router.push('/checkout');
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-black border-l border-white/5 text-white p-0 flex flex-col w-full sm:max-w-md backdrop-blur-xl">
         <SheetHeader className="p-10 border-b border-white/5">
           <SheetTitle className="text-sm font-bold tracking-[0.5em] flex items-center gap-4">
             <ShoppingBag className="w-4 h-4" />
-            YOUR BAG
+            TRANSMISSION BAG
           </SheetTitle>
         </SheetHeader>
 
@@ -84,7 +90,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                     <div className="relative w-24 aspect-[3/4] bg-white/5 border border-white/10 overflow-hidden">
                       <Image 
                         src={item.image || 'https://picsum.photos/seed/void/200/300'} 
-                        alt={item.name || 'Assemblage module'} 
+                        alt={item.name || 'Module'} 
                         fill 
                         className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                         unoptimized
@@ -93,7 +99,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                     <div className="flex-1 space-y-4">
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
-                          <p className="text-[10px] font-bold tracking-widest uppercase">{item.name}</p>
+                          <p className="text-[10px] font-bold tracking-widest uppercase truncate max-w-[150px]">{item.name}</p>
                           <p className="text-[8px] text-white/40 tracking-[0.2em] uppercase">SIZE: {item.size}</p>
                         </div>
                         <button 
@@ -135,7 +141,13 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                 TAXES AND SHIPPING CALCULATED AT UPLINK.
               </p>
             </div>
-            <CheckoutButton amount={subtotal} />
+            <Button 
+              onClick={handleCheckout}
+              className="w-full bg-white text-black hover:bg-white/90 py-10 text-[10px] font-bold tracking-[0.6em] rounded-none group relative overflow-hidden"
+            >
+              INITIALIZE CHECKOUT
+              <ArrowRight className="ml-4 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </SheetFooter>
         )}
       </SheetContent>
