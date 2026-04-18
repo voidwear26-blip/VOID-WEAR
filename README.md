@@ -1,4 +1,4 @@
-
+add 
 # 🌑 VOID WEAR // SYSTEM MANIFESTO
 
 **VOID WEAR** is a premium futuristic e-commerce platform designed for the digital migration. It provides high-performance technical "assemblages" (apparel) characterized by minimalist architecture and cinematic aesthetics.
