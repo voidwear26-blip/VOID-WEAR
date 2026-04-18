@@ -3,7 +3,7 @@
 import { ProductCard } from '@/components/product-card';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { Loader2, Package, Search, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Package, Search, SlidersHorizontal } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,17 +27,17 @@ export default function ProductsPage() {
 
     let result = [...dbProducts];
 
-    // 1. Filtering
+    // 1. Filtering with safety checks
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
       result = result.filter(p => 
-        p.name?.toLowerCase().includes(lowerSearch) || 
-        p.category?.toLowerCase().includes(lowerSearch) ||
-        p.description?.toLowerCase().includes(lowerSearch)
+        (p.name?.toLowerCase() || '').includes(lowerSearch) || 
+        (p.category?.toLowerCase() || '').includes(lowerSearch) ||
+        (p.description?.toLowerCase() || '').includes(lowerSearch)
       );
     }
 
-    // 2. Sorting
+    // 2. Sorting Logic
     result.sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':
@@ -45,13 +45,13 @@ export default function ProductsPage() {
         case 'name-desc':
           return (b.name || '').localeCompare(a.name || '');
         case 'price-asc':
-          return (a.basePrice || 0) - (b.basePrice || 0);
+          return (Number(a.basePrice) || 0) - (Number(b.basePrice) || 0);
         case 'price-desc':
-          return (b.basePrice || 0) - (a.basePrice || 0);
+          return (Number(b.basePrice) || 0) - (Number(a.basePrice) || 0);
         case 'stock-asc':
-          return (a.stockQuantity || 0) - (b.stockQuantity || 0);
+          return (Number(a.stockQuantity) || 0) - (Number(b.stockQuantity) || 0);
         case 'stock-desc':
-          return (b.stockQuantity || 0) - (a.stockQuantity || 0);
+          return (Number(b.stockQuantity) || 0) - (Number(a.stockQuantity) || 0);
         case 'newest':
         default:
           return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
@@ -65,9 +65,9 @@ export default function ProductsPage() {
     <div className="pt-48 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6 md:px-10">
         <div className="space-y-6 mb-24 max-w-3xl">
-          <span className="text-[10px] font-bold tracking-[0.8em] text-white/50 uppercase">CATALOGUE // SEASON 01</span>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tight glow-text leading-none uppercase">The <br /> Assemblage</h1>
-          <p className="text-white/60 tracking-[0.3em] text-xs uppercase leading-relaxed">
+          <span className="text-[10px] font-bold tracking-[0.8em] text-white/80 uppercase">CATALOGUE // SEASON 01</span>
+          <h1 className="text-6xl md:text-8xl font-black tracking-tight glow-text leading-none uppercase text-white">The <br /> Assemblage</h1>
+          <p className="text-white/90 tracking-[0.3em] text-xs uppercase leading-relaxed font-light">
             Technical shells and modular apparel designed for high-density urban migration. Precision engineered in the void.
           </p>
         </div>
@@ -75,17 +75,17 @@ export default function ProductsPage() {
         {/* Controls Module */}
         <div className="flex flex-col md:flex-row gap-6 mb-16 items-start md:items-center justify-between">
           <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80 group-focus-within:text-white transition-colors" />
             <Input 
               placeholder="SEARCH THE ASSEMBLAGE..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white/5 border-white/20 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/60 font-bold text-white uppercase placeholder:text-white/30 transition-all"
+              className="bg-white/5 border-white/20 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/60 font-bold text-white uppercase placeholder:text-white/40 transition-all"
             />
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/50 uppercase font-bold mr-2">
+            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/80 uppercase font-bold mr-2">
               <SlidersHorizontal className="w-3 h-3" />
               SORT_BY:
             </div>
@@ -106,9 +106,9 @@ export default function ProductsPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32 opacity-40">
-            <Loader2 className="w-8 h-8 animate-spin mb-4" />
-            <p className="text-[10px] tracking-[1em] uppercase">Syncing Assemblages...</p>
+          <div className="flex flex-col items-center justify-center py-32 opacity-80">
+            <Loader2 className="w-8 h-8 animate-spin mb-4 text-white/80" />
+            <p className="text-[10px] tracking-[1em] uppercase text-white/80">Syncing Assemblages...</p>
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
@@ -117,10 +117,10 @@ export default function ProductsPage() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-48 text-center space-y-8 opacity-40 border border-dashed border-white/10">
-            <Package className="w-16 h-16 stroke-[0.5px]" />
+          <div className="flex flex-col items-center justify-center py-48 text-center space-y-8 opacity-80 border border-dashed border-white/20">
+            <Package className="w-16 h-16 stroke-[0.5px] text-white/60" />
             <div className="space-y-2">
-              <p className="text-[10px] tracking-[1em] uppercase font-bold">NO MODULES LOGGED</p>
+              <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO MODULES LOGGED</p>
               <p className="text-[8px] tracking-[0.3em] uppercase max-w-xs mx-auto text-white/60">
                 {searchTerm ? 'NO RESULTS MATCH YOUR SEARCH COORDINATES.' : 'DATABASE DISCONNECTED OR EMPTY. USE COMMAND CENTER TO INITIALIZE CATALOGUE.'}
               </p>

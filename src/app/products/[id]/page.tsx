@@ -3,7 +3,7 @@
 import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Share2, Heart, Loader2 } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Heart, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
@@ -27,10 +27,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const { data: product, isLoading } = useDoc(productRef);
 
-  if (!isLoading && !product) {
-    notFound();
-  }
-
   const handleAdd = async () => {
     if (!selectedSize) {
       toast({ title: "CONFIGURATION REQUIRED", description: "SELECT A SIZE MODULE TO PROCEED." });
@@ -53,29 +49,36 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/80" />
+          <span className="text-[10px] tracking-[1em] text-white/80 uppercase">Syncing Module...</span>
+        </div>
       </div>
     );
+  }
+
+  if (!product) {
+    return notFound();
   }
 
   const displayImage = (product as any)?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   return (
-    <div className="pt-32 pb-24 bg-transparent">
+    <div className="pt-32 pb-24 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
-        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/60 mb-12 uppercase">
+        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/80 mb-12 uppercase">
           <Link href="/" className="hover:text-white transition-colors">HOME</Link>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 opacity-60" />
           <Link href="/products" className="hover:text-white transition-colors">COLLECTION</Link>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 opacity-60" />
           <span className="text-white">{(product as any)?.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-24 items-start">
           <div className="space-y-8">
-            <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/10">
+            <div className="relative aspect-[3/4] bg-white/5 group cursor-zoom-in overflow-hidden border border-white/10 glow-border">
               <Image 
                 src={displayImage} 
                 alt={(product as any)?.name || 'Product module visualization'} 
@@ -89,21 +92,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           <div className="space-y-12 lg:sticky lg:top-32">
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/70 uppercase">
-                <span className="w-8 h-[1px] bg-white/40"></span>
+              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase">
+                <span className="w-8 h-[1px] bg-white/80"></span>
                 {(product as any)?.category}
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase">{(product as any)?.name}</h1>
-              <p className="text-2xl font-light tracking-widest text-white/90">₹{(product as any)?.basePrice}</p>
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text uppercase text-white">{(product as any)?.name}</h1>
+              <p className="text-2xl font-light tracking-widest text-white">₹{(product as any)?.basePrice}</p>
             </div>
 
-            <p className="text-sm tracking-widest leading-relaxed text-white/80 uppercase">
+            <p className="text-sm tracking-widest leading-relaxed text-white/90 uppercase font-light">
               {(product as any)?.description}
             </p>
 
             <div className="space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">SELECT SIZE</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/90">SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
                   {availableSizes.map(size => {
                     const isOutOfStock = (product as any)?.stockBySize && ((product as any).stockBySize[size] || 0) <= 0;
@@ -114,7 +117,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         onClick={() => setSelectedSize(size)}
                         className={cn(
                           "w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
-                          selectedSize === size ? "bg-white text-black border-white" : "border-white/30 hover:border-white bg-white/[0.02] text-white",
+                          selectedSize === size ? "bg-white text-black border-white" : "border-white/40 hover:border-white bg-white/[0.02] text-white",
                           isOutOfStock && "opacity-20 cursor-not-allowed line-through"
                         )}
                       >
@@ -129,24 +132,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <Button 
                   onClick={handleAdd}
                   disabled={adding}
-                  className="flex-1 bg-white text-black hover:bg-white/90 h-20 text-xs font-bold tracking-[0.5em] rounded-none group shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                  className="flex-1 bg-white text-black hover:bg-white/90 h-20 text-xs font-bold tracking-[0.5em] rounded-none group shadow-[0_0_30px_rgba(255,255,255,0.15)]"
                 >
                   {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ADD TO BAG'}
                   <ShoppingBag className="ml-4 w-4 h-4 group-hover:scale-110 transition-transform" />
                 </Button>
-                <Button variant="outline" size="icon" className="w-20 h-20 border-white/30 hover:bg-white hover:text-black rounded-none bg-transparent">
-                  <Heart className="w-5 h-5" />
+                <Button variant="outline" size="icon" className="w-20 h-20 border-white/40 hover:bg-white hover:text-black rounded-none bg-transparent">
+                  <Heart className="w-5 h-5 text-white/80 group-hover:text-black" />
                 </Button>
               </div>
             </div>
 
             <div className="border-t border-white/10 pt-12 space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">SPECIFICATIONS</h4>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/60">
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/90">SPECIFICATIONS</h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/80">
                   {(product as any)?.details?.map((detail: string, idx: number) => (
-                    <li key={idx} className="flex items-center gap-3 uppercase">
-                      <span className="w-1 h-1 bg-white rounded-full"></span>
+                    <li key={idx} className="flex items-center gap-3 uppercase font-light">
+                      <span className="w-1 h-1 bg-white/80 rounded-full"></span>
                       {detail}
                     </li>
                   ))}
