@@ -1,11 +1,11 @@
 'use client';
 
-import { doc, getDoc, setDoc, deleteDoc, Firestore } from 'firebase/firestore';
-import { updateDocumentNonBlocking } from './non-blocking-updates';
+import { doc, getDoc, setDoc, updateDoc, Firestore } from 'firebase/firestore';
 
 /**
  * Adds a product to the user's active cart.
  * Stores essential metadata to avoid extra lookups in the cart view.
+ * Ensures data integrity by always updating metadata on quantity change.
  */
 export async function addToCart(
   db: Firestore, 
@@ -19,22 +19,31 @@ export async function addToCart(
   const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
   const itemSnap = await getDoc(itemRef);
 
+  // Extract clean metadata
+  const price = Number(product.basePrice) || 0;
+  const image = product.imageUrls?.[0] || 'https://picsum.photos/seed/void/400/600';
+
   if (itemSnap.exists()) {
     const currentQty = itemSnap.data().quantity || 0;
-    updateDocumentNonBlocking(itemRef, {
-      quantity: currentQty + quantity
+    // Update both quantity AND metadata to ensure consistency
+    await updateDoc(itemRef, {
+      quantity: currentQty + quantity,
+      price: price, // Re-sync in case price changed
+      image: image, // Re-sync in case image changed
+      updatedAt: new Date().toISOString()
     });
   } else {
-    // We use setDoc here as we want to initiate the write
-    setDoc(itemRef, {
+    // Initialize new item with full metadata
+    await setDoc(itemRef, {
       id: cartItemId,
       productId: product.id,
       name: product.name,
-      price: product.basePrice,
-      image: product.imageUrls[0] || 'https://picsum.photos/seed/void/400/600',
+      price: price,
+      image: image,
       size: size,
       quantity: quantity,
-      addedAt: new Date().toISOString()
+      addedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
   }
 }
@@ -44,5 +53,6 @@ export async function addToCart(
  */
 export async function removeFromCart(db: Firestore, userId: string, cartItemId: string) {
   const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
+  const { deleteDoc } = await import('firebase/firestore');
   await deleteDoc(itemRef);
 }

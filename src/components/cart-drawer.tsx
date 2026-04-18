@@ -26,7 +26,12 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
   const { data: cartItems, isLoading } = useCollection(cartQuery);
 
-  const subtotal = cartItems?.reduce((acc, item) => acc + (item.price * item.quantity), 0) || 0;
+  // Safe subtotal calculation with number casting
+  const subtotal = cartItems?.reduce((acc, item) => {
+    const price = Number(item.price) || 0;
+    const qty = Number(item.quantity) || 0;
+    return acc + (price * qty);
+  }, 0) || 0;
 
   const updateQuantity = async (itemId: string, delta: number) => {
     if (!db || !user) return;
@@ -38,7 +43,10 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     if (newQty <= 0) {
       await deleteDoc(itemRef);
     } else {
-      await updateDoc(itemRef, { quantity: newQty });
+      await updateDoc(itemRef, { 
+        quantity: newQty,
+        updatedAt: new Date().toISOString()
+      });
     }
   };
 
@@ -101,7 +109,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                           <span className="text-[9px] font-mono w-4 text-center">{item.quantity}</span>
                           <button onClick={() => updateQuantity(item.id, 1)} className="text-white/40 hover:text-white"><Plus className="w-3 h-3" /></button>
                         </div>
-                        <p className="text-[10px] font-bold tracking-widest">₹{item.price * item.quantity}</p>
+                        <p className="text-[10px] font-bold tracking-widest">₹{(Number(item.price) || 0) * (Number(item.quantity) || 0)}</p>
                       </div>
                     </div>
                   </motion.div>
