@@ -1,9 +1,8 @@
-
-'use client';
+"use client"
 
 import { useUser } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, MessageSquare, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -65,6 +64,7 @@ export default function AdminDashboard() {
             <div className="grid gap-4">
               <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="Configure product database." icon={<Package className="w-4 h-4" />} />
               <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Monitor customer orders." icon={<ShoppingBag className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/stories" label="STORY NARRATIVE" description="Post trends and arrivals." icon={<Megaphone className="w-4 h-4" />} />
               <QuickActionButton href="/admin/reviews" label="AUDIT FEEDBACK" description="Customer review moderation." icon={<MessageSquare className="w-4 h-4" />} />
               <QuickActionButton href="/admin/content" label="BRAND OVERRIDE" description="Homepage content control." icon={<Settings className="w-4 h-4" />} />
             </div>

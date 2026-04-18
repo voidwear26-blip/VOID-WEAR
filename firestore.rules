@@ -1,8 +1,7 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // VOID WEAR // ACCESS PROTOCOL v36.0
+    // VOID WEAR // ACCESS PROTOCOL v37.0
     // MASTER ADMINISTRATOR OVERRIDE: voidwear26@gmail.com
     
     function isAdmin() {
@@ -31,6 +30,11 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if isAdmin();
+    }
+
+    match /stories/{storyId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /{document=**} {
