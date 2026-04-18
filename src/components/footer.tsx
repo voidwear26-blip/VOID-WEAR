@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -15,11 +16,11 @@ export function Footer() {
   if (!mounted) return null;
 
   return (
-    <footer className="relative z-20 pt-32 pb-24 bg-black/40 backdrop-blur-md border-t border-white/10">
+    <footer className="relative z-20 pt-32 pb-32 bg-black/40 backdrop-blur-md border-t border-white/10">
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 mb-32">
           <div className="md:col-span-2 space-y-10">
-            <Link href="/" className="flex items-center gap-4 w-fit group">
+            <Link href="/" className="group flex items-center gap-4 w-fit">
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center gap-4"
@@ -77,7 +78,7 @@ export function Footer() {
         </div>
         
         <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-          <p className="text-[9px] text-white/40 tracking-[1em] uppercase font-bold">© 2025 VOID WEAR INC. LICENSED TRANSMISSION.</p>
+          <p className="text-[9px] text-white/40 tracking-[1em] uppercase font-bold">© 2026 VOID WEAR INC. LICENSED TRANSMISSION.</p>
           <div className="flex items-center gap-6">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-[8px] tracking-[0.5em] text-white/20 uppercase font-black">SYSTEM_STATUS: STABLE</span>

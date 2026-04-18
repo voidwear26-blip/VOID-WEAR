@@ -58,5 +58,5 @@ The platform is built on a high-performance "Neo-Tokyo" stack:
 
 ---
 
-**© 2024 VOID WEAR INC.**  
+**© 2026 VOID WEAR INC.**  
 *REDEFINING APPAREL FOR THE ERA OF ACCELERATION.*
