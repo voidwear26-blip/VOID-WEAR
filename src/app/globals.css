@@ -12,16 +12,16 @@
     --popover-foreground: 0 0% 100%;
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 25%;
+    --secondary: 0 0% 40%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 25%;
+    --muted: 0 0% 40%;
     --muted-foreground: 0 0% 85%;
     --accent: 0 0% 100%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 35%;
-    --input: 0 0% 30%;
+    --border: 0 0% 45%;
+    --input: 0 0% 40%;
     --ring: 0 0% 100%;
     --radius: 0rem;
   }
@@ -38,7 +38,7 @@
   body {
     @apply bg-background text-foreground selection:bg-white selection:text-black;
     font-family: 'Space Grotesk', sans-serif;
-    overflow-y: auto;
+    overflow-y: auto !important;
     min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
@@ -118,7 +118,7 @@
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Hardened Visibility */
 ::-webkit-scrollbar {
   width: 12px;
 }
