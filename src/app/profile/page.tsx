@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Clock, ShieldCheck, ShoppingBag, MapPin, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, Phone, Mail, ExternalLink, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -78,10 +77,14 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
+      // Use setDoc with merge: true to avoid "No document to update" error
+      await setDoc(doc(db, 'users', user.uid), {
         ...formData,
+        email: user.email,
+        uid: user.uid,
         updatedAt: new Date().toISOString()
-      });
+      }, { merge: true });
+      
       toast({
         title: "IDENTITY UPDATED",
         description: "SYSTEM METADATA SYNCHRONIZED.",
@@ -232,7 +235,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px) font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
                         <Input 
                           value={formData.postalCode}
                           onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
