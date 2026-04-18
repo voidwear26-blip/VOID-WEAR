@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -73,7 +72,7 @@ export default function AdminUsersPage() {
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Entities</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Entity Dossier</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
             <ShieldAlert className="w-4 h-4 text-white/40" />
@@ -86,17 +85,18 @@ export default function AdminUsersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CONTACT_DATA</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY IDENTIFIER</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CONTACT PROTOCOLS</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">GEO_NODES</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">STATUS</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">PROTOCOL</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">COMMAND</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {isCollectionLoading ? (
                   [1, 2, 3].map(i => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={4} className="px-10 py-12 bg-white/[0.01]" />
+                      <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />
                     </tr>
                   ))
                 ) : users && users.length > 0 ? (
@@ -104,25 +104,31 @@ export default function AdminUsersPage() {
                     <tr key={entity.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 border border-white/10 bg-white/5 flex items-center justify-center">
+                          <div className="w-10 h-10 border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/40 transition-colors">
                             <UserIcon className="w-4 h-4 text-white/20" />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-[10px] font-bold tracking-widest text-white uppercase">{entity.displayName || 'UNIDENTIFIED'}</span>
-                            <p className="text-[8px] font-mono tracking-widest text-white/20">{entity.id.slice(0, 16)}...</p>
+                            <span className="text-[10px] font-bold tracking-widest text-white uppercase">{entity.displayName || 'UNIDENTIFIED OPERATOR'}</span>
+                            <p className="text-[8px] font-mono tracking-widest text-white/20">UID: {entity.id.slice(0, 16)}...</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-10 py-8">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold">
-                            <Mail className="w-3 h-3" /> {entity.email}
+                          <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold">
+                            <Mail className="w-3 h-3 text-white/20" /> {entity.email}
                           </div>
                           {entity.mobileNumber && (
-                            <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold">
-                              <Phone className="w-3 h-3" /> {entity.mobileNumber}
+                            <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold">
+                              <Phone className="w-3 h-3 text-white/20" /> {entity.mobileNumber}
                             </div>
                           )}
+                        </div>
+                      </td>
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold uppercase">
+                          <MapPin className="w-3 h-3" />
+                          {entity.city || 'GRID'}{entity.stateProvince ? `, ${entity.stateProvince}` : ' UNSET'}
                         </div>
                       </td>
                       <td className="px-10 py-8">
@@ -160,8 +166,8 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-10 py-32 text-center opacity-20">
-                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">NO ENTITIES DETECTED</p>
+                    <td colSpan={5} className="px-10 py-32 text-center opacity-20">
+                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">NO ENTITIES DETECTED IN DATABASE</p>
                     </td>
                   </tr>
                 )}
