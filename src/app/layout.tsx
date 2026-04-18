@@ -8,7 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'VOID WEAR | Embrace The Unknown',
+  title: 'VOID WEAR | EMBRACE THE UNKNOWN',
   description: 'Premium futuristic technical shells for the digital migration.',
 };
 
