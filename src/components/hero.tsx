@@ -24,7 +24,9 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  const greeting = mounted && user 
+  if (!mounted) return null;
+
+  const greeting = user 
     ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
     : 'OPERATOR';
   
@@ -73,7 +75,7 @@ export function Hero() {
             transition={{ delay: 1.3, duration: 1.5 }}
             className="flex flex-col items-center gap-6 w-full"
           >
-            <div className="relative h-[55vh] w-auto aspect-square">
+            <div className="relative h-[45vh] w-auto aspect-square">
               <Image 
                 src="/logo.png" 
                 alt="VOID WEAR LOGO" 

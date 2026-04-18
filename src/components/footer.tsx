@@ -1,17 +1,25 @@
-
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 export function Footer() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
-    <footer className="relative z-20 py-32 bg-black/40 backdrop-blur-md border-t border-white/10">
+    <footer className="relative z-20 pt-32 pb-24 bg-black/40 backdrop-blur-md border-t border-white/10">
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 mb-32">
           <div className="md:col-span-2 space-y-10">
-            <Link href="/" className="group flex items-center gap-4 w-fit">
+            <Link href="/" className="flex items-center gap-4 w-fit group">
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center gap-4"
@@ -51,18 +59,18 @@ export function Footer() {
             <div className="flex flex-col gap-5 text-[9px] text-white/40 tracking-[0.3em] uppercase font-bold">
               <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
               <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
-              <Link href="/privacy" className="hover:text-white transition-colors">PRIVACY PROTOCOL</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">TERMS OF SERVICE</Link>
+              <Link href="/about" className="hover:text-white transition-colors">OUR STORY</Link>
+              <Link href="/story" className="hover:text-white transition-colors">TRANSMISSIONS</Link>
             </div>
           </div>
 
           <div className="space-y-8">
             <div className="flex items-center gap-3">
               <div className="w-1 h-4 bg-white/20"></div>
-              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">TRANSMISSIONS</h4>
+              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">UPLINK</h4>
             </div>
             <div className="space-y-4">
-              <p className="text-[9px] text-white/40 tracking-[0.3em] leading-relaxed uppercase font-bold">UPLINK: VOIDWEAR26@GMAIL.COM</p>
+              <p className="text-[9px] text-white/40 tracking-[0.3em] leading-relaxed uppercase font-bold">VOIDWEAR26@GMAIL.COM</p>
               <p className="text-[8px] text-white/20 tracking-[0.4em] uppercase font-bold">NEURAL LINK ACTIVE</p>
             </div>
           </div>

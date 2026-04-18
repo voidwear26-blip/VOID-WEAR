@@ -25,6 +25,8 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  if (!mounted) return null;
+
   const iconMotionProps = {
     whileHover: { scale: 1.1, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))" },
     whileTap: { scale: 0.95 },
@@ -59,7 +61,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            {mounted && user ? (
+            {user ? (
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
                   <Link href="/profile">
@@ -79,7 +81,7 @@ export function Navbar() {
                   </motion.div>
                 </Button>
               </div>
-            ) : mounted ? (
+            ) : (
               <Button variant="ghost" size="icon" asChild className="hover:bg-white/5 h-12 w-12 text-white/40 hover:text-white rounded-none">
                 <Link href="/login">
                   <motion.div {...iconMotionProps}>
@@ -87,7 +89,7 @@ export function Navbar() {
                   </motion.div>
                 </Link>
               </Button>
-            ) : null}
+            )}
             
             <Button 
               variant="ghost" 
