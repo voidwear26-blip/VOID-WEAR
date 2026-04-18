@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Loader2, ShieldCheck, Zap } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -86,7 +86,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
               paymentStatus: 'paid',
               shippingStatus: 'processing',
               paymentProviderTransactionId: response.razorpay_payment_id,
-              paymentMethod: 'Razorpay',
+              paymentMethod: 'RAZORPAY_HYBRID',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             });
@@ -113,6 +113,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
         },
         prefill: {
           email: user.email,
+          method: 'upi' // Prioritize UPI in the Razorpay prefill
         },
         theme: {
           color: '#000000',
@@ -147,7 +148,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
         <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
         <>
-          <ShieldCheck className="absolute left-6 w-4 h-4 text-black/20" />
+          <Zap className="absolute left-6 w-4 h-4 text-black/20" />
           PROCEED TO UPLINK
           <ArrowRight className="ml-4 w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </>

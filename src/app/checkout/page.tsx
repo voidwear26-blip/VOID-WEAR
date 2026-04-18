@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +22,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [step, setStep] = useState<CheckoutStep>('shipping');
   const [loading, setLoading] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'card' | 'upi'>('upi');
 
   const cartItemsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -73,7 +74,7 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // 1. Initialize Razorpay
+      // 1. Initialize Razorpay Order
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,7 +84,7 @@ export default function CheckoutPage() {
       const orderData = await res.json();
       
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51O...placeholder',
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
@@ -120,6 +121,7 @@ export default function CheckoutPage() {
               shippingStatus: 'processing',
               paymentStatus: 'paid',
               paymentProviderId: response.razorpay_payment_id,
+              paymentMethod: selectedMethod.toUpperCase(),
               createdAt: new Date().toISOString()
             });
 
@@ -132,8 +134,15 @@ export default function CheckoutPage() {
             router.push('/profile');
           }
         },
-        prefill: { email: formData.email, contact: formData.mobileNumber },
-        theme: { color: '#000000' }
+        prefill: { 
+          email: formData.email, 
+          contact: formData.mobileNumber,
+          method: selectedMethod === 'upi' ? 'upi' : 'card'
+        },
+        theme: { color: '#000000' },
+        modal: {
+          ondismiss: () => setLoading(false)
+        }
       };
 
       const rzp = new (window as any).Razorpay(options);
@@ -141,7 +150,6 @@ export default function CheckoutPage() {
     } catch (e) {
       console.error(e);
       toast({ title: "UPLINK FAILURE", description: "COULD NOT ESTABLISH PAYMENT GATEWAY.", variant: "destructive" });
-    } finally {
       setLoading(false);
     }
   };
@@ -283,8 +291,18 @@ export default function CheckoutPage() {
                     <div className="space-y-6">
                       <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SELECT GATEWAY</h4>
                       <div className="grid gap-4">
-                        <PaymentOption label="CREDIT / DEBIT CARD" icon={<CreditCard className="w-4 h-4" />} selected />
-                        <PaymentOption label="UPI / NET BANKING" icon={<ShieldCheck className="w-4 h-4" />} />
+                        <PaymentOption 
+                          label="UPI TRANSMISSION (FASTEST)" 
+                          icon={<Zap className="w-4 h-4" />} 
+                          selected={selectedMethod === 'upi'} 
+                          onClick={() => setSelectedMethod('upi')}
+                        />
+                        <PaymentOption 
+                          label="CREDIT / DEBIT CARD" 
+                          icon={<CreditCard className="w-4 h-4" />} 
+                          selected={selectedMethod === 'card'} 
+                          onClick={() => setSelectedMethod('card')}
+                        />
                       </div>
                     </div>
 
@@ -294,7 +312,7 @@ export default function CheckoutPage() {
                         <span className="text-[9px] tracking-[0.3em] uppercase">ENCRYPTED TRANSACTION CHANNEL</span>
                       </div>
                       <p className="text-[9px] text-white/20 tracking-widest leading-relaxed uppercase">
-                        YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. NO CARD INFORMATION IS STORED ON VOID WEAR SERVERS.
+                        YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. ALL UPI AND CARD TRANSMISSIONS ARE ENCRYPTED.
                       </p>
                     </div>
 
@@ -393,9 +411,12 @@ function Field({ label, value, onChange, type = "text", required }: { label: str
   );
 }
 
-function PaymentOption({ label, icon, selected }: { label: string, icon: React.ReactNode, selected?: boolean }) {
+function PaymentOption({ label, icon, selected, onClick }: { label: string, icon: React.ReactNode, selected?: boolean, onClick: () => void }) {
   return (
-    <div className={`flex items-center justify-between p-6 border transition-all cursor-pointer ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/30 bg-black/40'}`}>
+    <div 
+      onClick={onClick}
+      className={`flex items-center justify-between p-6 border transition-all cursor-pointer ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/30 bg-black/40'}`}
+    >
       <div className="flex items-center gap-4">
         <div className={selected ? 'text-white' : 'text-white/20'}>{icon}</div>
         <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-white' : 'text-white/40'}`}>{label}</span>
