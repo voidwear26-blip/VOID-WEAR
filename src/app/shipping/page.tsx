@@ -11,9 +11,9 @@ export default function ShippingPage() {
 
           <div className="space-y-12">
             <section className="space-y-4">
-              <h2 className="text-xl font-bold tracking-widest uppercase">Global Expedition</h2>
+              <h2 className="text-xl font-bold tracking-widest uppercase">Pan-India Expedition</h2>
               <p className="text-sm text-white/60 tracking-widest leading-relaxed uppercase">
-                We facilitate delivery to all major terrestrial hubs. Our logistics network utilizes secure orbital couriers to ensure your assembly reaches you within 3-7 standard cycles.
+                We facilitate high-speed delivery across the Indian sub-continent. Our logistics network utilizes secure surface and aerial couriers to ensure your assembly reaches you within 2-7 standard cycles.
               </p>
             </section>
 
@@ -27,17 +27,17 @@ export default function ShippingPage() {
             <section className="space-y-4">
               <h2 className="text-xl font-bold tracking-widest uppercase">Return Protocol</h2>
               <p className="text-sm text-white/60 tracking-widest leading-relaxed uppercase">
-                If an item does not integrate with your form, you have 14 cycles to initiate a return sequence. All items must be in their original vacuum-sealed packaging.
+                If an item does not integrate with your form, you have 14 cycles from the delivery timestamp to initiate a return sequence. All items must be in their original vacuum-sealed packaging.
               </p>
             </section>
 
             <div className="p-10 border border-white/10 bg-white/[0.02] backdrop-blur-md">
               <h3 className="text-xs font-bold tracking-widest uppercase mb-6">Current Transit Times</h3>
               <ul className="space-y-4 text-[10px] text-white/40 tracking-widest uppercase">
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>North American Sector</span><span>2-3 Cycles</span></li>
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>Euro-Zone Hubs</span><span>3-4 Cycles</span></li>
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>Asian-Pacific Metros</span><span>3-5 Cycles</span></li>
-                <li className="flex justify-between"><span>Remote Outposts</span><span>5-7 Cycles</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>Metro Clusters (Delhi, Mumbai, BLR)</span><span>1-2 Cycles</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>Tier 1 Strategic Zones</span><span>2-3 Cycles</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-2"><span>Regional Outposts</span><span>3-5 Cycles</span></li>
+                <li className="flex justify-between"><span>Remote Frontier Nodes</span><span>5-7 Cycles</span></li>
               </ul>
             </div>
           </div>
