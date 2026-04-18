@@ -1,6 +1,8 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { CustomCursor } from '@/components/custom-cursor';
 import { SpaceBackground } from '@/components/space-background';
@@ -60,6 +62,7 @@ export default function RootLayout({
           <main className="relative z-10 min-h-screen">
             {children}
           </main>
+          <Footer />
           <Toaster />
           <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         </FirebaseClientProvider>

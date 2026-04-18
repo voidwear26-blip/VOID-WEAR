@@ -130,57 +130,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <footer className="py-48 bg-transparent border-t border-white/5">
-        <div className="container mx-auto px-6 grid md:grid-cols-4 gap-24">
-          <div className="md:col-span-2 space-y-12">
-            <Link href="/" className="flex items-center gap-4 group">
-              <Image 
-                src="/logo.png" 
-                alt="VOID WEAR" 
-                width={40} 
-                height={40} 
-                className="h-8 w-auto object-contain brightness-200 grayscale opacity-50 group-hover:opacity-100 transition-opacity"
-                unoptimized
-              />
-              <span className="text-xs font-black tracking-[0.4em] uppercase text-white/50 group-hover:text-white transition-colors">VOID WEAR</span>
-            </Link>
-            <p className="text-white/30 text-[10px] max-w-sm tracking-[0.4em] leading-loose uppercase font-light">
-              REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD. EST 2024.
-            </p>
-            <div className="flex flex-wrap gap-12">
-              {['INSTAGRAM', 'TWITTER', 'DISCORD', 'TELEGRAM'].map((social) => (
-                <a 
-                  key={social} 
-                  href="#" 
-                  className="text-[9px] font-bold tracking-[0.4em] text-white/20 hover:text-white transition-all duration-300 hover:glow-text uppercase"
-                >
-                  {social}
-                </a>
-              ))}
-            </div>
-          </div>
-          
-          <div className="space-y-8">
-            <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">RESOURCES</h4>
-            <div className="flex flex-col gap-6 text-[9px] text-white/20 tracking-[0.3em] uppercase font-bold">
-              <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
-              <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
-              <Link href="/privacy" className="hover:text-white transition-colors">PRIVACY PROTOCOL</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">TERMS OF SERVICE</Link>
-            </div>
-          </div>
-
-          <div className="space-y-8">
-            <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">TRANSMISSIONS</h4>
-            <p className="text-[9px] text-white/20 tracking-[0.3em] leading-relaxed uppercase font-bold">FOR SUPPORT: VOIDWEAR26@GMAIL.COM</p>
-          </div>
-        </div>
-        
-        <div className="container mx-auto px-6 mt-48 text-center">
-          <p className="text-[8px] text-white/10 tracking-[1.5em] uppercase font-bold">© 2024 VOID WEAR INC. SECURED TRANSMISSION.</p>
-        </div>
-      </footer>
     </div>
   );
 }
