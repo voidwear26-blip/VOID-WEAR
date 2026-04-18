@@ -7,13 +7,15 @@ import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
 import { Package } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useAnimationControls } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
   const db = useFirestore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [constraints, setConstraints] = useState({ left: 0, right: 0 });
+  const controls = useAnimationControls();
+  const [isDragging, setIsDragging] = useState(false);
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -36,6 +38,20 @@ export default function Home() {
     }
   }, [latestProducts]);
 
+  // Handle auto-scroll start
+  useEffect(() => {
+    if (!latestLoading && latestProducts && !isDragging) {
+      controls.start({
+        x: [0, -200, 0],
+        transition: {
+          duration: 30,
+          repeat: Infinity,
+          ease: "linear"
+        }
+      });
+    }
+  }, [latestLoading, latestProducts, controls, isDragging]);
+
   return (
     <div className="space-y-0 bg-transparent text-white">
       <Hero />
@@ -56,12 +72,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Draggable Gallery Module */}
+        {/* Draggable & Auto-sliding Gallery Module */}
         <div className="relative cursor-grab active:cursor-grabbing px-6 md:px-0">
           <motion.div 
             ref={containerRef}
             drag="x"
             dragConstraints={constraints}
+            animate={controls}
+            onDragStart={() => {
+              setIsDragging(true);
+              controls.stop();
+            }}
+            onDragEnd={() => {
+              setIsDragging(false);
+            }}
             className="flex gap-8 md:gap-16 whitespace-nowrap overflow-visible"
             style={{ touchAction: 'none' }}
           >
@@ -85,7 +109,7 @@ export default function Home() {
           
           {/* Visual Indicator */}
           <div className="mt-16 container mx-auto px-6 flex items-center gap-4 text-white/10">
-            <div className="text-[8px] tracking-[0.5em] uppercase font-bold">DRAG TO EXPLORE</div>
+            <div className="text-[8px] tracking-[0.5em] uppercase font-bold">DRAG OR OBSERVE TO EXPLORE</div>
             <div className="flex-1 h-[1px] bg-white/5"></div>
           </div>
         </div>
