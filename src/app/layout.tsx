@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/navbar';
@@ -10,6 +9,10 @@ import Script from 'next/script';
 export const metadata: Metadata = {
   title: 'VOID WEAR | EMBRACE THE UNKNOWN',
   description: 'Premium futuristic technical shells for the digital migration.',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({
