@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
 import { Package } from 'lucide-react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
