@@ -5,15 +5,16 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, setDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap, Wallet } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap, Wallet, Sparkles, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 
-type CheckoutStep = 'shipping' | 'review' | 'payment';
+type CheckoutStep = 'shipping' | 'review' | 'payment' | 'success';
 type PaymentMethod = 'card' | 'upi' | 'wallet';
 
 export default function CheckoutPage() {
@@ -24,6 +25,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<CheckoutStep>('shipping');
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('upi');
+  const [finalOrderId, setFinalOrderId] = useState<string | null>(null);
 
   const cartItemsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -46,7 +48,6 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (user) {
-      // Pre-fill with existing profile data if available
       setFormData(prev => ({
         ...prev,
         displayName: user.displayName || '',
@@ -107,14 +108,12 @@ export default function CheckoutPage() {
             const orderId = `VOID-${Date.now()}`;
             const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
             
-            // SYSTEM_SYNC: Capture and store entity data in primary profile
             const userRef = doc(db, 'users', user.uid);
             batch.set(userRef, {
               ...formData,
               updatedAt: new Date().toISOString()
             }, { merge: true });
 
-            // LOG_TRANSMISSION: Record order in mission logs
             batch.set(orderRef, {
               id: orderId,
               userId: user.uid,
@@ -130,13 +129,13 @@ export default function CheckoutPage() {
               updatedAt: new Date().toISOString()
             });
 
-            // CLEAR_BUFFER: Purge active cart
             const cartSnap = await getDocs(cartItemsRef!);
             cartSnap.docs.forEach(d => batch.delete(d.ref));
 
             await batch.commit();
-            toast({ title: "TRANSMISSION SECURED", description: "ORDER INITIALIZED SUCCESSFULLY." });
-            router.push('/profile');
+            setFinalOrderId(orderId);
+            setStep('success');
+            setLoading(false);
           }
         },
         prefill: { 
@@ -164,6 +163,54 @@ export default function CheckoutPage() {
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20 mb-6" />
         <p className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Syncing Protocols...</p>
+      </div>
+    );
+  }
+
+  if (step === 'success') {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-32 pb-24 px-6 bg-black">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-2xl w-full bg-white/[0.02] border border-white/5 p-16 space-y-12 text-center backdrop-blur-3xl relative overflow-hidden"
+        >
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/5 rounded-full blur-[100px] animate-pulse" />
+          
+          <div className="relative z-10 space-y-12">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+                <CheckCircle2 className="w-10 h-10 text-white animate-in zoom-in-50" />
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">TRANSMISSION SECURED</h1>
+              <p className="text-[10px] tracking-[0.6em] text-white/40 uppercase font-bold">THANKS FOR YOUR PURCHASE</p>
+            </div>
+
+            <div className="bg-black/40 border border-white/5 p-8 space-y-3">
+              <p className="text-[9px] tracking-[0.4em] text-white/20 uppercase font-bold">TRANSMISSION IDENTIFIER</p>
+              <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
+            </div>
+
+            <p className="text-sm text-white/40 tracking-widest leading-relaxed uppercase max-w-md mx-auto">
+              YOUR ASSEMBLAGE HAS BEEN LOGGED IN THE VOID. WE ARE INITIALIZING THE EXPEDITION PROTOCOLS.
+            </p>
+
+            <div className="pt-8 flex flex-col gap-4">
+              <Button asChild className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                <Link href="/profile">
+                  TRACK TRANSMISSION
+                  <ExternalLink className="ml-3 w-4 h-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" className="h-14 text-[10px] tracking-[0.4em] text-white/40 hover:text-white uppercase font-bold">
+                <Link href="/products">CONTINUE EXPLORATION</Link>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -404,7 +451,9 @@ export default function CheckoutPage() {
 
 function StepIndicator({ current, target, label }: { current: string, target: string, label: string }) {
   const isActive = current === target;
-  const isCompleted = (current === 'review' && target === 'shipping') || (current === 'payment' && (target === 'shipping' || target === 'review'));
+  const isCompleted = (current === 'review' && target === 'shipping') || 
+                      (current === 'payment' && (target === 'shipping' || target === 'review')) ||
+                      (current === 'success');
   
   return (
     <div className={`flex items-center gap-3 transition-all duration-500 ${isActive ? 'opacity-100' : 'opacity-30'}`}>
