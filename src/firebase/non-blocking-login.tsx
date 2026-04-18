@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Auth,
@@ -13,9 +12,11 @@ import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 
 /** 
- * Helper to handle auth errors gracefully.
+ * PROTOCOL: Auth Error Handling
+ * Interprets technical error codes into human-readable transmissions.
  */
 const handleAuthError = (error: any) => {
+  // Suppress cancel notifications to avoid system noise
   if (
     error.code === 'auth/popup-closed-by-user' || 
     error.code === 'auth/cancelled-popup-request' ||
@@ -28,16 +29,29 @@ const handleAuthError = (error: any) => {
     return;
   }
 
-  console.error('[AUTH_ERROR]', error);
+  // Log critical system failures only
+  if (!error.code?.startsWith('auth/')) {
+    console.error('[AUTH_CRITICAL_FAILURE]', error);
+  }
   
   let title = "AUTHENTICATION_FAILED";
   let description = "SYSTEM UNABLE TO ESTABLISH LINK.";
   let variant: "default" | "destructive" = "destructive";
   
-  if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-    description = "INVALID CREDENTIALS. CHECK YOUR ACCESS KEY.";
+  // Hardened check for modern Firebase error codes
+  const isInvalid = [
+    'auth/invalid-credential',
+    'auth/user-not-found',
+    'auth/wrong-password',
+    'auth/invalid-email'
+  ].includes(error.code);
+
+  if (isInvalid) {
+    description = "INVALID CREDENTIALS. CHECK YOUR ACCESS KEY OR IDENTITY ID.";
   } else if (error.code === 'auth/email-already-in-use') {
-    description = "THIS ENTITY IS ALREADY LINKED.";
+    description = "THIS ENTITY IS ALREADY LINKED. PROCEED TO LOGIN.";
+  } else if (error.code === 'auth/weak-password') {
+    description = "ACCESS KEY STRENGTH INSUFFICIENT.";
   }
 
   toast({ variant, title, description });
@@ -59,7 +73,7 @@ export async function initiateEmailSignUp(
     const credential = await createUserWithEmailAndPassword(authInstance, email, password);
     const db = getFirestore();
     
-    // Create the user profile document
+    // ATOMIC INITIALIZATION: Create the user profile document using setDoc (Create or Overwrite)
     await setDoc(doc(db, 'users', credential.user.uid), {
       uid: credential.user.uid,
       email: email,

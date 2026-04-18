@@ -3,7 +3,7 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, MapPin, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, Phone, Mail, ExternalLink, ChevronRight } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -129,7 +129,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="pt-48 pb-32 bg-transparent min-h-screen overflow-y-auto">
+    <div className="pt-48 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid lg:grid-cols-4 gap-16 md:gap-24 items-start">
           <div className="space-y-12 lg:sticky lg:top-48">
@@ -181,7 +181,7 @@ export default function ProfilePage() {
             </nav>
           </div>
 
-          <div className="lg:col-span-3 min-h-[600px]">
+          <div className="lg:col-span-3">
             <AnimatePresence mode="wait">
               {activeTab === 'identity' && (
                 <motion.div 

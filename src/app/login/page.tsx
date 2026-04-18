@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -38,8 +37,12 @@ export default function LoginPage() {
       if (isSignUp) {
         await initiateEmailSignUp(auth, email, password, { displayName, mobileNumber });
       } else {
+        // Services handle their own error UI; we await to manage local loading state
         await initiateEmailSignIn(auth, email, password);
       }
+    } catch (err) {
+      // Catch any unexpected bubbling to prevent Turbopack overlays
+      console.warn('[AUTH_HANDLED]');
     } finally {
       setLoading(false);
     }
