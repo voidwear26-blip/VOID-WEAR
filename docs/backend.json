@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -24,6 +25,19 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "basePrice", "category"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Authenticated entity metadata.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "isBlocked": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     },
     "Review": {
       "title": "Review",
@@ -67,6 +81,10 @@
     "/products/{productId}": {
       "schema": "Product",
       "description": "Global product catalog."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Core entity profiles."
     },
     "/users/{userId}/orders/{orderId}": {
       "schema": "object",

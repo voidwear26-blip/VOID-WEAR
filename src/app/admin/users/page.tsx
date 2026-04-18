@@ -3,7 +3,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2 } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -86,8 +86,8 @@ export default function AdminUsersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY_ID</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">EMAIL</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CONTACT_DATA</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">STATUS</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">PROTOCOL</th>
                 </tr>
@@ -100,17 +100,34 @@ export default function AdminUsersPage() {
                     </tr>
                   ))
                 ) : users && users.length > 0 ? (
-                  users.map((user) => (
-                    <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
+                  users.map((entity) => (
+                    <tr key={entity.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-10 py-8">
-                        <span className="text-[10px] font-mono tracking-widest text-white/80">{user.id.slice(0, 16)}...</span>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 border border-white/10 bg-white/5 flex items-center justify-center">
+                            <UserIcon className="w-4 h-4 text-white/20" />
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold tracking-widest text-white uppercase">{entity.displayName || 'UNIDENTIFIED'}</span>
+                            <p className="text-[8px] font-mono tracking-widest text-white/20">{entity.id.slice(0, 16)}...</p>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest font-bold">
-                        {user.email}
+                      <td className="px-10 py-8">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold">
+                            <Mail className="w-3 h-3" /> {entity.email}
+                          </div>
+                          {entity.mobileNumber && (
+                            <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold">
+                              <Phone className="w-3 h-3" /> {entity.mobileNumber}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-2">
-                          {user.isBlocked ? (
+                          {entity.isBlocked ? (
                             <span className="flex items-center gap-2 text-[8px] tracking-widest text-red-500 font-bold border border-red-500/20 px-3 py-1 uppercase">
                               <ShieldAlert className="w-3 h-3" /> BLOCKED
                             </span>
@@ -125,10 +142,10 @@ export default function AdminUsersPage() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => toggleBlockStatus(user.id, user.isBlocked || false)}
-                          className={`text-[9px] tracking-widest uppercase h-10 rounded-none px-6 border font-bold ${user.isBlocked ? 'border-green-500/20 text-green-500 hover:bg-green-500/10' : 'border-red-500/20 text-red-500 hover:bg-red-500/10'}`}
+                          onClick={() => toggleBlockStatus(entity.id, entity.isBlocked || false)}
+                          className={`text-[9px] tracking-widest uppercase h-10 rounded-none px-6 border font-bold ${entity.isBlocked ? 'border-green-500/20 text-green-500 hover:bg-green-500/10' : 'border-red-500/20 text-red-500 hover:bg-red-500/10'}`}
                         >
-                          {user.isBlocked ? (
+                          {entity.isBlocked ? (
                             <>
                               <UserCheck className="w-3 h-3 mr-2" /> RESTORE ACCESS
                             </>

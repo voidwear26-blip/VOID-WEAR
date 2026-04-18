@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collectionGroup, query, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
-import { ShoppingBag, ChevronLeft, ExternalLink, ShieldAlert, Clock } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ExternalLink, ShieldAlert, Clock, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -96,11 +97,11 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ORDER_ID</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">DATE</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ORDER_DATA</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">FULFILLMENT</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">TRACKING_ID</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">SYSTEM</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">COMMANDS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -115,12 +116,16 @@ export default function AdminOrdersPage() {
                     <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-mono tracking-widest text-white/80">{order.id.slice(0, 16)}...</span>
-                          <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold">${order.totalAmount} / {order.userId.slice(0, 8)}</p>
+                          <span className="text-[10px] font-mono tracking-widest text-white/80">{order.orderNumber || order.id.slice(0, 16)}</span>
+                          <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-bold">₹{order.totalAmount}</p>
+                          <p className="text-[8px] text-white/20 uppercase tracking-[0.1em]">{new Date(order.orderDate).toLocaleDateString()}</p>
                         </div>
                       </td>
-                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest font-bold">
-                        {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}
+                      <td className="px-10 py-8">
+                        <div className="space-y-1">
+                           <span className="text-[10px] text-white/80 tracking-widest font-bold uppercase">{order.userId.slice(0, 12)}</span>
+                           <p className="text-[8px] text-white/20 uppercase tracking-widest">{order.paymentMethod}</p>
+                        </div>
                       </td>
                       <td className="px-10 py-8">
                         <Select 
@@ -150,9 +155,11 @@ export default function AdminOrdersPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8 text-right">
-                        <Button variant="ghost" size="icon" className="text-white/20 hover:text-white transition-colors">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
+                        <Link href={`/admin/orders/${order.id}?user=${order.userId}`}>
+                          <Button variant="ghost" size="icon" className="text-white/20 hover:text-white transition-colors">
+                            <Info className="w-4 h-4" />
+                          </Button>
+                        </Link>
                       </td>
                     </tr>
                   ))

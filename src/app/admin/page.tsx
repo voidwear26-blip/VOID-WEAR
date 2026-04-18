@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -64,10 +65,30 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <StatCard icon={<DollarSign className="w-5 h-5" />} label="TOTAL REVENUE" value={`₹${totalRevenue.toLocaleString()}`} />
-          <StatCard icon={<ShoppingBag className="w-5 h-5" />} label="TRANSMISSIONS" value={orders?.length.toString() || "0"} />
-          <StatCard icon={<Users className="w-5 h-5" />} label="ENTITIES" value={users?.length.toString() || "0"} />
-          <StatCard icon={<Package className="w-5 h-5" />} label="INVENTORY" value={totalInventoryUnits.toString()} />
+          <StatCard 
+            href="/admin/orders"
+            icon={<DollarSign className="w-5 h-5" />} 
+            label="TOTAL REVENUE" 
+            value={`₹${totalRevenue.toLocaleString()}`} 
+          />
+          <StatCard 
+            href="/admin/orders"
+            icon={<ShoppingBag className="w-5 h-5" />} 
+            label="TRANSMISSIONS" 
+            value={orders?.length.toString() || "0"} 
+          />
+          <StatCard 
+            href="/admin/users"
+            icon={<Users className="w-5 h-5" />} 
+            label="ENTITIES" 
+            value={users?.length.toString() || "0"} 
+          />
+          <StatCard 
+            href="/admin/products"
+            icon={<Package className="w-5 h-5" />} 
+            label="INVENTORY" 
+            value={totalInventoryUnits.toString()} 
+          />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
@@ -106,15 +127,20 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+function StatCard({ icon, label, value, href }: { icon: React.ReactNode, label: string, value: string, href: string }) {
   return (
-    <div className="bg-white/[0.02] border border-white/5 p-8 space-y-4 hover:border-white/20 transition-all group backdrop-blur-sm">
-      <div className="text-white/40 group-hover:text-white transition-colors">{icon}</div>
-      <div className="space-y-1">
-        <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase font-bold">{label}</p>
-        <p className="text-3xl font-bold tracking-widest glow-text">{value}</p>
+    <Link href={href}>
+      <div className="bg-white/[0.02] border border-white/5 p-8 space-y-4 hover:border-white/20 transition-all group backdrop-blur-sm cursor-pointer">
+        <div className="text-white/40 group-hover:text-white transition-colors flex justify-between items-center">
+          {icon}
+          <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase font-bold">{label}</p>
+          <p className="text-3xl font-bold tracking-widest glow-text">{value}</p>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

@@ -7,7 +7,7 @@ import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, init
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { ArrowRight, Loader2, Chrome, Sparkles } from 'lucide-react';
+import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -19,6 +19,8 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignUp) {
-        await initiateEmailSignUp(auth, email, password);
+        await initiateEmailSignUp(auth, email, password, { displayName, mobileNumber });
       } else {
         await initiateEmailSignIn(auth, email, password);
       }
@@ -88,6 +90,41 @@ export default function LoginPage() {
 
         <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
           <form onSubmit={handleAuth} className="space-y-6">
+            {isSignUp && (
+              <>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ENTITY NAME / FULL NAME</label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                    <Input 
+                      type="text" 
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white uppercase" 
+                      placeholder="IDENTIFIER"
+                      required={isSignUp}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CONTACT MODULE / MOBILE</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                    <Input 
+                      type="tel" 
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
+                      placeholder="+91 XXXX XXX XXX"
+                      required={isSignUp}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+            
             <div className="space-y-2">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">COMM-CHANNEL / EMAIL</label>
               <Input 

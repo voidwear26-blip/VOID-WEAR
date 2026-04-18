@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Auth,
@@ -8,14 +9,13 @@ import {
   signInWithPopup,
   UserCredential,
 } from 'firebase/auth';
+import { doc, setDoc, getFirestore } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
 
 /** 
- * Helper to handle auth errors gracefully in a non-blocking way.
- * Provides specific guidance for common VOID WEAR entry failures.
+ * Helper to handle auth errors gracefully.
  */
 const handleAuthError = (error: any) => {
-  // Silence console error for intentional user cancellations
   if (
     error.code === 'auth/popup-closed-by-user' || 
     error.code === 'auth/cancelled-popup-request' ||
@@ -34,50 +34,56 @@ const handleAuthError = (error: any) => {
   let description = "SYSTEM UNABLE TO ESTABLISH LINK.";
   let variant: "default" | "destructive" = "destructive";
   
-  // Handle modern and legacy Firebase error codes
   if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-    description = "INVALID CREDENTIALS. IF THIS IS YOUR FIRST ACCESS, PLEASE INITIALIZE VIA 'SIGN UP' TOGGLE.";
+    description = "INVALID CREDENTIALS. CHECK YOUR ACCESS KEY.";
   } else if (error.code === 'auth/email-already-in-use') {
-    description = "THIS ENTITY IS ALREADY LINKED. PROCEED TO LOGIN PROTOCOL.";
-  } else if (error.code === 'auth/weak-password') {
-    description = "ACCESS KEY STRENGTH INSUFFICIENT. MINIMUM 6 CHARACTERS REQUIRED.";
-  } else if (error.code === 'auth/popup-blocked') {
-    description = "UPLINK BLOCKED BY BROWSER. ENABLE POPUPS IN YOUR SETTINGS TO PROCEED.";
-  } else if (error.code === 'auth/network-request-failed') {
-    description = "NEURAL LINK UNSTABLE. CHECK YOUR NETWORK CONNECTION.";
-  } else if (error.code === 'auth/operation-not-allowed') {
-    description = "THIS PROTOCOL IS CURRENTLY DISABLED IN SYSTEM SETTINGS.";
+    description = "THIS ENTITY IS ALREADY LINKED.";
   }
 
-  toast({
-    variant,
-    title,
-    description,
-  });
+  toast({ variant, title, description });
 };
 
-/** Initiate anonymous sign-in (non-blocking). */
+/** Initiate anonymous sign-in. */
 export function initiateAnonymousSignIn(authInstance: Auth): Promise<UserCredential | void> {
   return signInAnonymously(authInstance).catch(handleAuthError);
 }
 
-/** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): Promise<UserCredential | void> {
-  return createUserWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
+/** Initiate email/password sign-up with additional profile data. */
+export async function initiateEmailSignUp(
+  authInstance: Auth, 
+  email: string, 
+  password: string, 
+  profileData: { displayName: string, mobileNumber: string }
+): Promise<UserCredential | void> {
+  try {
+    const credential = await createUserWithEmailAndPassword(authInstance, email, password);
+    const db = getFirestore();
+    
+    // Create the user profile document
+    await setDoc(doc(db, 'users', credential.user.uid), {
+      uid: credential.user.uid,
+      email: email,
+      displayName: profileData.displayName,
+      mobileNumber: profileData.mobileNumber,
+      isBlocked: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return credential;
+  } catch (error) {
+    handleAuthError(error);
+  }
 }
 
-/** Initiate email/password sign-in (non-blocking). */
+/** Initiate email/password sign-in. */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<UserCredential | void> {
   return signInWithEmailAndPassword(authInstance, email, password).catch(handleAuthError);
 }
 
-/** Initiate Google Sign-In (non-blocking). */
+/** Initiate Google Sign-In. */
 export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential | void> {
   const provider = new GoogleAuthProvider();
-  // Ensure the provider is clean for each attempt
-  provider.setCustomParameters({ 
-    prompt: 'select_account'
-  });
-  
+  provider.setCustomParameters({ prompt: 'select_account' });
   return signInWithPopup(authInstance, provider).catch(handleAuthError);
 }
