@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   title: 'VOID WEAR | EMBRACE THE UNKNOWN',
   description: 'Premium futuristic technical shells for the digital migration.',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 };
 
