@@ -4,12 +4,11 @@ import './globals.css';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
-import { CustomCursor } from '@/components/custom-cursor';
 import { FirebaseClientProvider } from '@/firebase';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'VOID WEAR | ASCEND THE VOID',
+  title: 'VOID WEAR | Embrace The Unknown',
   description: 'Premium futuristic technical shells for the digital migration.',
 };
 
@@ -55,7 +54,6 @@ export default function RootLayout({
       <body className="antialiased bg-black text-white selection:bg-white selection:text-black overflow-x-hidden">
         <FirebaseClientProvider>
           <div className="noise-overlay" />
-          <CustomCursor />
           <Navbar />
           <main className="relative z-10 min-h-screen">
             {children}
