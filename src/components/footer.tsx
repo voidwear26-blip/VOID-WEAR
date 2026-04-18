@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -10,7 +11,7 @@ export function Footer() {
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 mb-32">
           <div className="md:col-span-2 space-y-10">
-            <Link href="/" className="group flex items-center gap-4 group w-fit">
+            <Link href="/" className="group flex items-center gap-4 w-fit">
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="flex items-center gap-4"

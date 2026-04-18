@@ -1,18 +1,27 @@
+
 "use client"
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+
+type Star = {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  duration: number;
+  delay: number;
+  opacity: number;
+  glow: boolean;
+};
 
 export function SpaceBackground() {
   const [mounted, setMounted] = useState(false);
+  const [stars, setStars] = useState<Star[]>([]);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const stars = useMemo(() => {
-    // Reduced star count further to 100 for maximum performance
-    return [...Array(100)].map((_, i) => ({
+    // Generate stars only on the client to avoid hydration mismatch
+    const generatedStars = [...Array(100)].map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -22,6 +31,8 @@ export function SpaceBackground() {
       opacity: Math.random() * 0.4 + 0.2,
       glow: Math.random() > 0.9
     }));
+    setStars(generatedStars);
+    setMounted(true);
   }, []);
 
   if (!mounted) return null;
