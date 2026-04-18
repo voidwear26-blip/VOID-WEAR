@@ -7,27 +7,35 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
-import { Package } from 'lucide-react';
+import { Package, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const db = useFirestore();
   
-  const productsQuery = useMemoFirebase(() => {
+  const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), limit(6));
+    return query(collection(db, 'products'), limit(10));
   }, [db]);
 
-  const { data: products, isLoading } = useCollection(productsQuery);
+  const topProductsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), limit(3));
+  }, [db]);
+
+  const { data: latestProducts, isLoading: latestLoading } = useCollection(latestProductsQuery);
+  const { data: topProducts, isLoading: topLoading } = useCollection(topProductsQuery);
 
   return (
     <div className="space-y-0 bg-transparent text-white">
       <Hero />
       
+      {/* Moving Gallery Section */}
       <section className="py-24 md:py-48 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20 md:mb-32">
+        <div className="container mx-auto px-6 mb-20 md:mb-32">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase font-bold">CATALOGUE // SEASON 01</span>
+              <span className="text-[10px] font-bold tracking-[0.8em] text-white/20 uppercase">SYSTEM // GALLERY</span>
               <h2 className="text-4xl md:text-7xl font-bold tracking-tighter glow-text uppercase leading-none">
                 LATEST <br /> ASSEMBLAGES
               </h2>
@@ -36,29 +44,81 @@ export default function Home() {
               VIEW FULL COLLECTION
             </Link>
           </div>
+        </div>
 
-          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16 overflow-x-auto md:overflow-visible pb-12 -mx-6 px-6 md:mx-0 md:px-0 no-scrollbar snap-x snap-mandatory scroll-smooth">
-            {isLoading ? (
-              [1, 2, 3].map(i => (
-                <div key={i} className="min-w-[85vw] aspect-[3/4] bg-white/5 animate-pulse rounded-none" />
+        {/* Moving Line Animation */}
+        <div className="relative flex overflow-hidden group">
+          <motion.div 
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ 
+              duration: 40, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            className="flex gap-8 md:gap-16 whitespace-nowrap"
+          >
+            {latestLoading ? (
+              [1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="w-[300px] md:w-[450px] aspect-[3/4] bg-white/5 animate-pulse" />
               ))
-            ) : products && products.length > 0 ? (
-              products.map((product) => (
-                <div key={product.id} className="min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center">
+            ) : latestProducts && latestProducts.length > 0 ? (
+              // Double the products for seamless infinite loop
+              [...latestProducts, ...latestProducts].map((product, idx) => (
+                <div key={`${product.id}-${idx}`} className="w-[300px] md:w-[450px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
             ) : (
-              <div className="col-span-full py-32 text-center opacity-20 border border-dashed border-white/10 w-full flex flex-col items-center justify-center gap-6">
+              <div className="py-32 text-center opacity-20 border border-dashed border-white/10 w-screen flex flex-col items-center justify-center gap-6">
                 <Package className="w-12 h-12 stroke-[0.5px]" />
-                <p className="text-[10px] tracking-[0.8em] uppercase font-bold text-center px-6">NO ASSEMBLAGES DETECTED IN DATABASE</p>
+                <p className="text-[10px] tracking-[0.8em] uppercase font-bold text-center px-6">NO ASSEMBLAGES DETECTED</p>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Top Purchased Section */}
+      <section className="py-32 md:py-64 bg-white/[0.01] border-y border-white/5">
+        <div className="container mx-auto px-6">
+          <div className="text-center space-y-8 mb-24 md:mb-48">
+            <span className="text-[10px] font-bold tracking-[1em] text-white/20 uppercase">MOST TRANSMITTED</span>
+            <h2 className="text-4xl md:text-8xl font-black tracking-tight glow-text uppercase leading-none">Top Modules</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12 md:gap-24">
+            {topLoading ? (
+              [1, 2, 3].map(i => (
+                <div key={i} className="aspect-[3/4] bg-white/5 animate-pulse" />
+              ))
+            ) : topProducts && topProducts.length > 0 ? (
+              topProducts.map((product, idx) => (
+                <motion.div 
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="relative group">
+                    <ProductCard product={product as any} />
+                    <div className="absolute -top-6 -left-6 w-12 h-12 border border-white/10 bg-black flex items-center justify-center text-[10px] font-bold tracking-widest text-white/20 z-20">
+                      0{idx + 1}
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full py-32 text-center opacity-10">
+                <p className="text-[10px] tracking-[1em] uppercase">SYSTEM IDLE</p>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <section className="py-64 bg-transparent overflow-hidden border-t border-white/5">
+      {/* Manifesto */}
+      <section className="py-64 bg-transparent overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-[1em] text-white/20 uppercase font-bold">MANIFESTO</span>
