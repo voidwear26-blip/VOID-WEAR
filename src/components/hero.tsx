@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -72,19 +71,20 @@ export function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.3, duration: 1.5 }}
-            className="flex flex-col items-center gap-12 w-full"
+            className="flex flex-col items-center gap-6 w-full"
           >
-            <Image 
-              src="/logo.png" 
-              alt="VOID WEAR LOGO" 
-              width={1000} 
-              height={1000} 
-              className="h-[45vh] w-auto object-contain brightness-200 grayscale opacity-80"
-              priority
-              unoptimized
-            />
+            <div className="relative h-[55vh] w-auto aspect-square">
+              <Image 
+                src="/logo.png" 
+                alt="VOID WEAR LOGO" 
+                fill
+                className="object-contain brightness-200 grayscale opacity-90"
+                priority
+                unoptimized
+              />
+            </div>
             <div className="glow-text w-full overflow-hidden">
-              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.2em] uppercase leading-none whitespace-nowrap inline-block">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[0.4em] uppercase leading-none whitespace-nowrap inline-block">
                 {content.title}
               </h1>
             </div>
@@ -106,9 +106,9 @@ export function Hero() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 2, duration: 1.5 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-12"
+          className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
         >
-          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-700 font-bold shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-700 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
             <Link href="/products">ENTER SYSTEM</Link>
           </Button>
         </motion.div>
