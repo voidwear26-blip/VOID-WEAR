@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -295,7 +296,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores individual user profiles. Access is restricted to the owner matching `request.auth.uid`. Includes denormalized `userId` in the path for authorization independence.",
+          "description": "Stores individual user profiles. Access is restricted to the owner matching `request.auth.uid` or the Master Admin.",
           "params": [
             {
               "name": "userId",
@@ -311,11 +312,59 @@
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores details of all products available in the store. This collection is publicly readable, while write access is restricted to administrators. No specific user-based denormalization needed as it's not user-owned.",
+          "description": "Stores details of all products available in the store. This collection is publicly readable, while write access is restricted to administrators.",
           "params": [
             {
               "name": "productId",
               "description": "The unique identifier for a product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/app_config/{configId}",
+        "definition": {
+          "entityName": "AppConfig",
+          "schema": {
+            "type": "object"
+          },
+          "description": "Global application configuration for dynamic branding and settings. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "configId",
+              "description": "The configuration document ID (e.g., 'global')."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/stories/{storyId}",
+        "definition": {
+          "entityName": "Story",
+          "schema": {
+            "type": "object"
+          },
+          "description": "Brand narrative updates and announcements. Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "storyId",
+              "description": "Unique identifier for a story transmission."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "type": "object"
+          },
+          "description": "Customer feedback for products. Publicly readable, authenticated user writable.",
+          "params": [
+            {
+              "name": "reviewId",
+              "description": "Unique identifier for a review."
             }
           ]
         }
@@ -327,7 +376,7 @@
           "schema": {
             "$ref": "#/backend/entities/Cart"
           },
-          "description": "Represents a user's active shopping cart. Nested under the user's document to enforce ownership. The `userId` in the path ensures authorization independence and facilitates secure list operations (QAPs).",
+          "description": "Represents a user's active shopping cart. Nested under the user's document to enforce ownership.",
           "params": [
             {
               "name": "userId",
@@ -341,37 +390,13 @@
         }
       },
       {
-        "path": "/users/{userId}/carts/{cartId}/cartItems/{cartItemId}",
-        "definition": {
-          "entityName": "CartItem",
-          "schema": {
-            "$ref": "#/backend/entities/CartItem"
-          },
-          "description": "Represents individual items within a user's shopping cart. Nested under the specific cart and user for clear ownership. `userId` and `cartId` in the path provide authorization independence for list and item-level access.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns the parent cart."
-            },
-            {
-              "name": "cartId",
-              "description": "The unique identifier of the parent cart."
-            },
-            {
-              "name": "cartItemId",
-              "description": "The unique identifier for a specific item within a cart."
-            }
-          ]
-        }
-      },
-      {
         "path": "/users/{userId}/orders/{orderId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Represents a user's confirmed purchase order. Nested under the user's document to strictly enforce ownership. `userId` in the path ensures authorization independence and supports QAPs for listing user-specific orders.",
+          "description": "Represents a user's confirmed purchase order. Restricted to owner or Admin.",
           "params": [
             {
               "name": "userId",
@@ -383,32 +408,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/orderItems/{orderItemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Represents individual products included in a confirmed order. Nested under the specific order and user for explicit ownership. `userId` and `orderId` in the path guarantee authorization independence for all item-level operations.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns the parent order."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier of the parent order."
-            },
-            {
-              "name": "orderItemId",
-              "description": "The unique identifier for a specific item within an order."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to be secure, scalable, and debuggable by strictly adhering to the core design principles and mandates. The primary strategy for authorization independence and queryable access patterns (QAPs) is a robust hierarchical path structure, especially for user-owned and nested data. For instance, all user-specific data (carts, orders, and their respective items) are nested under `/users/{userId}/...`. This inherently denormalizes the `userId` into the document path, making authorization rules extremely simple and atomic: a user can only access documents where `{userId}` in the path matches `request.auth.uid`. This eliminates the need for `get()` calls in security rules, as the ownership is self-evident from the path.\n\nPublicly accessible data, such as `Product` information, is placed in a top-level collection (`/products/{productId}`). This segregation ensures that public data has a distinct and homogeneous security posture (read-all, write-admin) from private user data, simplifying rule sets and preventing accidental data exposure or unauthorized modification.\n\nFor QAPs, the hierarchical structure directly supports efficient and secure queries. When a user queries their cart items at `/users/{userId}/carts/{cartId}/cartItems`, the query is implicitly filtered by the `userId` in the path, ensuring that users can only list their own items. The same applies to orders and order items. The `userId` and `cartId`/`orderId` fields within the respective documents serve as redundant references for data integrity and specific ad-hoc queries, but the path itself is the primary enforcement mechanism for access control. This design prevents situations where security rules act as filters (which is inefficient and prone to errors) by ensuring that any `list` operation implicitly respects the user's authorization scope."
+    "reasoning": "The Firestore structure is designed to be secure and scalable. Hierarchical paths ensure authorization is tied to the document location. Top-level collections like products and app_config use public read permissions for fast, unauthenticated access on the landing page, while the Master Admin role handles global database maintenance."
   }
 }
