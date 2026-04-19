@@ -1,6 +1,7 @@
+
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, ChevronRight, Heart, Loader2 } from 'lucide-react';
@@ -65,8 +66,34 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const displayImage = (product as any)?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
+  // Product Structured Data for SEO
+  const productJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": displayImage,
+    "description": product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "VOID WEAR"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://void-wear.vercel.app/products/${product.id}`,
+      "priceCurrency": "INR",
+      "price": product.basePrice,
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    }
+  };
+
   return (
     <div className="pt-32 pb-24 bg-transparent min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      
       <div className="container mx-auto px-6">
         <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/80 mb-12 uppercase">
           <Link href="/" className="hover:text-white transition-colors">HOME</Link>

@@ -51,12 +51,30 @@ export default function Home() {
     }
   }, [latestLoading, latestProducts, controls, isDragging]);
 
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "VOID WEAR",
+    "url": "https://void-wear.vercel.app",
+    "logo": "https://void-wear.vercel.app/logo.png",
+    "sameAs": [
+      "https://instagram.com/voidwear",
+      "https://twitter.com/voidwear"
+    ],
+    "description": "Premium futuristic technical shells for the digital migration."
+  };
+
   return (
     <div className="space-y-0 bg-transparent text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      
       <Hero />
       
       {/* Interactive Gallery Section */}
-      <section className="py-24 md:py-48 bg-transparent relative overflow-hidden">
+      <section className="py-24 md:py-48 bg-transparent relative overflow-hidden" aria-label="Latest Arrivals">
         <div className="container mx-auto px-6 mb-20 md:mb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-6">
@@ -113,7 +131,7 @@ export default function Home() {
       </section>
 
       {/* Top Purchased Section */}
-      <section className="py-32 md:py-64 bg-white/[0.02] border-y border-white/10">
+      <section className="py-32 md:py-64 bg-white/[0.02] border-y border-white/10" aria-label="Top Modules">
         <div className="container mx-auto px-6">
           <div className="text-center space-y-8 mb-24 md:mb-48">
             <span className="text-[10px] font-bold tracking-[1em] text-white/60 uppercase">MOST TRANSMITTED</span>
@@ -152,7 +170,7 @@ export default function Home() {
       </section>
 
       {/* Manifesto */}
-      <section className="py-64 bg-transparent overflow-hidden">
+      <section className="py-64 bg-transparent overflow-hidden" aria-label="Brand Manifesto">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-[1em] text-white/60 uppercase font-bold">MANIFESTO</span>
