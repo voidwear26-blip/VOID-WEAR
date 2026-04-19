@@ -1,6 +1,11 @@
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 /**
- * @fileOverview SYSTEM_PURGE: Genkit initialization disabled.
- * All AI Lab modules have been deconstructed.
+ * VOID WEAR NEURAL INTERFACE
+ * Initializing Genkit for architectural narrative generation.
  */
-export const ai = null;
+export const ai = genkit({
+  plugins: [googleAI()],
+  model: 'googleai/gemini-1.5-flash',
+});

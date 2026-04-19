@@ -1,11 +1,15 @@
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin } from 'lucide-react';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { generateNotificationContent } from '@/ai/flows/generate-notification-content';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -15,6 +19,8 @@ export default function OrderDetailsPage() {
   
   const { user: currentUser } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
+  const [notifying, setNotifying] = useState(false);
   const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const orderRef = useMemoFirebase(() => {
@@ -31,6 +37,47 @@ export default function OrderDetailsPage() {
 
   const { data: entity } = useDoc(entityRef);
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!db || !order || !entity) return;
+    setNotifying(true);
+
+    try {
+      // 1. Generate AI Content
+      const notification = await generateNotificationContent({
+        productName: order.items?.[0]?.name || 'ASSEMBLAGE MODULE',
+        status: newStatus,
+        trackingId: order.trackingId,
+        operatorName: entity.displayName || 'OPERATOR'
+      });
+
+      // 2. Update Order & Log Transmission
+      await updateDoc(orderRef!, {
+        shippingStatus: newStatus,
+        updatedAt: new Date().toISOString(),
+        transmissions: arrayUnion({
+          type: 'STATUS_UPDATE',
+          status: newStatus,
+          timestamp: new Date().toISOString(),
+          content: notification
+        })
+      });
+
+      toast({
+        title: "TRANSITION_LOGGED",
+        description: `NEURAL UPDATE DISPATCHED TO ${entity.email?.toUpperCase()}.`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "UPLINK_FAILURE",
+        description: "COULD NOT GENERATE NEURAL CONTENT.",
+      });
+    } finally {
+      setNotifying(false);
+    }
+  };
+
   if (!isAdmin) {
     return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase">Authenticating...</div>;
   }
@@ -38,7 +85,7 @@ export default function OrderDetailsPage() {
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
+        <Loader2 className="w-8 h-8 animate-spin text-white/40" />
       </div>
     );
   }
@@ -46,8 +93,8 @@ export default function OrderDetailsPage() {
   if (!order) {
     return (
       <div className="h-screen flex flex-col items-center justify-center gap-6">
-        <p className="text-[10px] tracking-[1em] uppercase text-white/20">TRANSMISSION LOG NOT FOUND</p>
-        <Link href="/admin/orders" className="text-[10px] tracking-widest text-white border-b border-white pb-2 font-bold uppercase">Back to System</Link>
+        <p className="text-[10px] tracking-[1em] uppercase text-white/40">TRANSMISSION LOG NOT FOUND</p>
+        <Link href="/admin/orders" className="text-[10px] tracking-widest text-white border-b border-white/20 pb-2 font-bold uppercase">Back to System</Link>
       </div>
     );
   }
@@ -56,38 +103,47 @@ export default function OrderDetailsPage() {
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6 max-w-5xl">
         <div className="space-y-4 mb-16">
-          <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+          <Link href="/admin/orders" className="flex items-center gap-2 text-[10px] text-white/60 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
             <ChevronLeft className="w-3 h-3" />
             BACK TO TRANSMISSIONS
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
               <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none">Transmission Detail</h1>
-              <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest">ORDER_UID: {orderId}</p>
+              <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">ORDER_UID: {orderId}</p>
             </div>
-            <div className={`px-6 py-2 border text-[10px] tracking-[0.3em] font-bold uppercase ${
-              order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' : 'border-white/10 text-white/40'
-            }`}>
-              {order.shippingStatus?.toUpperCase() || 'PROCESSING'}
+            <div className="flex items-center gap-4">
+              <Select defaultValue={order.shippingStatus || 'processing'} onValueChange={handleStatusChange} disabled={notifying}>
+                <SelectTrigger className="w-48 bg-white/5 border-white/20 rounded-none h-12 text-[10px] tracking-[0.2em] uppercase text-white font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-black border-white/20 text-white rounded-none">
+                  <SelectItem value="processing" className="text-[10px] tracking-widest uppercase">PROCESSING</SelectItem>
+                  <SelectItem value="shipped" className="text-[10px] tracking-widest uppercase">SHIPPED</SelectItem>
+                  <SelectItem value="out-for-delivery" className="text-[10px] tracking-widest uppercase">OUT_FOR_DELIVERY</SelectItem>
+                  <SelectItem value="delivered" className="text-[10px] tracking-widest uppercase text-green-500">DELIVERED</SelectItem>
+                </SelectContent>
+              </Select>
+              {notifying && <Loader2 className="w-4 h-4 animate-spin text-white/40" />}
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
-            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase border-b border-white/5 pb-4">MODULES IN TRANSMISSION</h3>
+            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
+              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase border-b border-white/10 pb-4">MODULES IN TRANSMISSION</h3>
               {order.items && order.items.length > 0 ? (
                 <div className="space-y-6">
                   {order.items.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between group">
                       <div className="flex items-center gap-6">
                         <div className="w-12 h-16 bg-white/5 border border-white/10 flex items-center justify-center">
-                          <Package className="w-5 h-5 text-white/20" />
+                          <Package className="w-5 h-5 text-white/40" />
                         </div>
                         <div className="space-y-1">
                           <p className="text-[11px] font-bold tracking-widest uppercase">{item.name || 'ASSEMBLAGE MODULE'}</p>
-                          <p className="text-[9px] text-white/40 tracking-widest uppercase">SIZE: {item.size || 'N/A'} // QTY: {item.quantity || 1}</p>
+                          <p className="text-[9px] text-white/60 tracking-widest uppercase">SIZE: {item.size || 'N/A'} // QTY: {item.quantity || 1}</p>
                         </div>
                       </div>
                       <p className="text-[11px] font-bold tracking-widest">₹{item.price || 0}</p>
@@ -95,70 +151,82 @@ export default function OrderDetailsPage() {
                   ))}
                 </div>
               ) : (
-                <div className="py-8 flex flex-col items-center gap-4 opacity-20">
+                <div className="py-8 flex flex-col items-center gap-4 opacity-40">
                   <Package className="w-8 h-8 stroke-[0.5px]" />
                   <p className="text-[10px] tracking-widest uppercase">AGGREGATED TRANSACTION LOG</p>
                 </div>
               )}
               
-              <div className="pt-8 border-t border-white/5 flex justify-between items-center">
-                <span className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">TOTAL VALUE</span>
+              <div className="pt-8 border-t border-white/10 flex justify-between items-center">
+                <span className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">TOTAL VALUE</span>
                 <span className="text-2xl font-black tracking-tight glow-text">₹{order.totalAmount}</span>
               </div>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase border-b border-white/5 pb-4">LOGISTICS & TRACKING</h3>
-              <div className="grid md:grid-cols-2 gap-10">
-                <div className="space-y-2">
-                  <p className="text-[9px] font-bold tracking-widest text-white/20 uppercase">TRACKING IDENTIFIER</p>
-                  <p className="text-[11px] font-mono tracking-widest uppercase text-white">{order.trackingId || 'UNASSIGNED'}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[9px] font-bold tracking-widest text-white/20 uppercase">PAYMENT CHANNEL</p>
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="w-4 h-4 text-white/40" />
-                    <p className="text-[11px] font-bold tracking-widest uppercase text-white">{order.paymentMethod || 'RAZORPAY GATEWAY'}</p>
-                  </div>
-                </div>
+            {/* NEURAL TRANSMISSIONS LOG */}
+            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">NEURAL TRANSMISSIONS (AI NOTIFICATIONS)</h3>
+                <Zap className="w-3.5 h-3.5 text-white/40" />
+              </div>
+              <div className="space-y-8">
+                {order.transmissions?.length > 0 ? (
+                  order.transmissions.slice().reverse().map((t: any, i: number) => (
+                    <div key={i} className="space-y-4 p-6 border border-white/5 bg-white/[0.01]">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[8px] font-bold tracking-widest uppercase text-white/40">TRANS_STATUS: {t.status}</span>
+                        <span className="text-[8px] font-mono text-white/20">{new Date(t.timestamp).toLocaleString()}</span>
+                      </div>
+                      <div className="space-y-3">
+                        <p className="text-[10px] text-white/80 leading-relaxed tracking-wide uppercase italic">"{t.content?.smsContent}"</p>
+                        <div className="h-px w-8 bg-white/10" />
+                        <p className="text-[9px] text-white/40 leading-relaxed tracking-widest uppercase whitespace-pre-line">
+                          {t.content?.emailContent}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-white/20 text-center py-4 tracking-widest uppercase">NO NEURAL LOGS RECORDED</p>
+                )}
               </div>
             </div>
           </div>
 
           <div className="space-y-12">
-            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase border-b border-white/5 pb-4">ENTITY DOSSIER</h3>
+            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
+              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase border-b border-white/10 pb-4">ENTITY DOSSIER</h3>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center">
-                    <UserIcon className="w-5 h-5 text-white/40" />
+                    <UserIcon className="w-5 h-5 text-white/60" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[12px] font-black tracking-widest uppercase text-white">{entity?.displayName || 'OPERATOR'}</p>
-                    <p className="text-[9px] text-white/40 tracking-widest uppercase font-mono">{userId?.slice(0, 16)}...</p>
+                    <p className="text-[9px] text-white/60 tracking-widest uppercase font-mono">{userId?.slice(0, 16)}...</p>
                   </div>
                 </div>
                 
-                <div className="space-y-4 pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-3 text-[10px] text-white/60 tracking-widest uppercase">
-                    <Mail className="w-3.5 h-3.5 text-white/20" />
+                <div className="space-y-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-3 text-[10px] text-white/80 tracking-widest uppercase font-bold">
+                    <Mail className="w-3.5 h-3.5 text-white/40" />
                     {entity?.email || 'N/A'}
                   </div>
-                  <div className="flex items-center gap-3 text-[10px] text-white/60 tracking-widest uppercase">
-                    <Phone className="w-3.5 h-3.5 text-white/20" />
+                  <div className="flex items-center gap-3 text-[10px] text-white/80 tracking-widest uppercase font-bold">
+                    <Phone className="w-3.5 h-3.5 text-white/40" />
                     {entity?.mobileNumber || 'NOT PROVIDED'}
                   </div>
-                  <div className="flex items-center gap-3 text-[10px] text-white/60 tracking-widest uppercase">
-                    <Calendar className="w-3.5 h-3.5 text-white/20" />
+                  <div className="flex items-center gap-3 text-[10px] text-white/80 tracking-widest uppercase font-bold">
+                    <Calendar className="w-3.5 h-3.5 text-white/40" />
                     INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-6">
-               <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <div className="flex items-center gap-3 text-white/40">
+            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-6 backdrop-blur-xl">
+               <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-3 text-white/60">
                     <MapPin className="w-4 h-4" />
                     <span className="text-[10px] font-bold tracking-widest uppercase">DESTINATION NODE</span>
                   </div>
@@ -167,10 +235,10 @@ export default function OrderDetailsPage() {
                   <p className="text-[11px] text-white tracking-widest uppercase font-bold">
                     {entity?.addressLine1 || 'NO ADDRESS LOGGED'}
                   </p>
-                  <p className="text-[10px] text-white/40 tracking-widest uppercase">
+                  <p className="text-[10px] text-white/60 tracking-widest uppercase font-bold">
                     {entity?.city || 'UNKNOWN'}, {entity?.stateProvince || 'N/A'} {entity?.postalCode || ''}
                   </p>
-                  <div className="pt-4 flex items-center gap-3 text-[9px] text-white/20 tracking-widest uppercase font-bold">
+                  <div className="pt-4 flex items-center gap-3 text-[9px] text-white/40 tracking-widest uppercase font-black">
                     <Truck className="w-3.5 h-3.5" />
                     DELIVERY PROTOCOL: STANDARD ORBITAL
                   </div>

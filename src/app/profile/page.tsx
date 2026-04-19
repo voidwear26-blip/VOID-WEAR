@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar, Zap, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -72,7 +71,6 @@ export default function ProfilePage() {
       });
     }
 
-    // Auto-initialize identity document and join date if missing (legacy recovery or first-time sync)
     if (user && db && (!profile || !profile.createdAt)) {
       setDoc(doc(db, 'users', user.uid), {
         email: user.email,
@@ -94,7 +92,6 @@ export default function ProfilePage() {
         email: user.email,
         uid: user.uid,
         updatedAt: new Date().toISOString(),
-        // Preserve existing createdAt or set it if somehow missing
         createdAt: profile?.createdAt || new Date().toISOString()
       }, { merge: true });
       
@@ -130,8 +127,8 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="h-screen flex flex-col items-center justify-center space-y-8">
-        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-white">ACCESS DENIED</h2>
-        <p className="text-[10px] text-white/60 tracking-[0.3em] font-bold">PLEASE INITIALIZE AUTHENTICATION</p>
+        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-white uppercase">ACCESS DENIED</h2>
+        <p className="text-[10px] text-white/60 tracking-[0.3em] font-bold uppercase">PLEASE INITIALIZE AUTHENTICATION</p>
         <Link href="/login">
           <button className="px-12 py-4 border border-white/30 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all font-bold uppercase">
             ESTABLISH LINK
@@ -158,7 +155,7 @@ export default function ProfilePage() {
 
             {isAdmin && (
               <Link href="/admin">
-                <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)] uppercase">
                   <Settings className="w-4 h-4 mr-3" />
                   COMMAND CENTER
                 </Button>
@@ -285,7 +282,7 @@ export default function ProfilePage() {
 
                     <Button 
                       disabled={saving}
-                      className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                      className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] uppercase"
                     >
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                         <>
@@ -308,10 +305,10 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center justify-between border-b border-white/10 pb-8">
                     <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/80">TRANSMISSION HISTORY</h2>
-                    <span className="text-[10px] text-white/60 font-bold">{orders?.length || 0} LOGS</span>
+                    <span className="text-[10px] text-white/60 font-bold uppercase">{orders?.length || 0} LOGS</span>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {isOrdersLoading ? (
                       <div className="space-y-4">
                         {[1, 2].map(i => (
@@ -322,48 +319,76 @@ export default function ProfilePage() {
                       orders.map((order) => (
                         <div 
                           key={order.id}
-                          className="group border border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-8"
+                          className="group border border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 space-y-8"
                         >
-                          <div className="space-y-4 flex-1">
-                            <div className="flex flex-wrap items-center gap-3">
-                              <Package className="w-4 h-4 text-white/60" />
-                              <span className="text-[10px] font-bold tracking-widest uppercase font-mono text-white/80">{order.id.slice(0, 16)}</span>
-                              <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
-                                order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' :
-                                order.shippingStatus === 'shipped' ? 'border-blue-500/50 text-blue-500' :
-                                'border-white/30 text-white/80'
-                              }`}>
-                                {order.shippingStatus || 'processing'}
-                              </span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <div className="text-[9px] text-white/80 tracking-widest uppercase font-bold">
-                                INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                            <div className="space-y-4 flex-1">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <Package className="w-4 h-4 text-white/60" />
+                                <span className="text-[10px] font-bold tracking-widest uppercase font-mono text-white/80">{order.id.slice(0, 16)}</span>
+                                <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
+                                  order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' :
+                                  order.shippingStatus === 'shipped' ? 'border-blue-500/50 text-blue-500' :
+                                  'border-white/30 text-white/80'
+                                }`}>
+                                  {order.shippingStatus || 'processing'}
+                                </span>
                               </div>
-                              {order.trackingId && (
-                                <div className="text-[9px] text-white font-mono tracking-widest flex items-center gap-2">
-                                  <span className="text-white/40 font-bold">TRACKING:</span> {order.trackingId}
+                              <div className="flex flex-col gap-1">
+                                <div className="text-[9px] text-white/80 tracking-widest uppercase font-bold">
+                                  INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
                                 </div>
+                                {order.trackingId && (
+                                  <div className="text-[9px] text-white font-mono tracking-widest flex items-center gap-2">
+                                    <span className="text-white/40 font-bold">TRACKING:</span> {order.trackingId}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-8 md:gap-12">
+                              <div className="text-right">
+                                <div className="text-[11px] font-bold tracking-widest uppercase text-white">₹{order.totalAmount}</div>
+                                <div className="text-[8px] text-white/60 tracking-widest uppercase mt-1 font-bold">
+                                  {order.paymentStatus || 'PAYMENT_LOGGED'}
+                                </div>
+                              </div>
+                              
+                              {order.shippingStatus === 'delivered' && (
+                                <ReviewDialog order={order} userId={user.uid} userName={profile?.displayName || 'Entity'} db={db} />
                               )}
+                              
+                              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white transition-colors">
+                                <FileText className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-8 md:gap-12">
-                            <div className="text-right">
-                              <div className="text-[11px] font-bold tracking-widest uppercase text-white">₹{order.totalAmount}</div>
-                              <div className="text-[8px] text-white/60 tracking-widest uppercase mt-1 font-bold">
-                                {order.paymentStatus || 'PAYMENT_LOGGED'}
+                          {/* MISSION TRANSMISSIONS - AI NOTIFICATIONS */}
+                          {order.transmissions?.length > 0 && (
+                            <div className="pt-8 border-t border-white/5 space-y-6">
+                              <div className="flex items-center gap-3 text-white/40">
+                                <Bell className="w-3.5 h-3.5" />
+                                <span className="text-[9px] font-bold tracking-[0.4em] uppercase">SYSTEM TRANSMISSIONS</span>
+                              </div>
+                              <div className="space-y-6">
+                                {order.transmissions.slice().reverse().map((t: any, idx: number) => (
+                                  <div key={idx} className="bg-white/[0.01] border-l-2 border-white/10 p-5 space-y-3">
+                                    <div className="flex justify-between items-center text-[8px] tracking-widest text-white/40 font-bold uppercase">
+                                      <span>STATUS: {t.status?.replace(/-/g, ' ')}</span>
+                                      <span>{new Date(t.timestamp).toLocaleDateString()}</span>
+                                    </div>
+                                    <p className="text-[10px] text-white/80 tracking-wide uppercase italic leading-relaxed">
+                                      {t.content?.smsContent}
+                                    </p>
+                                    <p className="text-[9px] text-white/40 tracking-widest uppercase leading-relaxed font-light">
+                                      {t.content?.emailContent}
+                                    </p>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                            
-                            {order.shippingStatus === 'delivered' && (
-                              <ReviewDialog order={order} userId={user.uid} userName={profile?.displayName || 'Entity'} db={db} />
-                            )}
-                            
-                            <Button variant="ghost" size="icon" className="text-white/60 hover:text-white transition-colors">
-                              <FileText className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -383,7 +408,7 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center justify-between border-b border-white/10 pb-8">
                     <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/80">STASIS MODULES</h2>
-                    <span className="text-[10px] text-white/60 font-bold">{wishlistItems?.length || 0} ITEMS</span>
+                    <span className="text-[10px] text-white/60 font-bold uppercase">{wishlistItems?.length || 0} ITEMS</span>
                   </div>
 
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -486,7 +511,7 @@ function ReviewDialog({ order, userId, userName, db }: { order: any, userId: str
           <Button 
             disabled={loading}
             onClick={handleReviewSubmit}
-            className="w-full bg-white text-black hover:bg-white/90 h-14 text-[10px] font-bold tracking-[0.4em] rounded-none"
+            className="w-full bg-white text-black hover:bg-white/90 h-14 text-[10px] font-bold tracking-[0.4em] rounded-none uppercase"
           >
             {loading ? 'SYNCING...' : 'SYNC FEEDBACK'}
           </Button>
