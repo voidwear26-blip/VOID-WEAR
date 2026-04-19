@@ -10,7 +10,7 @@ import { doc, getDoc, setDoc, updateDoc, Firestore } from 'firebase/firestore';
 export async function addToCart(
   db: Firestore, 
   userId: string, 
-  product: { id: string, name: string, basePrice: number, imageUrls: string[] },
+  product: { id: string, name: string, basePrice: number, imageUrls: string[], color?: string },
   size: string,
   quantity: number = 1
 ) {
@@ -22,6 +22,7 @@ export async function addToCart(
   // Extract clean metadata
   const price = Number(product.basePrice) || 0;
   const image = product.imageUrls?.[0] || 'https://picsum.photos/seed/void/400/600';
+  const color = product.color || 'UNSPECIFIED';
 
   if (itemSnap.exists()) {
     const currentQty = itemSnap.data().quantity || 0;
@@ -30,6 +31,7 @@ export async function addToCart(
       quantity: currentQty + quantity,
       price: price, // Re-sync in case price changed
       image: image, // Re-sync in case image changed
+      color: color, // Re-sync color
       updatedAt: new Date().toISOString()
     });
   } else {
@@ -41,6 +43,7 @@ export async function addToCart(
       price: price,
       image: image,
       size: size,
+      color: color,
       quantity: quantity,
       addedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

@@ -3,16 +3,18 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar, Zap, Bell } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar, Zap, Bell, MapPin, CreditCard, ChevronRight, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { ProductCard } from '@/components/product-card';
 import { submitReview } from '@/firebase/review-actions';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -57,7 +59,6 @@ export default function ProfilePage() {
     landmark: ''
   });
 
-  // Neural Sync: Initialize profile or handle missing join date
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -164,18 +165,18 @@ export default function ProfilePage() {
 
             <div className="p-8 border border-white/10 bg-white/[0.02] space-y-6 backdrop-blur-sm">
               <div className="flex items-center gap-4 text-white/80">
-                <ShieldCheck className="w-4 h-4 text-white/40" />
-                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
+                <ShieldCheck className="w-4 h-4 text-white/60" />
+                <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/80">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
               </div>
               <div className="flex items-center gap-4 text-white/80">
-                <Calendar className="w-4 h-4 text-white/40" />
-                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">
+                <Calendar className="w-4 h-4 text-white/60" />
+                <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/80">
                   JOINED: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'INITIALIZING...'}
                 </span>
               </div>
               <div className="flex items-center gap-4 text-white/80">
-                <Clock className="w-4 h-4 text-white/40" />
-                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">STATUS: ACTIVE</span>
+                <Clock className="w-4 h-4 text-white/60" />
+                <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/80">STATUS: ACTIVE</span>
               </div>
             </div>
             
@@ -317,79 +318,7 @@ export default function ProfilePage() {
                       </div>
                     ) : orders && orders.length > 0 ? (
                       orders.map((order) => (
-                        <div 
-                          key={order.id}
-                          className="group border border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 space-y-8"
-                        >
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                            <div className="space-y-4 flex-1">
-                              <div className="flex flex-wrap items-center gap-3">
-                                <Package className="w-4 h-4 text-white/60" />
-                                <span className="text-[10px] font-bold tracking-widest uppercase font-mono text-white/80">{order.id.slice(0, 16)}</span>
-                                <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
-                                  order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' :
-                                  order.shippingStatus === 'shipped' ? 'border-blue-500/50 text-blue-500' :
-                                  'border-white/30 text-white/80'
-                                }`}>
-                                  {order.shippingStatus || 'processing'}
-                                </span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <div className="text-[9px] text-white/80 tracking-widest uppercase font-bold">
-                                  INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
-                                </div>
-                                {order.trackingId && (
-                                  <div className="text-[9px] text-white font-mono tracking-widest flex items-center gap-2">
-                                    <span className="text-white/40 font-bold">TRACKING:</span> {order.trackingId}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-8 md:gap-12">
-                              <div className="text-right">
-                                <div className="text-[11px] font-bold tracking-widest uppercase text-white">₹{order.totalAmount}</div>
-                                <div className="text-[8px] text-white/60 tracking-widest uppercase mt-1 font-bold">
-                                  {order.paymentStatus || 'PAYMENT_LOGGED'}
-                                </div>
-                              </div>
-                              
-                              {order.shippingStatus === 'delivered' && (
-                                <ReviewDialog order={order} userId={user.uid} userName={profile?.displayName || 'Entity'} db={db} />
-                              )}
-                              
-                              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white transition-colors">
-                                <FileText className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* MISSION TRANSMISSIONS - AI NOTIFICATIONS */}
-                          {order.transmissions?.length > 0 && (
-                            <div className="pt-8 border-t border-white/5 space-y-6">
-                              <div className="flex items-center gap-3 text-white/40">
-                                <Bell className="w-3.5 h-3.5" />
-                                <span className="text-[9px] font-bold tracking-[0.4em] uppercase">SYSTEM TRANSMISSIONS</span>
-                              </div>
-                              <div className="space-y-6">
-                                {order.transmissions.slice().reverse().map((t: any, idx: number) => (
-                                  <div key={idx} className="bg-white/[0.01] border-l-2 border-white/10 p-5 space-y-3">
-                                    <div className="flex justify-between items-center text-[8px] tracking-widest text-white/40 font-bold uppercase">
-                                      <span>STATUS: {t.status?.replace(/-/g, ' ')}</span>
-                                      <span>{new Date(t.timestamp).toLocaleDateString()}</span>
-                                    </div>
-                                    <p className="text-[10px] text-white/80 tracking-wide uppercase italic leading-relaxed">
-                                      {t.content?.smsContent}
-                                    </p>
-                                    <p className="text-[9px] text-white/40 tracking-widest uppercase leading-relaxed font-light">
-                                      {t.content?.emailContent}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <OrderCard key={order.id} order={order} userId={user.uid} userName={profile?.displayName || 'Entity'} db={db} />
                       ))
                     ) : (
                       <EmptyState icon={<ShoppingBag />} message="NO TRANSMISSIONS LOGGED" />
@@ -440,6 +369,177 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function OrderCard({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+  return (
+    <div className="group border border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div className="space-y-4 flex-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <Package className="w-4 h-4 text-white/60" />
+            <span className="text-[10px] font-bold tracking-widest uppercase font-mono text-white/80">{order.id.slice(0, 16)}</span>
+            <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
+              order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' :
+              order.shippingStatus === 'shipped' ? 'border-blue-500/50 text-blue-500' :
+              'border-white/30 text-white/80'
+            }`}>
+              {order.shippingStatus || 'processing'}
+            </span>
+          </div>
+          <div className="text-[9px] text-white/70 tracking-widest uppercase font-bold">
+            INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-8 md:gap-12">
+          <div className="text-right">
+            <div className="text-[11px] font-bold tracking-widest uppercase text-white">₹{order.totalAmount}</div>
+            <div className="text-[8px] text-white/60 tracking-widest uppercase mt-1 font-bold">
+              {order.paymentStatus?.toUpperCase() || 'PAYMENT_LOGGED'}
+            </div>
+          </div>
+          
+          <OrderDossierDialog order={order} userId={userId} userName={userName} db={db} />
+          
+          {order.shippingStatus === 'delivered' && (
+            <ReviewDialog order={order} userId={userId} userName={userName} db={db} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrderDossierDialog({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-white/60 hover:text-white transition-colors">
+          <Info className="w-4 h-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-black border-white/20 rounded-none text-white max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar">
+        <DialogHeader className="mb-10">
+          <DialogTitle className="text-xl font-bold tracking-[0.5em] uppercase glow-text">Mission Dossier</DialogTitle>
+          <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">UID: {order.id}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-16">
+          {/* 1. PRODUCT DETAILS */}
+          <div className="space-y-6">
+            <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase border-l-2 border-white/20 pl-4">MODULES IN TRANSMISSION</h4>
+            <div className="grid gap-6">
+              {order.items?.map((item: any, idx: number) => (
+                <div key={idx} className="flex gap-6 items-center p-6 border border-white/5 bg-white/[0.01]">
+                   <div className="relative w-20 aspect-[3/4] bg-white/5 border border-white/10">
+                      <Image src={item.image} alt={item.name} fill className="object-cover grayscale" />
+                   </div>
+                   <div className="flex-1 space-y-2">
+                      <p className="text-xs font-bold tracking-widest uppercase">{item.name}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[9px] tracking-widest text-white/60 uppercase">
+                         <div>SIZE: <span className="text-white">{item.size}</span></div>
+                         <div>COLOR: <span className="text-white">{item.color || 'OBSIDIAN'}</span></div>
+                         <div>QTY: <span className="text-white">{item.quantity}</span></div>
+                         <div>PRICE: <span className="text-white">₹{item.price}</span></div>
+                      </div>
+                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. ADDRESS & CONTACT */}
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase border-l-2 border-white/20 pl-4">DESTINATION NODE</h4>
+              <div className="p-8 border border-white/5 bg-white/[0.01] space-y-4">
+                 <div className="space-y-1">
+                    <p className="text-[8px] text-white/40 tracking-widest uppercase">RECIPIENT</p>
+                    <p className="text-xs font-black tracking-widest uppercase">{order.displayName || userName}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-[8px] text-white/40 tracking-widest uppercase">ADDRESS</p>
+                    <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
+                      {order.addressLine1}, {order.landmark && `${order.landmark}, `}{order.city}<br />
+                      {order.stateProvince} - {order.postalCode}
+                    </p>
+                 </div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase border-l-2 border-white/20 pl-4">CONTACT PROTOCOLS</h4>
+              <div className="p-8 border border-white/5 bg-white/[0.01] space-y-6">
+                 <div className="space-y-1">
+                    <p className="text-[8px] text-white/40 tracking-widest uppercase">COMM CHANNEL (EMAIL)</p>
+                    <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{order.email}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-[8px] text-white/40 tracking-widest uppercase">UPLINK MODULE (MOBILE)</p>
+                    <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{order.mobileNumber}</p>
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. PAYMENT & TRANSACTION */}
+          <div className="space-y-6">
+            <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase border-l-2 border-white/20 pl-4">TRANSACTION AUDIT</h4>
+            <div className="p-10 border border-white/5 bg-white/[0.01] grid md:grid-cols-3 gap-10 items-center">
+               <div className="space-y-2">
+                  <p className="text-[8px] text-white/40 tracking-widest uppercase font-bold">METHOD</p>
+                  <div className="flex items-center gap-3 text-white/80">
+                     <CreditCard className="w-4 h-4 text-white/40" />
+                     <span className="text-xs font-bold tracking-widest uppercase">{order.paymentMethod || 'RAZORPAY_HYBRID'}</span>
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <p className="text-[8px] text-white/40 tracking-widest uppercase font-bold">VALUATION</p>
+                  <p className="text-2xl font-black tracking-tight glow-text">₹{order.totalAmount}</p>
+               </div>
+               <div className="space-y-2">
+                  <p className="text-[8px] text-white/40 tracking-widest uppercase font-bold">PROVIDER_ID</p>
+                  <p className="text-[10px] font-mono tracking-widest text-white/60 truncate uppercase">{order.paymentProviderId || 'LOGGED_INTERNALLY'}</p>
+               </div>
+            </div>
+          </div>
+
+          {/* 4. TRACKING & TRANSMISSIONS */}
+          <div className="space-y-8">
+            <div className="flex items-center justify-between border-l-2 border-white/20 pl-4">
+               <h4 className="text-[10px] font-bold tracking-[0.5em] text-white/80 uppercase">SYSTEM TRANSMISSIONS</h4>
+               <span className="text-[9px] px-3 py-1 border border-white/10 tracking-widest font-black uppercase text-green-500/80">{order.shippingStatus?.replace(/-/g, ' ')}</span>
+            </div>
+            
+            <div className="space-y-8">
+              {order.transmissions?.length > 0 ? (
+                order.transmissions.slice().reverse().map((t: any, i: number) => (
+                  <div key={i} className="p-8 border border-white/5 bg-white/[0.01] space-y-4">
+                    <div className="flex justify-between items-center text-[8px] tracking-widest text-white/40 font-bold uppercase">
+                      <span>TRANS_STATUS: {t.status}</span>
+                      <span>{new Date(t.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-[11px] text-white/90 leading-relaxed tracking-wide uppercase italic">"{t.content?.smsContent}"</p>
+                      <div className="h-px w-8 bg-white/10" />
+                      <p className="text-[10px] text-white/60 leading-relaxed tracking-widest uppercase">
+                        {t.content?.emailContent}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 border border-dashed border-white/10 flex flex-col items-center gap-6 opacity-40">
+                   <Zap className="w-8 h-8 stroke-[0.5px]" />
+                   <p className="text-[10px] tracking-[1em] uppercase font-bold text-center px-8">TRANSMISSION LOGS BUFFERING...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
