@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -135,6 +136,7 @@ export default function CheckoutPage() {
               userId: user.uid,
               ...formData,
               items: cartItems,
+              productIds: cartItems.map(item => item.productId), // Index for admin product-sales tracking
               totalAmount: subtotal,
               orderDate: new Date().toISOString(),
               shippingStatus: 'processing',
@@ -178,7 +180,7 @@ export default function CheckoutPage() {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/60 mb-6" />
-        <p className="text-[10px] tracking-[1em] text-white/60 uppercase font-bold">Syncing Protocols...</p>
+        <p className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Syncing Protocols...</p>
       </div>
     );
   }
@@ -202,15 +204,15 @@ export default function CheckoutPage() {
 
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">TRANSMISSION SECURED</h1>
-              <p className="text-[10px] tracking-[0.6em] text-white/60 uppercase font-bold">THANKS FOR YOUR PURCHASE</p>
+              <p className="text-[10px] tracking-[0.6em] text-white/80 uppercase font-bold">THANKS FOR YOUR PURCHASE</p>
             </div>
 
             <div className="bg-black/40 border border-white/10 p-8 space-y-3">
-              <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">TRANSMISSION IDENTIFIER</p>
+              <p className="text-[9px] tracking-[0.4em] text-white/60 uppercase font-bold">TRANSMISSION IDENTIFIER</p>
               <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
             </div>
 
-            <p className="text-sm text-white/60 tracking-widest leading-relaxed uppercase max-w-md mx-auto">
+            <p className="text-sm text-white/80 tracking-widest leading-relaxed uppercase max-w-md mx-auto">
               YOUR ASSEMBLAGE HAS BEEN LOGGED IN THE VOID. WE ARE INITIALIZING THE EXPEDITION PROTOCOLS.
             </p>
 
@@ -221,7 +223,7 @@ export default function CheckoutPage() {
                   <ExternalLink className="ml-3 w-4 h-4" />
                 </Link>
               </Button>
-              <Button asChild variant="ghost" className="h-14 text-[10px] tracking-[0.4em] text-white/60 hover:text-white uppercase font-bold">
+              <Button asChild variant="ghost" className="h-14 text-[10px] tracking-[0.4em] text-white/80 hover:text-white uppercase font-bold">
                 <Link href="/products">CONTINUE EXPLORATION</Link>
               </Button>
             </div>
@@ -260,7 +262,7 @@ export default function CheckoutPage() {
                 >
                   <div className="space-y-4">
                     <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
-                    <p className="text-[10px] tracking-[0.4em] text-white/60 uppercase font-bold">IDENTIFICATION & DESTINATION NODES</p>
+                    <p className="text-[10px] tracking-[0.4em] text-white/80 uppercase font-bold">IDENTIFICATION & DESTINATION NODES</p>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-8">
@@ -276,7 +278,7 @@ export default function CheckoutPage() {
                     <Field label="LAND MARK (OPTIONAL)" value={formData.landmark} onChange={v => setFormData({...formData, landmark: v})} />
                     <div className="md:col-span-2">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">ADDITIONAL INFORMATION</label>
+                        <label className="text-[10px] font-bold tracking-widest text-white/80 uppercase">ADDITIONAL INFORMATION</label>
                         <Textarea 
                           value={formData.additionalInfo} 
                           onChange={e => setFormData({...formData, additionalInfo: e.target.value})}
@@ -306,21 +308,21 @@ export default function CheckoutPage() {
                 >
                   <div className="flex items-center justify-between">
                     <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Transmission Audit</h2>
-                    <Button variant="ghost" onClick={() => setStep('shipping')} className="text-[10px] tracking-widest text-white/60 hover:text-white uppercase font-bold">
+                    <Button variant="ghost" onClick={() => setStep('shipping')} className="text-[10px] tracking-widest text-white/80 hover:text-white uppercase font-bold">
                       <ArrowLeft className="mr-2 w-3 h-3" /> EDIT LOGISTICS
                     </Button>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-12 border-t border-white/10 pt-12">
                     <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ENTITY COORDINATES</h4>
+                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">ENTITY COORDINATES</h4>
                       <div className="bg-white/5 p-8 border border-white/10 space-y-4">
                         <div className="space-y-1">
-                          <p className="text-[10px] text-white/40 tracking-widest uppercase">NAME</p>
+                          <p className="text-[10px] text-white/60 tracking-widest uppercase">NAME</p>
                           <p className="text-xs font-bold tracking-widest uppercase">{formData.displayName}</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-white/40 tracking-widest uppercase">DESTINATION</p>
+                          <p className="text-[10px] text-white/60 tracking-widest uppercase">DESTINATION</p>
                           <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
                             {formData.addressLine1}, {formData.landmark && `${formData.landmark}, `}{formData.city}<br />
                             {formData.stateProvince} - {formData.postalCode}
@@ -328,20 +330,20 @@ export default function CheckoutPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <p className="text-[10px] text-white/40 tracking-widest uppercase">CONTACT</p>
+                            <p className="text-[10px] text-white/60 tracking-widest uppercase">CONTACT</p>
                             <p className="text-[10px] text-white/80 tracking-widest uppercase">{formData.mobileNumber}</p>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-[10px] text-white/40 tracking-widest uppercase">EMAIL</p>
+                            <p className="text-[10px] text-white/60 tracking-widest uppercase">EMAIL</p>
                             <p className="text-[10px] text-white/80 tracking-widest uppercase truncate">{formData.email}</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">NARRATIVE LOGS</h4>
+                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">NARRATIVE LOGS</h4>
                       <div className="bg-white/5 p-8 border border-white/10 min-h-[160px]">
-                        <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">
+                        <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
                           {formData.additionalInfo || 'NO ADDITIONAL DATA LOGGED.'}
                         </p>
                       </div>
@@ -368,14 +370,14 @@ export default function CheckoutPage() {
                 >
                   <div className="flex items-center justify-between">
                     <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Uplink Channel</h2>
-                    <Button variant="ghost" onClick={() => setStep('review')} className="text-[10px] tracking-widest text-white/60 hover:text-white uppercase font-bold">
+                    <Button variant="ghost" onClick={() => setStep('review')} className="text-[10px] tracking-widest text-white/80 hover:text-white uppercase font-bold">
                       <ArrowLeft className="mr-2 w-3 h-3" /> BACK TO REVIEW
                     </Button>
                   </div>
 
                   <div className="bg-white/5 border border-white/10 p-12 space-y-10">
                     <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">SELECT PAYMENT MODULE</h4>
+                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">SELECT PAYMENT MODULE</h4>
                       <div className="grid gap-4">
                         <PaymentOption 
                           label="UPI TRANSMISSION (FASTEST)" 
@@ -399,11 +401,11 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="p-8 border border-white/10 bg-black/40 space-y-4">
-                      <div className="flex items-center gap-3 text-white/60">
+                      <div className="flex items-center gap-3 text-white/80">
                         <ShieldCheck className="w-4 h-4" />
                         <span className="text-[9px] tracking-[0.3em] uppercase">ENCRYPTED TRANSACTION CHANNEL</span>
                       </div>
-                      <p className="text-[9px] text-white/40 tracking-widest leading-relaxed uppercase">
+                      <p className="text-[9px] text-white/80 tracking-widest leading-relaxed uppercase">
                         YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. ALL TRANSMISSIONS ARE ENCRYPTED AND LOGGED IN THE VOID.
                       </p>
                     </div>
@@ -428,7 +430,7 @@ export default function CheckoutPage() {
 
           <div className="w-full md:w-96 space-y-8">
             <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">MISSION ASSEMBLAGE</h3>
+              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">MISSION ASSEMBLAGE</h3>
               <div className="space-y-6 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
                 {cartItems?.map(item => (
                   <div key={item.id} className="flex gap-4">
@@ -437,7 +439,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 space-y-1">
                       <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>
-                      <p className="text-[8px] text-white/60 tracking-widest uppercase">SIZE: {item.size} // QTY: {item.quantity}</p>
+                      <p className="text-[8px] text-white/80 tracking-widest uppercase">SIZE: {item.size} // QTY: {item.quantity}</p>
                       <p className="text-[9px] font-bold">₹{item.price * item.quantity}</p>
                     </div>
                   </div>
@@ -445,11 +447,11 @@ export default function CheckoutPage() {
               </div>
               <div className="pt-8 border-t border-white/10 space-y-4">
                 <div className="flex justify-between items-center text-[10px] tracking-widest">
-                  <span className="text-white/60 uppercase font-bold">SUBTOTAL</span>
+                  <span className="text-white/80 uppercase font-bold">SUBTOTAL</span>
                   <span className="font-bold">₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] tracking-widest">
-                  <span className="text-white/60 uppercase font-bold">EXPEDITION</span>
+                  <span className="text-white/80 uppercase font-bold">EXPEDITION</span>
                   <span className="text-green-500 font-bold">FREE</span>
                 </div>
                 <div className="flex justify-between items-center pt-4 border-t border-white/10">
@@ -473,7 +475,7 @@ function StepIndicator({ current, target, label }: { current: string, target: st
   
   return (
     <div className={`flex items-center gap-3 transition-all duration-500 ${isActive ? 'opacity-100' : 'opacity-30'}`}>
-      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white glow-text shadow-[0_0_10px_white]' : isCompleted ? 'bg-white/60' : 'border border-white/30'}`} />
+      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white glow-text shadow-[0_0_10px_white]' : isCompleted ? 'bg-white/80' : 'border border-white/30'}`} />
       <span className="text-[9px] font-bold tracking-[0.4em] uppercase">{label}</span>
     </div>
   );
@@ -482,14 +484,14 @@ function StepIndicator({ current, target, label }: { current: string, target: st
 function Field({ label, value, onChange, type = "text", required }: { label: string, value: string, onChange: (v: string) => void, type?: string, required?: boolean }) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">
+      <label className="text-[10px] font-bold tracking-widest text-white/80 uppercase">
         {label} {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <Input 
         type={type} 
         value={value} 
         onChange={e => onChange(e.target.value)}
-        className="bg-white/5 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/60 text-white uppercase placeholder:text-white/10"
+        className="bg-white/5 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/60 text-white uppercase placeholder:text-white/20"
         placeholder={label}
       />
     </div>
@@ -503,8 +505,8 @@ function PaymentOption({ label, icon, selected, onClick }: { label: string, icon
       className={`flex items-center justify-between p-6 border transition-all cursor-pointer ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/40 bg-black/40'}`}
     >
       <div className="flex items-center gap-4">
-        <div className={selected ? 'text-white' : 'text-white/40'}>{icon}</div>
-        <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-white' : 'text-white/60'}`}>{label}</span>
+        <div className={selected ? 'text-white' : 'text-white/60'}>{icon}</div>
+        <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-white' : 'text-white/80'}`}>{label}</span>
       </div>
       {selected && <CheckCircle2 className="w-4 h-4 text-white" />}
     </div>

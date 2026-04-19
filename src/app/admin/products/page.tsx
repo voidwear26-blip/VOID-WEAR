@@ -3,7 +3,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info, SlidersHorizontal } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info, SlidersHorizontal, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useMemo } from 'react';
@@ -107,7 +107,7 @@ export default function AdminProductsPage() {
   if (!mounted || isUserLoading || !isAdmin) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+        <Loader2 className="w-10 h-10 animate-spin text-white/40" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function AdminProductsPage() {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/60 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/80 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
@@ -136,19 +136,19 @@ export default function AdminProductsPage() {
         {/* Search and Sort Interface */}
         <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
           <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 group-focus-within:text-white transition-colors" />
             <Input 
-              placeholder="SEARCH BY NAME, CATEGORY, COLOR..." 
+              placeholder="SEARCH THE ASSEMBLAGE..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/40 font-bold text-white uppercase placeholder:text-white/20 transition-all"
+              className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/60 font-bold text-white uppercase placeholder:text-white/40 transition-all"
             />
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/40 uppercase font-bold mr-2">
+            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/60 uppercase font-bold mr-2">
               <SlidersHorizontal className="w-3 h-3" />
-              SORT_PROTOCOL:
+              SORT_BY:
             </div>
             <Select value={sortBy} onValueChange={(val) => setSortBy(val as AdminSortOption)}>
               <SelectTrigger className="w-full md:w-64 bg-white/5 border-white/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase focus:ring-0 text-white font-bold transition-all hover:bg-white/10">
@@ -156,14 +156,13 @@ export default function AdminProductsPage() {
               </SelectTrigger>
               <SelectContent className="bg-black border-white/10 text-white rounded-none">
                 <SelectItem value="newest" className="text-[9px] tracking-widest uppercase">RECENT ARRIVALS</SelectItem>
-                <SelectItem value="most-sold" className="text-[9px] tracking-widest uppercase text-green-500">HIGH DEMAND (MOST SOLD)</SelectItem>
+                <SelectItem value="most-sold" className="text-[9px] tracking-widest uppercase text-green-500">HIGH DEMAND</SelectItem>
                 <SelectItem value="price-asc" className="text-[9px] tracking-widest uppercase">PRICE: LOW TO HIGH</SelectItem>
                 <SelectItem value="price-desc" className="text-[9px] tracking-widest uppercase">PRICE: HIGH TO LOW</SelectItem>
                 <SelectItem value="name-asc" className="text-[9px] tracking-widest uppercase">IDENTITY: A - Z</SelectItem>
                 <SelectItem value="name-desc" className="text-[9px] tracking-widest uppercase">IDENTITY: Z - A</SelectItem>
                 <SelectItem value="stock-desc" className="text-[9px] tracking-widest uppercase">INVENTORY: HIGH AVAILABILITY</SelectItem>
                 <SelectItem value="stock-asc" className="text-[9px] tracking-widest uppercase">INVENTORY: DEPLETING FAST</SelectItem>
-                <SelectItem value="color-asc" className="text-[9px] tracking-widest uppercase">COLOR SPECTRUM</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -210,7 +209,7 @@ export default function AdminProductsPage() {
                     <td className="px-10 py-8">
                       <div className="space-y-1">
                         <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{product.category}</p>
-                        <p className="text-[8px] text-white/40 tracking-[0.2em] uppercase font-bold">{product.color || 'N/A'}</p>
+                        <p className="text-[8px] text-white/60 tracking-[0.2em] uppercase font-bold">{product.color || 'N/A'}</p>
                       </div>
                     </td>
                     <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase text-white">
@@ -226,7 +225,7 @@ export default function AdminProductsPage() {
                         {product.stockBySize && (
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-white/20 hover:text-white">
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-white/40 hover:text-white">
                                 <Info className="w-3 h-3" />
                               </Button>
                             </PopoverTrigger>
@@ -247,8 +246,13 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-10 py-8 text-right">
                       <div className="flex items-center justify-end gap-4">
-                        <Button variant="ghost" size="icon" asChild className="text-white/40 hover:text-white transition-colors">
-                          <Link href={``}>
+                        <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
+                          <Link href={`/admin/products/${product.id}`}>
+                            <TrendingUp className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
+                          <Link href={`/admin/products/${product.id}`}>
                             <Edit2 className="w-4 h-4" />
                           </Link>
                         </Button>
@@ -269,7 +273,7 @@ export default function AdminProductsPage() {
                   <td colSpan={5} className="px-10 py-32 text-center opacity-40">
                     <div className="flex flex-col items-center gap-6">
                       <Package className="w-12 h-12 stroke-[0.5px] text-white" />
-                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO MODULES MATCH SEARCH PARAMETERS</p>
+                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO MODULES LOGGED</p>
                     </div>
                   </td>
                 </tr>
