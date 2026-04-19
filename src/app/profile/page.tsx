@@ -58,7 +58,7 @@ export default function ProfilePage() {
     landmark: ''
   });
 
-  // Neural Sync: Initialize or handle missing join date
+  // Neural Sync: Initialize profile or handle missing join date
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -70,13 +70,16 @@ export default function ProfilePage() {
         addressLine1: profile.addressLine1 || '',
         landmark: profile.landmark || ''
       });
+    }
 
-      // Auto-initialize join date if missing (legacy recovery)
-      if (!profile.createdAt && db && user) {
-        setDoc(doc(db, 'users', user.uid), {
-          createdAt: new Date().toISOString()
-        }, { merge: true });
-      }
+    // Auto-initialize identity document and join date if missing (legacy recovery or first-time sync)
+    if (user && db && (!profile || !profile.createdAt)) {
+      setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        uid: user.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
     }
   }, [profile, db, user]);
 
@@ -91,8 +94,8 @@ export default function ProfilePage() {
         email: user.email,
         uid: user.uid,
         updatedAt: new Date().toISOString(),
-        // Ensure createdAt is never overwritten by manual saves
-        ...(profile?.createdAt ? {} : { createdAt: new Date().toISOString() })
+        // Preserve existing createdAt or set it if somehow missing
+        createdAt: profile?.createdAt || new Date().toISOString()
       }, { merge: true });
       
       toast({
@@ -144,7 +147,7 @@ export default function ProfilePage() {
         <div className="grid lg:grid-cols-4 gap-16 md:gap-24 items-start">
           <div className="space-y-12 lg:sticky lg:top-48">
             <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.8em] text-white/50 uppercase">ENTITY // PROFILE</span>
+              <span className="text-[10px] font-bold tracking-[0.8em] text-white/60 uppercase">ENTITY // PROFILE</span>
               <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none break-all text-white">
                 {profile?.displayName || user.email?.split('@')[0]}
               </h1>
@@ -164,17 +167,17 @@ export default function ProfilePage() {
 
             <div className="p-8 border border-white/10 bg-white/[0.02] space-y-6 backdrop-blur-sm">
               <div className="flex items-center gap-4 text-white/80">
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-4 h-4 text-white/40" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
               </div>
               <div className="flex items-center gap-4 text-white/80">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-white/40" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">
                   JOINED: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'INITIALIZING...'}
                 </span>
               </div>
               <div className="flex items-center gap-4 text-white/80">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4 text-white/40" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">STATUS: ACTIVE</span>
               </div>
             </div>
@@ -214,7 +217,7 @@ export default function ProfilePage() {
                   <form onSubmit={handleUpdateProfile} className="bg-white/[0.02] border border-white/10 p-10 space-y-10 backdrop-blur-xl">
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">FULL IDENTIFIER</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">FULL IDENTIFIER</label>
                         <Input 
                           value={formData.displayName}
                           onChange={e => setFormData({ ...formData, displayName: e.target.value })}
@@ -223,7 +226,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">CONTACT PROTOCOL</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CONTACT PROTOCOL</label>
                         <Input 
                           value={formData.mobileNumber}
                           onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
@@ -235,7 +238,7 @@ export default function ProfilePage() {
 
                     <div className="grid md:grid-cols-3 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">CITY</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CITY / DISTRICT</label>
                         <Input 
                           value={formData.city}
                           onChange={e => setFormData({ ...formData, city: e.target.value })}
@@ -243,7 +246,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">STATE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">STATE</label>
                         <Input 
                           value={formData.stateProvince}
                           onChange={e => setFormData({ ...formData, stateProvince: e.target.value })}
@@ -251,7 +254,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">PINCODE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">PINCODE</label>
                         <Input 
                           value={formData.postalCode}
                           onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
@@ -262,7 +265,7 @@ export default function ProfilePage() {
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">PRIMARY ADDRESS</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">PRIMARY ADDRESS</label>
                         <Input 
                           value={formData.addressLine1}
                           onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
@@ -271,7 +274,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">LANDMARK (OPTIONAL)</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">LANDMARK (OPTIONAL)</label>
                         <Input 
                           value={formData.landmark}
                           onChange={e => setFormData({ ...formData, landmark: e.target.value })}

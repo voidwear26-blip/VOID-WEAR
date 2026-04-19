@@ -3,17 +3,23 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, ExternalLink, Search, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
+type UserSortOption = 'joined-newest' | 'joined-oldest' | 'name-asc' | 'name-desc' | 'state-asc' | 'city-asc' | 'month-asc';
 
 export default function AdminUsersPage() {
   const { user: currentUser, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<UserSortOption>('joined-newest');
 
   useEffect(() => {
     setMounted(true);
@@ -27,6 +33,44 @@ export default function AdminUsersPage() {
   }, [db, isAdmin]);
 
   const { data: users, isLoading: isCollectionLoading } = useCollection(usersQuery);
+
+  const filteredAndSortedUsers = useMemo(() => {
+    if (!users) return [];
+
+    let result = users.filter(u => {
+      const search = searchTerm.toLowerCase();
+      return (
+        (u.displayName || '').toLowerCase().includes(search) ||
+        (u.email || '').toLowerCase().includes(search) ||
+        (u.city || '').toLowerCase().includes(search) ||
+        (u.stateProvince || '').toLowerCase().includes(search)
+      );
+    });
+
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'joined-oldest':
+          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+        case 'name-asc':
+          return (a.displayName || '').localeCompare(b.displayName || '');
+        case 'name-desc':
+          return (b.displayName || '').localeCompare(a.displayName || '');
+        case 'state-asc':
+          return (a.stateProvince || '').localeCompare(b.stateProvince || '');
+        case 'city-asc':
+          return (a.city || '').localeCompare(b.city || '');
+        case 'month-asc':
+          const monthA = a.createdAt ? new Date(a.createdAt).getMonth() : 0;
+          const monthB = b.createdAt ? new Date(b.createdAt).getMonth() : 0;
+          return monthA - monthB;
+        case 'joined-newest':
+        default:
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      }
+    });
+
+    return result;
+  }, [users, searchTerm, sortBy]);
 
   const toggleBlockStatus = async (userId: string, currentStatus: boolean) => {
     if (!db) return;
@@ -49,8 +93,8 @@ export default function AdminUsersPage() {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">
-          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
-          <div className="text-[10px] tracking-[1em] text-white/40 uppercase font-bold">Authenticating Protocol...</div>
+          <Loader2 className="w-10 h-10 animate-spin text-white/60" />
+          <div className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Authenticating Protocol...</div>
         </div>
       </div>
     );
@@ -58,7 +102,7 @@ export default function AdminUsersPage() {
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 text-white font-bold">
         ACCESS DENIED // MASTER ONLY
       </div>
     );
@@ -69,15 +113,49 @@ export default function AdminUsersPage() {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/60 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Entity Archive</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
-            <ShieldAlert className="w-4 h-4 text-white/40" />
-            <span className="text-[10px] tracking-[0.3em] font-bold text-white/40 uppercase">USER MODERATION ACTIVE</span>
+            <ShieldAlert className="w-4 h-4 text-white/60" />
+            <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">USER MODERATION ACTIVE</span>
+          </div>
+        </div>
+
+        {/* Search and Sort Interface */}
+        <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
+          <div className="relative w-full md:w-96 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
+            <Input 
+              placeholder="SEARCH ENTITIES (NAME, CITY, STATE)..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/40 font-bold text-white uppercase placeholder:text-white/20 transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/40 uppercase font-bold mr-2">
+              <SlidersHorizontal className="w-3 h-3" />
+              SORT_PROTOCOL:
+            </div>
+            <Select value={sortBy} onValueChange={(val) => setSortBy(val as UserSortOption)}>
+              <SelectTrigger className="w-full md:w-64 bg-white/5 border-white/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase focus:ring-0 text-white font-bold transition-all hover:bg-white/10">
+                <SelectValue placeholder="SORT_BY" />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-white/10 text-white rounded-none">
+                <SelectItem value="joined-newest" className="text-[9px] tracking-widest uppercase">RECENT INITIALIZATION</SelectItem>
+                <SelectItem value="joined-oldest" className="text-[9px] tracking-widest uppercase">LEGACY ENTITIES</SelectItem>
+                <SelectItem value="name-asc" className="text-[9px] tracking-widest uppercase">IDENTITY: A - Z</SelectItem>
+                <SelectItem value="name-desc" className="text-[9px] tracking-widest uppercase">IDENTITY: Z - A</SelectItem>
+                <SelectItem value="state-asc" className="text-[9px] tracking-widest uppercase">GEO: STATE</SelectItem>
+                <SelectItem value="city-asc" className="text-[9px] tracking-widest uppercase">GEO: CITY (DISTRICT)</SelectItem>
+                <SelectItem value="month-asc" className="text-[9px] tracking-widest uppercase">CYCLE: JOIN MONTH</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -86,11 +164,11 @@ export default function AdminUsersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY IDENTIFIER</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CONTACT PROTOCOLS</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">GEO_NODES</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">STATUS</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">COMMAND</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ENTITY IDENTIFIER</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CONTACT PROTOCOLS</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">GEO_NODES</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">STATUS</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMAND</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -100,35 +178,36 @@ export default function AdminUsersPage() {
                       <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />
                     </tr>
                   ))
-                ) : users && users.length > 0 ? (
-                  users.map((entity) => (
+                ) : filteredAndSortedUsers && filteredAndSortedUsers.length > 0 ? (
+                  filteredAndSortedUsers.map((entity) => (
                     <tr key={entity.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/40 transition-colors">
-                            <UserIcon className="w-4 h-4 text-white/20" />
+                            <UserIcon className="w-4 h-4 text-white/40" />
                           </div>
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold tracking-widest text-white uppercase">{entity.displayName || 'UNIDENTIFIED OPERATOR'}</span>
-                            <p className="text-[8px] font-mono tracking-widest text-white/20">UID: {entity.id.slice(0, 16)}...</p>
+                            <p className="text-[8px] font-mono tracking-widest text-white/40 uppercase">UID: {entity.id.slice(0, 12)}...</p>
+                            <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">JOINED: {entity.createdAt ? new Date(entity.createdAt).toLocaleDateString() : 'N/A'}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-10 py-8">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold uppercase">
-                            <Mail className="w-3 h-3 text-white/20" /> {entity.email}
+                          <div className="flex items-center gap-2 text-[9px] text-white/80 tracking-widest font-bold uppercase">
+                            <Mail className="w-3.5 h-3.5 text-white/40" /> {entity.email}
                           </div>
                           {entity.mobileNumber && (
-                            <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold">
-                              <Phone className="w-3 h-3 text-white/20" /> {entity.mobileNumber}
+                            <div className="flex items-center gap-2 text-[9px] text-white/80 tracking-widest font-bold">
+                              <Phone className="w-3.5 h-3.5 text-white/40" /> {entity.mobileNumber}
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="px-10 py-8">
-                        <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold uppercase">
-                          <MapPin className="w-3 h-3" />
+                        <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold uppercase">
+                          <MapPin className="w-3.5 h-3.5 text-white/40" />
                           {entity.city || 'GRID'}{entity.stateProvince ? `, ${entity.stateProvince}` : ' UNSET'}
                         </div>
                       </td>
@@ -148,7 +227,7 @@ export default function AdminUsersPage() {
                       <td className="px-10 py-8 text-right">
                         <div className="flex items-center justify-end gap-3">
                           <Link href={`/admin/users/${entity.id}`}>
-                            <Button variant="ghost" size="icon" className="text-white/20 hover:text-white">
+                            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white transition-colors">
                               <ExternalLink className="w-4 h-4" />
                             </Button>
                           </Link>
@@ -166,8 +245,8 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-10 py-32 text-center opacity-20">
-                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">NO ENTITIES DETECTED IN DATABASE</p>
+                    <td colSpan={5} className="px-10 py-32 text-center opacity-40">
+                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO ENTITIES MATCH SEARCH COORDINATES</p>
                     </td>
                   </tr>
                 )}
