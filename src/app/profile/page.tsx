@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,7 @@ export default function ProfilePage() {
     landmark: ''
   });
 
+  // Neural Sync: Initialize or handle missing join date
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -68,8 +70,15 @@ export default function ProfilePage() {
         addressLine1: profile.addressLine1 || '',
         landmark: profile.landmark || ''
       });
+
+      // Auto-initialize join date if missing (legacy recovery)
+      if (!profile.createdAt && db && user) {
+        setDoc(doc(db, 'users', user.uid), {
+          createdAt: new Date().toISOString()
+        }, { merge: true });
+      }
     }
-  }, [profile]);
+  }, [profile, db, user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,12 +86,13 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      // Use setDoc with merge: true to avoid "No document to update" error
       await setDoc(doc(db, 'users', user.uid), {
         ...formData,
         email: user.email,
         uid: user.uid,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        // Ensure createdAt is never overwritten by manual saves
+        ...(profile?.createdAt ? {} : { createdAt: new Date().toISOString() })
       }, { merge: true });
       
       toast({
@@ -108,7 +118,7 @@ export default function ProfilePage() {
       <div className="h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
           <Loader2 className="w-10 h-10 animate-spin text-white/40" />
-          <div className="text-[10px] tracking-[1em] text-white/60 uppercase font-bold">Syncing Profile...</div>
+          <div className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Syncing Profile...</div>
         </div>
       </div>
     );
@@ -145,7 +155,7 @@ export default function ProfilePage() {
 
             {isAdmin && (
               <Link href="/admin">
-                <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] mb-8">
+                <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] mb-8 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                   <Settings className="w-4 h-4 mr-3" />
                   COMMAND CENTER
                 </Button>
@@ -153,17 +163,23 @@ export default function ProfilePage() {
             )}
 
             <div className="p-8 border border-white/10 bg-white/[0.02] space-y-6 backdrop-blur-sm">
-              <div className="flex items-center gap-4 text-white/70">
+              <div className="flex items-center gap-4 text-white/80">
                 <ShieldCheck className="w-4 h-4" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
               </div>
-              <div className="flex items-center gap-4 text-white/70">
+              <div className="flex items-center gap-4 text-white/80">
+                <Calendar className="w-4 h-4" />
+                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">
+                  JOINED: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'INITIALIZING...'}
+                </span>
+              </div>
+              <div className="flex items-center gap-4 text-white/80">
                 <Clock className="w-4 h-4" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">STATUS: ACTIVE</span>
               </div>
             </div>
             
-            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-white/40">
+            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-white/60">
               {[
                 { id: 'identity', label: 'IDENTITY', icon: <UserIcon className="w-3.5 h-3.5" /> },
                 { id: 'orders', label: 'TRANSMISSIONS', icon: <Package className="w-3.5 h-3.5" /> },
@@ -172,7 +188,7 @@ export default function ProfilePage() {
                 <button 
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-white pl-4 border-l border-white' : 'hover:text-white/70'}`}
+                  className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-white pl-4 border-l border-white' : 'hover:text-white/80'}`}
                 >
                   {tab.icon}
                   {tab.label}
@@ -198,7 +214,7 @@ export default function ProfilePage() {
                   <form onSubmit={handleUpdateProfile} className="bg-white/[0.02] border border-white/10 p-10 space-y-10 backdrop-blur-xl">
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">FULL IDENTIFIER</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">FULL IDENTIFIER</label>
                         <Input 
                           value={formData.displayName}
                           onChange={e => setFormData({ ...formData, displayName: e.target.value })}
@@ -207,7 +223,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CONTACT PROTOCOL</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">CONTACT PROTOCOL</label>
                         <Input 
                           value={formData.mobileNumber}
                           onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
@@ -219,7 +235,7 @@ export default function ProfilePage() {
 
                     <div className="grid md:grid-cols-3 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CITY</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">CITY</label>
                         <Input 
                           value={formData.city}
                           onChange={e => setFormData({ ...formData, city: e.target.value })}
@@ -227,7 +243,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">STATE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">STATE</label>
                         <Input 
                           value={formData.stateProvince}
                           onChange={e => setFormData({ ...formData, stateProvince: e.target.value })}
@@ -235,7 +251,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">PINCODE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">PINCODE</label>
                         <Input 
                           value={formData.postalCode}
                           onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
@@ -246,7 +262,7 @@ export default function ProfilePage() {
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">PRIMARY ADDRESS</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">PRIMARY ADDRESS</label>
                         <Input 
                           value={formData.addressLine1}
                           onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
@@ -255,7 +271,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">LANDMARK (OPTIONAL)</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">LANDMARK (OPTIONAL)</label>
                         <Input 
                           value={formData.landmark}
                           onChange={e => setFormData({ ...formData, landmark: e.target.value })}
@@ -289,7 +305,7 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center justify-between border-b border-white/10 pb-8">
                     <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/80">TRANSMISSION HISTORY</h2>
-                    <span className="text-[10px] text-white/50 font-bold">{orders?.length || 0} LOGS</span>
+                    <span className="text-[10px] text-white/60 font-bold">{orders?.length || 0} LOGS</span>
                   </div>
 
                   <div className="space-y-6">
@@ -312,13 +328,13 @@ export default function ProfilePage() {
                               <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${
                                 order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' :
                                 order.shippingStatus === 'shipped' ? 'border-blue-500/50 text-blue-500' :
-                                'border-white/30 text-white/60'
+                                'border-white/30 text-white/80'
                               }`}>
                                 {order.shippingStatus || 'processing'}
                               </span>
                             </div>
                             <div className="flex flex-col gap-1">
-                              <div className="text-[9px] text-white/60 tracking-widest uppercase font-bold">
+                              <div className="text-[9px] text-white/80 tracking-widest uppercase font-bold">
                                 INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
                               </div>
                               {order.trackingId && (
@@ -332,7 +348,7 @@ export default function ProfilePage() {
                           <div className="flex items-center gap-8 md:gap-12">
                             <div className="text-right">
                               <div className="text-[11px] font-bold tracking-widest uppercase text-white">₹{order.totalAmount}</div>
-                              <div className="text-[8px] text-white/40 tracking-widest uppercase mt-1 font-bold">
+                              <div className="text-[8px] text-white/60 tracking-widest uppercase mt-1 font-bold">
                                 {order.paymentStatus || 'PAYMENT_LOGGED'}
                               </div>
                             </div>
@@ -341,7 +357,7 @@ export default function ProfilePage() {
                               <ReviewDialog order={order} userId={user.uid} userName={profile?.displayName || 'Entity'} db={db} />
                             )}
                             
-                            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white transition-colors">
+                            <Button variant="ghost" size="icon" className="text-white/60 hover:text-white transition-colors">
                               <FileText className="w-4 h-4" />
                             </Button>
                           </div>
@@ -364,7 +380,7 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center justify-between border-b border-white/10 pb-8">
                     <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/80">STASIS MODULES</h2>
-                    <span className="text-[10px] text-white/50 font-bold">{wishlistItems?.length || 0} ITEMS</span>
+                    <span className="text-[10px] text-white/60 font-bold">{wishlistItems?.length || 0} ITEMS</span>
                   </div>
 
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -432,7 +448,7 @@ function ReviewDialog({ order, userId, userName, db }: { order: any, userId: str
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-white/40 hover:text-white transition-colors">
+        <Button variant="ghost" size="icon" className="text-white/60 hover:text-white transition-colors">
           <MessageSquare className="w-4 h-4" />
         </Button>
       </DialogTrigger>
@@ -442,7 +458,7 @@ function ReviewDialog({ order, userId, userName, db }: { order: any, userId: str
         </DialogHeader>
         <div className="space-y-8">
           <div className="space-y-4">
-            <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">AESTHETIC RATING</label>
+            <label className="text-[10px] font-bold tracking-widest text-white/80 uppercase">AESTHETIC RATING</label>
             <div className="flex gap-4">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button 
@@ -456,7 +472,7 @@ function ReviewDialog({ order, userId, userName, db }: { order: any, userId: str
             </div>
           </div>
           <div className="space-y-4">
-            <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">TRANSMISSION LOG</label>
+            <label className="text-[10px] font-bold tracking-widest text-white/80 uppercase">TRANSMISSION LOG</label>
             <Textarea 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -479,7 +495,7 @@ function ReviewDialog({ order, userId, userName, db }: { order: any, userId: str
 
 function EmptyState({ icon, message }: { icon: React.ReactNode, message: string }) {
   return (
-    <div className="py-32 flex flex-col items-center justify-center space-y-8 opacity-40 border border-dashed border-white/10">
+    <div className="py-32 flex flex-col items-center justify-center space-y-8 opacity-60 border border-dashed border-white/10">
       <div className="scale-150">{icon}</div>
       <p className="text-[10px] tracking-[1em] uppercase text-center px-6 font-bold">{message}</p>
     </div>
