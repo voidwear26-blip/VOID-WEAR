@@ -38,7 +38,8 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (mode === 'reset') {
-      if (!email || !email.includes('@')) {
+      const sanitizedEmail = email.trim();
+      if (!sanitizedEmail || !sanitizedEmail.includes('@')) {
         toast({ 
           variant: "destructive", 
           title: "IDENTIFIER_INVALID", 
@@ -48,7 +49,7 @@ export default function LoginPage() {
       }
       setLoading(true);
       try {
-        await initiatePasswordReset(auth, email.trim());
+        await initiatePasswordReset(auth, sanitizedEmail);
         toast({ 
           title: "RECOVERY TRANSMITTED", 
           description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." 
@@ -59,6 +60,7 @@ export default function LoginPage() {
         let msg = "COULD NOT INITIALIZE RECOVERY PROTOCOL.";
         if (err.code === 'auth/user-not-found') msg = "NO ENTITY FOUND WITH THIS IDENTIFIER.";
         if (err.code === 'auth/invalid-email') msg = "THE IDENTIFIER FORMAT IS MALFORMED.";
+        if (err.code === 'auth/too-many-requests') msg = "SYSTEM OVERLOAD. RETRY LATER.";
         
         toast({ 
           variant: "destructive", 
