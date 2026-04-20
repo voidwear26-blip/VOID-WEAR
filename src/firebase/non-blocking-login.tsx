@@ -27,5 +27,7 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 /** Initiate Google sign-in (non-blocking). */
 export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential> {
   const provider = new GoogleAuthProvider();
+  // Optional: Add custom parameters if needed
+  provider.setCustomParameters({ prompt: 'select_account' });
   return signInWithPopup(authInstance, provider);
 }

@@ -33,7 +33,15 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "DATA_NODES_MISSING",
+        description: "PLEASE ENTER BOTH COMM-CHANNEL AND ACCESS KEY.",
+      });
+      return;
+    }
     
     setLoading(true);
     try {
@@ -53,18 +61,24 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
       let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
+      let errorTitle = "LINK_FAILURE";
       
-      if (err.code === 'auth/invalid-credential') {
-        errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. CHECK YOUR CREDENTIALS.";
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
+        if (email.toLowerCase() === 'voidwear26@gmail.com') {
+          errorMessage = "ADMIN ACCESS DENIED. IF YOU RECENTLY CHANGED YOUR PASSWORD TO 'admin2026', ENSURE IT IS UPDATED IN THE FIREBASE CONSOLE.";
+        }
       } else if (err.code === 'auth/email-already-in-use') {
         errorMessage = "ENTITY ALREADY EXISTS IN THE SYSTEM.";
       } else if (err.code === 'auth/weak-password') {
         errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = "ACCESS TEMPORARILY SEVERED DUE TO MULTIPLE FAILURES. RETRY LATER.";
       }
 
       toast({
         variant: "destructive",
-        title: "LINK_FAILURE",
+        title: errorTitle,
         description: errorMessage.toUpperCase(),
       });
     } finally {
@@ -80,8 +94,15 @@ export default function LoginPage() {
         title: "GOOGLE UPLINK SECURED",
         description: "EXTERNAL IDENTITY VERIFIED.",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        toast({
+          variant: "destructive",
+          title: "GOOGLE_LINK_FAILED",
+          description: "EXTERNAL AUTHENTICATION SERVER UNREACHABLE.",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -97,6 +118,11 @@ export default function LoginPage() {
       });
     } catch (err) {
       console.error(err);
+      toast({
+        variant: "destructive",
+        title: "GUEST_LINK_FAILED",
+        description: "COULD NOT ESTABLISH ANONYMOUS CONNECTION.",
+      });
     } finally {
       setLoading(false);
     }
