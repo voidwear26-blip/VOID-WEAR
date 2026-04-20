@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, updateDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, ExternalLink, Search, SlidersHorizontal } from 'lucide-react';
+import { collection, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, ExternalLink, Search, SlidersHorizontal, Trash2, Shield, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,6 +88,26 @@ export default function AdminUsersPage() {
     }
   };
 
+  const deleteUserRecord = async (userId: string) => {
+    if (!db) return;
+    if (!confirm('CONFIRM PERMANENT DESTRUCTION OF ENTITY LOGS? THIS ACTION IS IRREVERSIBLE.')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+      toast({
+        title: "ENTITY PURGED",
+        description: "LOGS SUCCESSFULLY REMOVED FROM ARCHIVE.",
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "PURGE FAILED",
+        description: "SYSTEM ERROR DURING DELETION SEQUENCE.",
+      });
+    }
+  };
+
   if (!mounted || isUserLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
@@ -166,7 +185,7 @@ export default function AdminUsersPage() {
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ENTITY IDENTIFIER</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CONTACT PROTOCOLS</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">GEO_NODES</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ROLE // GEO</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">STATUS</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMAND</th>
                 </tr>
@@ -206,9 +225,15 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8">
-                        <div className="flex items-center gap-2 text-[9px] text-white/60 tracking-widest font-bold uppercase">
-                          <MapPin className="w-3.5 h-3.5 text-white/40" />
-                          {entity.city || 'GRID'}{entity.stateProvince ? `, ${entity.stateProvince}` : ' UNSET'}
+                        <div className="space-y-2">
+                           <div className="flex items-center gap-2 text-[9px] font-black tracking-widest uppercase">
+                              <Shield className={`w-3 h-3 ${entity.role === 'ADMIN' ? 'text-white' : 'text-white/20'}`} />
+                              <span className={entity.role === 'ADMIN' ? 'text-white' : 'text-white/40'}>{entity.role || 'OPERATOR'}</span>
+                           </div>
+                           <div className="flex items-center gap-2 text-[9px] text-white/40 tracking-widest font-bold uppercase">
+                             <MapPin className="w-3.5 h-3.5" />
+                             {entity.city || 'GRID'}{entity.stateProvince ? `, ${entity.stateProvince}` : ' UNSET'}
+                           </div>
                         </div>
                       </td>
                       <td className="px-10 py-8">
@@ -225,12 +250,20 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex items-center justify-end gap-3 opacity-40 group-hover:opacity-100 transition-opacity">
                           <Link href={`/admin/users/${entity.id}`}>
-                            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white transition-colors">
-                              <ExternalLink className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" className="text-white hover:text-white transition-colors">
+                              <UserCog className="w-4 h-4" />
                             </Button>
                           </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => deleteUserRecord(entity.id)}
+                            className="text-white hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                           <Button 
                             variant="ghost" 
                             size="sm" 
