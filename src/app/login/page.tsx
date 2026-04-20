@@ -6,15 +6,17 @@ import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, init
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,24 +38,68 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignUp) {
-        await initiateEmailSignUp(auth, email, password, { displayName, mobileNumber });
+        await initiateEmailSignUp(auth, email, password);
+        toast({
+          title: "IDENTITY INITIALIZED",
+          description: "YOUR ENTITY HAS BEEN LOGGED IN THE VOID.",
+        });
       } else {
         await initiateEmailSignIn(auth, email, password);
+        toast({
+          title: "LINK ESTABLISHED",
+          description: "UPLINK SECURED. WELCOME BACK, OPERATOR.",
+        });
       }
-    } catch (err) {
-      console.warn('[AUTH_HANDLED]');
+    } catch (err: any) {
+      console.error('[AUTH_FAILURE]', err);
+      let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
+      
+      if (err.code === 'auth/invalid-credential') {
+        errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. CHECK YOUR CREDENTIALS.";
+      } else if (err.code === 'auth/email-already-in-use') {
+        errorMessage = "ENTITY ALREADY EXISTS IN THE SYSTEM.";
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
+      }
+
+      toast({
+        variant: "destructive",
+        title: "LINK_FAILURE",
+        description: errorMessage.toUpperCase(),
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = () => {
-    initiateGoogleSignIn(auth);
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      await initiateGoogleSignIn(auth);
+      toast({
+        title: "GOOGLE UPLINK SECURED",
+        description: "EXTERNAL IDENTITY VERIFIED.",
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGuestSignIn = async () => {
     setLoading(true);
-    initiateAnonymousSignIn(auth).finally(() => setLoading(false));
+    try {
+      await initiateAnonymousSignIn(auth);
+      toast({
+        title: "ANONYMOUS UPLINK",
+        description: "GUEST SESSION INITIALIZED.",
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,7 +133,10 @@ export default function LoginPage() {
               <span className="text-2xl font-black tracking-[0.5em] text-white uppercase glow-text">VOID WEAR</span>
             </motion.div>
           </Link>
-          <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase">AUTHENTICATION PROTOCOL</p>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase font-bold">AUTHENTICATION PROTOCOL</p>
+            <div className="h-px w-12 bg-white/10" />
+          </div>
         </div>
 
         <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
@@ -95,7 +144,7 @@ export default function LoginPage() {
             {isSignUp && (
               <>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ENTITY NAME / FULL NAME</label>
+                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ENTITY NAME</label>
                   <div className="relative">
                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                     <Input 
@@ -110,7 +159,7 @@ export default function LoginPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CONTACT MODULE / MOBILE</label>
+                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CONTACT MODULE</label>
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                     <Input 
@@ -128,7 +177,7 @@ export default function LoginPage() {
             )}
             
             <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">COMM-CHANNEL / EMAIL</label>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">COMM-CHANNEL / EMAIL</label>
               <Input 
                 type="email" 
                 value={email}
@@ -140,13 +189,13 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY / PASSWORD</label>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ACCESS KEY / PASSWORD</label>
               <div className="relative">
                 <Input 
                   type={showPassword ? 'text' : 'password'} 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white pr-12" 
+                  className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white pr-12 font-mono" 
                   placeholder="••••••••"
                   required
                   disabled={loading}
@@ -165,7 +214,7 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500"
+              className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500 uppercase"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -181,14 +230,15 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em]"><span className="bg-[#050505] px-4 text-white/20">OR CONNECT VIA</span></div>
+              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em] font-bold"><span className="bg-[#050505] px-4 text-white/20">OR CONNECT VIA</span></div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
                 onClick={handleGoogleSignIn}
-                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
+                disabled={loading}
+                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
               >
                 <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
                 GOOGLE
@@ -198,7 +248,7 @@ export default function LoginPage() {
                 variant="outline" 
                 onClick={handleGuestSignIn}
                 disabled={loading}
-                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group"
+                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
               >
                 <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
                 GUEST
