@@ -76,10 +76,8 @@ export default function LoginPage() {
       // Handle specific provider configuration error
       if (err.code === 'auth/configuration-not-found') {
         errorTitle = "PROVIDER_OFFLINE";
-        errorMsg = "EMAIL/PASSWORD AUTH IS NOT ENABLED IN FIREBASE CONSOLE. PLEASE ENABLE IT IN THE AUTHENTICATION TAB.";
-      }
-
-      if (email.toLowerCase() === 'voidwear26@gmail.com' && (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found')) {
+        errorMsg = "EMAIL/PASSWORD AUTH IS NOT ENABLED IN FIREBASE CONSOLE. PLEASE ENABLE IT IN THE AUTHENTICATION > SIGN-IN METHOD TAB.";
+      } else if (email.toLowerCase() === 'voidwear26@gmail.com' && (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found')) {
          errorTitle = "MASTER_NOT_FOUND";
          errorMsg = "ADMIN RECORD NOT INITIALIZED. PLEASE USE 'SIGN UP' WITH PASSWORD 'admin2026' TO INITIALIZE MASTER STATUS.";
       }
