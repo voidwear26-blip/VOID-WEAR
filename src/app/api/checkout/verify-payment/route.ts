@@ -1,10 +1,9 @@
-
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 /**
  * PRODUCTION HARDENED: Razorpay Payment Verification
- * Implements HMAC signature verification to prevent payment fraud.
+ * Implements HMAC-SHA256 signature verification.
  */
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
@@ -17,16 +16,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'MISSING_PARAMETERS' }, { status: 400 });
     }
 
-    // IN PRODUCTION: 
-    // const secret = process.env.RAZORPAY_KEY_SECRET;
-    // const generated_signature = crypto
-    //   .createHmac('sha256', secret)
-    //   .update(razorpay_order_id + "|" + razorpay_payment_id)
-    //   .digest('hex');
-    // const isValid = generated_signature === razorpay_signature;
+    // Generate signature using the key secret
+    const secret = process.env.RAZORPAY_KEY_SECRET!;
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    
+    const generated_signature = crypto
+      .createHmac('sha256', secret)
+      .update(body.toString())
+      .digest('hex');
 
-    // For prototyping: assume true if payment ID exists
-    const isValid = !!razorpay_payment_id;
+    const isValid = generated_signature === razorpay_signature;
 
     if (isValid) {
       console.log(`[${timestamp}] PAYMENT_VERIFIED: Order=${razorpay_order_id}, Payment=${razorpay_payment_id}`);
@@ -35,8 +34,11 @@ export async function POST(request: Request) {
       console.warn(`[${timestamp}] FRAUD_ALERT: Invalid signature for Order=${razorpay_order_id}`);
       return NextResponse.json({ status: 'failure', message: 'INVALID_SIGNATURE' }, { status: 400 });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[${timestamp}] CRITICAL_ERROR (verify-payment):`, error);
-    return NextResponse.json({ error: 'VERIFICATION_PROCESS_FAILED' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'VERIFICATION_PROCESS_FAILED', 
+      message: error.message || 'SYSTEM ERROR DURING SIGNATURE AUDIT' 
+    }, { status: 500 });
   }
 }

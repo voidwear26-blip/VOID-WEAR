@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -55,7 +54,6 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
-  // Neural Sync: Populate form with existing entity coordinates
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
@@ -97,22 +95,27 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
+      // 1. Create Order on Backend
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: subtotal }),
       });
 
+      if (!res.ok) throw new Error('COULD NOT INITIALIZE ORDER PACKET');
       const orderData = await res.json();
       
+      // 2. Initialize Razorpay Checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
-        description: 'SECURE TRANSMISSION',
+        description: 'SECURE DIGITAL TRANSMISSION',
         order_id: orderData.id,
         handler: async function (response: any) {
+          setLoading(true);
+          // 3. Verify Signature on Backend
           const verifyRes = await fetch('/api/checkout/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -120,12 +123,12 @@ export default function CheckoutPage() {
           });
 
           if (verifyRes.ok) {
+            // 4. Atomic Transaction: Log Order and Purge Cart
             const batch = writeBatch(db);
             const orderId = `VOID-${Date.now()}`;
             const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
             
             const userRef = doc(db, 'users', user.uid);
-            // Update entity dossier with latest coordinates
             batch.set(userRef, {
               ...formData,
               updatedAt: new Date().toISOString()
@@ -136,7 +139,7 @@ export default function CheckoutPage() {
               userId: user.uid,
               ...formData,
               items: cartItems,
-              productIds: cartItems.map(item => item.productId), // Index for admin product-sales tracking
+              productIds: cartItems.map(item => item.productId),
               totalAmount: subtotal,
               orderDate: new Date().toISOString(),
               shippingStatus: 'processing',
@@ -154,12 +157,15 @@ export default function CheckoutPage() {
             setFinalOrderId(orderId);
             setStep('success');
             setLoading(false);
+          } else {
+            toast({ title: "VERIFICATION FAILURE", description: "TRANSACTION SECURITY MISMATCH.", variant: "destructive" });
+            setLoading(false);
           }
         },
         prefill: { 
+          name: formData.displayName,
           email: formData.email, 
-          contact: formData.mobileNumber,
-          method: selectedMethod
+          contact: formData.mobileNumber 
         },
         theme: { color: '#000000' },
         modal: {
@@ -169,9 +175,13 @@ export default function CheckoutPage() {
 
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast({ title: "UPLINK FAILURE", description: "COULD NOT ESTABLISH PAYMENT GATEWAY.", variant: "destructive" });
+      toast({ 
+        title: "UPLINK FAILURE", 
+        description: e.message || "COULD NOT ESTABLISH SECURE PAYMENT GATEWAY.", 
+        variant: "destructive" 
+      });
       setLoading(false);
     }
   };
@@ -435,7 +445,7 @@ export default function CheckoutPage() {
                 {cartItems?.map(item => (
                   <div key={item.id} className="flex gap-4">
                     <div className="relative w-12 h-16 bg-white/5 border border-white/10 flex-shrink-0">
-                      <Image src={item.image} alt={item.name} fill className="object-cover grayscale" />
+                      <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
                     </div>
                     <div className="flex-1 space-y-1">
                       <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>

@@ -1,9 +1,9 @@
-
 import { NextResponse } from 'next/server';
+import Razorpay from 'razorpay';
 
 /**
  * PRODUCTION HARDENED: Razorpay Order Creation
- * Includes input validation and structured logging.
+ * Replaces mock logic with real SDK integration.
  */
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
@@ -12,27 +12,42 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { amount, currency = 'INR' } = body;
 
-    // 1. Input Validation
+    // 1. Input Validation (Amount must be at least 1 INR / 100 Paise)
     if (!amount || typeof amount !== 'number' || amount <= 0) {
       console.error(`[${timestamp}] VALIDATION FAILURE: Invalid amount provided.`);
       return NextResponse.json({ error: 'INVALID_AMOUNT' }, { status: 400 });
     }
 
-    // 2. Mock Razorpay Service (Replace with real Razorpay SDK in production)
-    // const rzp = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
-    // const order = await rzp.orders.create({ amount: amount * 100, currency, receipt: `void_${Date.now()}` });
+    const amountInPaise = Math.round(amount * 100);
+    if (amountInPaise < 100) {
+      return NextResponse.json({ error: 'MINIMUM_AMOUNT_NOT_MET' }, { status: 400 });
+    }
+
+    // 2. Initialize Razorpay Client
+    const rzp = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    });
+
+    // 3. Create Razorpay Order
+    const order = await rzp.orders.create({
+      amount: amountInPaise,
+      currency,
+      receipt: `void_transmission_${Date.now()}`,
+    });
     
-    const orderId = `order_${Math.random().toString(36).slice(2, 11)}`;
-    
-    console.log(`[${timestamp}] ORDER_CREATED: ID=${orderId}, Amount=${amount}`);
+    console.log(`[${timestamp}] ORDER_CREATED: ID=${order.id}, Amount=${amountInPaise}`);
 
     return NextResponse.json({
-      id: orderId,
-      amount: amount * 100, // Razorpay expects paise
-      currency: currency
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[${timestamp}] CRITICAL_ERROR (create-order):`, error);
-    return NextResponse.json({ error: 'INTERNAL_SERVER_ERROR' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'INTERNAL_SERVER_ERROR', 
+      message: error.message || 'COULD NOT ESTABLISH ORDER WITH RAZORPAY' 
+    }, { status: 500 });
   }
 }
