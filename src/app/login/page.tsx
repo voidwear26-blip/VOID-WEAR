@@ -65,6 +65,7 @@ export default function LoginPage() {
       
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
+        // Specific hint for the administrator
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
           errorMessage = "ADMIN ACCESS DENIED. IF YOU RECENTLY CHANGED YOUR PASSWORD TO 'admin2026', ENSURE IT IS UPDATED IN THE FIREBASE CONSOLE.";
         }
