@@ -1,8 +1,10 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, initiateGoogleSignIn, initiatePasswordReset } from '@/firebase/non-blocking-login';
+import { saveUserToFirestore } from '@/firebase/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +18,7 @@ type AuthMode = 'login' | 'signup' | 'reset';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const db = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -59,8 +62,6 @@ export default function LoginPage() {
         console.error('[RECOVERY_FAILURE]', err);
         let msg = "COULD NOT INITIALIZE RECOVERY PROTOCOL.";
         if (err.code === 'auth/user-not-found') msg = "NO ENTITY FOUND WITH THIS IDENTIFIER.";
-        if (err.code === 'auth/invalid-email') msg = "THE IDENTIFIER FORMAT IS MALFORMED.";
-        if (err.code === 'auth/too-many-requests') msg = "SYSTEM OVERLOAD. RETRY LATER.";
         
         toast({ 
           variant: "destructive", 
@@ -85,13 +86,15 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'signup') {
-        await initiateEmailSignUp(auth, email.trim(), password);
+        const cred = await initiateEmailSignUp(auth, email.trim(), password);
+        await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
         toast({
           title: "IDENTITY INITIALIZED",
           description: "YOUR ENTITY HAS BEEN LOGGED IN THE VOID.",
         });
       } else {
-        await initiateEmailSignIn(auth, email.trim(), password);
+        const cred = await initiateEmailSignIn(auth, email.trim(), password);
+        await saveUserToFirestore(db, cred.user);
         toast({
           title: "LINK ESTABLISHED",
           description: "UPLINK SECURED. WELCOME BACK, OPERATOR.",
@@ -102,20 +105,14 @@ export default function LoginPage() {
       let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
       let errorTitle = "LINK_FAILURE";
       
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      if (err.code === 'auth/invalid-credential') {
         errorTitle = "ACCESS_DENIED";
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
-          errorMessage = "ADMIN ACCESS DENIED. IF THIS IS YOUR FIRST TIME WITH 'admin2026', USE THE 'SIGN UP' TAB TO INITIALIZE YOUR RECORD.";
-        } else {
-          errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
+          errorMessage = "ADMIN ACCESS DENIED. USE THE 'SIGN UP' TAB WITH KEY 'admin2026' TO INITIALIZE YOUR MASTER RECORD.";
         }
       } else if (err.code === 'auth/email-already-in-use') {
         errorTitle = "ENTITY_EXISTS";
-        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF YOU CANNOT LOGIN, RESET YOUR PASSWORD.";
-      } else if (err.code === 'auth/weak-password') {
-        errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
-      } else if (err.code === 'auth/too-many-requests') {
-        errorMessage = "ACCESS TEMPORARILY SEVERED DUE TO MULTIPLE FAILURES. RETRY LATER.";
+        errorMessage = "IDENTIFIER ALREADY REGISTERED. PLEASE LOGIN.";
       }
 
       toast({
@@ -131,11 +128,12 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      await initiateGoogleSignIn(auth);
+      const cred = await initiateGoogleSignIn(auth);
+      await saveUserToFirestore(db, cred.user);
       toast({ title: "GOOGLE UPLINK SECURED", description: "EXTERNAL IDENTITY VERIFIED." });
     } catch (err: any) {
       if (err.code !== 'auth/popup-closed-by-user') {
-        toast({ variant: "destructive", title: "GOOGLE_LINK_FAILED", description: "EXTERNAL AUTHENTICATION SERVER UNREACHABLE." });
+        toast({ variant: "destructive", title: "GOOGLE_LINK_FAILED" });
       }
     } finally {
       setLoading(false);
@@ -148,7 +146,7 @@ export default function LoginPage() {
       await initiateAnonymousSignIn(auth);
       toast({ title: "ANONYMOUS UPLINK", description: "GUEST SESSION INITIALIZED." });
     } catch (err) {
-      toast({ variant: "destructive", title: "GUEST_LINK_FAILED", description: "COULD NOT ESTABLISH ANONYMOUS CONNECTION." });
+      toast({ variant: "destructive", title: "GUEST_LINK_FAILED" });
     } finally {
       setLoading(false);
     }
@@ -282,7 +280,6 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors focus:outline-none"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
