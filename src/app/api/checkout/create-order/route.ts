@@ -29,9 +29,9 @@ export async function POST(request: Request) {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!keyId || !keySecret || keyId === 'rzp_test_placeholder') {
-      console.warn(`[${timestamp}] CONFIG_WARNING: Razorpay keys missing or using placeholders.`);
-      // In development/test, we return a mock order to prevent 500 error
+    if (!keyId || !keySecret || keyId.includes('placeholder') || keyId === 'undefined') {
+      console.warn(`[${timestamp}] CONFIG_WARNING: Razorpay keys missing. Returning mock transmission packet.`);
+      // In development/test, we return a mock order to prevent frontend crash
       return NextResponse.json({
         id: `order_mock_${Date.now()}`,
         amount: amountInPaise,
@@ -57,7 +57,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       id: order.id,
       amount: order.amount,
-      currency: order.currency
+      currency: order.currency,
+      isMock: false
     });
   } catch (error: any) {
     console.error(`[${timestamp}] CRITICAL_ERROR (create-order):`, error);

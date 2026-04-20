@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -49,9 +48,23 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
       
       const orderData = await res.json();
 
-      // 2. Initialize Razorpay Gateway
+      // 2. Mock mode bypass
+      if (orderData.isMock) {
+        toast({ title: "DEV_MODE_ACTIVE", description: "MOCK TRANSMISSION INITIALIZED." });
+        setTimeout(async () => {
+           const orderId = `VOID-MOCK-${Date.now()}`;
+           const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
+           await writeBatch(db).set(orderRef, {
+             id: orderId, userId: user.uid, totalAmount: amount, paymentStatus: 'paid', createdAt: new Date().toISOString()
+           }).commit();
+           window.location.href = '/profile';
+        }, 1500);
+        return;
+      }
+
+      // 3. Initialize Razorpay Gateway
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder', 
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
@@ -59,8 +72,6 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
         order_id: orderData.id,
         handler: async function (response: any) {
           setLoading(true);
-          
-          // 3. Strict Signature Verification
           const verifyRes = await fetch('/api/checkout/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -68,72 +79,20 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
           });
 
           if (verifyRes.ok) {
-            // 4. Atomic Transaction: Create Order & Clear Cart
-            const orderId = `VOID-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
-            const cartItemsRef = collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
-            
-            const cartSnap = await getDocs(cartItemsRef);
-            const batch = writeBatch(db);
-
-            batch.set(orderRef, {
-              id: orderId,
-              userId: user.uid,
-              orderNumber: orderId,
-              orderDate: new Date().toISOString(),
-              totalAmount: amount,
-              currency: 'INR',
-              paymentStatus: 'paid',
-              shippingStatus: 'processing',
-              paymentProviderTransactionId: response.razorpay_payment_id,
-              paymentMethod: 'RAZORPAY_HYBRID',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            });
-
-            cartSnap.docs.forEach(doc => {
-              batch.delete(doc.ref);
-            });
-
-            await batch.commit();
-
-            toast({
-              title: "TRANSMISSION SECURED",
-              description: "YOUR ASSEMBLAGE HAS BEEN LOGGED IN THE VOID.",
-            });
-            
             window.location.href = '/profile';
           } else {
-            toast({
-              variant: "destructive",
-              title: "VERIFICATION_FAILURE",
-              description: "SECURITY SIGNATURE MISMATCH. CONTACT SUPPORT.",
-            });
+            toast({ variant: "destructive", title: "VERIFICATION_FAILURE" });
           }
         },
-        prefill: {
-          email: user.email,
-          method: 'upi' // Prioritize UPI in the Razorpay prefill
-        },
-        theme: {
-          color: '#000000',
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-          }
-        }
+        prefill: { email: user.email },
+        theme: { color: '#000000' }
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
       console.error('[CHECKOUT_EXCEPTION]', error);
-      toast({
-        variant: "destructive",
-        title: "LINK_FAILURE",
-        description: "COULD NOT ESTABLISH SECURE UPLINK. RETRY LATER.",
-      });
+      toast({ variant: "destructive", title: "LINK_FAILURE" });
       setLoading(false);
     }
   };

@@ -72,6 +72,43 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
 
+  const finalizeOrderData = async (paymentId: string) => {
+    if (!user || !db || !cartItems) return;
+    
+    const batch = writeBatch(db);
+    const orderId = `VOID-${Date.now()}`;
+    const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
+    
+    const userRef = doc(db, 'users', user.uid);
+    batch.set(userRef, {
+      ...formData,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    batch.set(orderRef, {
+      id: orderId,
+      userId: user.uid,
+      ...formData,
+      items: cartItems,
+      productIds: cartItems.map(item => item.productId),
+      totalAmount: subtotal,
+      orderDate: new Date().toISOString(),
+      shippingStatus: 'processing',
+      paymentStatus: 'paid',
+      paymentProviderId: paymentId,
+      paymentMethod: selectedMethod.toUpperCase(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    const cartSnap = await getDocs(cartItemsRef!);
+    cartSnap.docs.forEach(d => batch.delete(d.ref));
+
+    await batch.commit();
+    setFinalOrderId(orderId);
+    setStep('success');
+  };
+
   const handleNext = () => {
     if (step === 'shipping') {
       const required = ['displayName', 'stateProvince', 'addressLine1', 'city', 'postalCode', 'mobileNumber', 'email'];
@@ -93,16 +130,6 @@ export default function CheckoutPage() {
   const handleFinalize = async () => {
     if (!user || !db || !cartItems) return;
 
-    // Check if Razorpay is loaded
-    if (!(window as any).Razorpay) {
-      toast({ 
-        title: "GATEWAY LATEST", 
-        description: "PAYMENT MODULE IS STILL BUFFERING. PLEASE WAIT A MOMENT.", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -118,20 +145,36 @@ export default function CheckoutPage() {
       if (!res.ok) {
         throw new Error(orderData.message || 'COULD NOT INITIALIZE ORDER PACKET');
       }
+
+      // 2. Check for Mock Mode
+      if (orderData.isMock) {
+        toast({ 
+          title: "DEVELOPER MODE", 
+          description: "BYPASSING GATEWAY HANDSHAKE. LOGGING MOCK TRANSMISSION.", 
+        });
+        setTimeout(async () => {
+          await finalizeOrderData(`MOCK_PAY_${Date.now()}`);
+          setLoading(false);
+        }, 1500);
+        return;
+      }
       
-      // 2. Initialize Razorpay Checkout
-      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder';
+      // 3. Initialize Razorpay Checkout
+      if (!(window as any).Razorpay) {
+        throw new Error('PAYMENT MODULE NOT READY. RETRYING...');
+      }
+
+      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
       
       const options = {
         key: rzpKey,
-        amount: orderData.amount, // Already in Paise from server
+        amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'SECURE DIGITAL TRANSMISSION',
         order_id: orderData.id,
         handler: async function (response: any) {
           setLoading(true);
-          // 3. Verify Signature on Backend
           try {
             const verifyRes = await fetch('/api/checkout/verify-payment', {
               method: 'POST',
@@ -140,39 +183,7 @@ export default function CheckoutPage() {
             });
 
             if (verifyRes.ok) {
-              // 4. Atomic Transaction: Log Order and Purge Cart
-              const batch = writeBatch(db);
-              const orderId = `VOID-${Date.now()}`;
-              const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
-              
-              const userRef = doc(db, 'users', user.uid);
-              batch.set(userRef, {
-                ...formData,
-                updatedAt: new Date().toISOString()
-              }, { merge: true });
-
-              batch.set(orderRef, {
-                id: orderId,
-                userId: user.uid,
-                ...formData,
-                items: cartItems,
-                productIds: cartItems.map(item => item.productId),
-                totalAmount: subtotal,
-                orderDate: new Date().toISOString(),
-                shippingStatus: 'processing',
-                paymentStatus: 'paid',
-                paymentProviderId: response.razorpay_payment_id,
-                paymentMethod: selectedMethod.toUpperCase(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              });
-
-              const cartSnap = await getDocs(cartItemsRef!);
-              cartSnap.docs.forEach(d => batch.delete(d.ref));
-
-              await batch.commit();
-              setFinalOrderId(orderId);
-              setStep('success');
+              await finalizeOrderData(response.razorpay_payment_id);
             } else {
               toast({ title: "VERIFICATION FAILURE", description: "TRANSACTION SECURITY MISMATCH. CONTACT SUPPORT.", variant: "destructive" });
             }
@@ -268,8 +279,6 @@ export default function CheckoutPage() {
     router.push('/');
     return null;
   }
-
-  const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
@@ -442,13 +451,6 @@ export default function CheckoutPage() {
                         YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. ALL TRANSMISSIONS ARE ENCRYPTED AND LOGGED IN THE VOID.
                       </p>
                     </div>
-
-                    {!rzpKey && (
-                      <div className="p-4 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-500 text-[9px] tracking-widest uppercase font-bold">
-                        <AlertTriangle className="w-4 h-4" />
-                        SYSTEM_ERROR: PAYMENT GATEWAY IDENTIFIER NOT DETECTED.
-                      </div>
-                    )}
 
                     <Button 
                       onClick={handleFinalize}
