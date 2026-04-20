@@ -11,11 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { ProductCard } from '@/components/product-card';
-import { submitReview } from '@/firebase/review-actions';
+import { saveUserToFirestore } from '@/firebase/user-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -57,6 +59,7 @@ export default function ProfilePage() {
     landmark: ''
   });
 
+  // Initialize form data when profile arrives
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -69,45 +72,47 @@ export default function ProfilePage() {
         landmark: profile.landmark || ''
       });
     }
+  }, [profile]);
 
-    if (user && db && (!profile || !profile.createdAt)) {
-      setDoc(doc(db, 'users', user.uid), {
-        email: user.email,
-        uid: user.uid,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+  // Handle missing dossier in new database
+  useEffect(() => {
+    if (user && db && !isProfileLoading && !profile) {
+      saveUserToFirestore(db, user);
     }
-  }, [profile, db, user]);
+  }, [user, db, isProfileLoading, profile]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !user) return;
 
     setSaving(true);
-    try {
-      await setDoc(doc(db, 'users', user.uid), {
-        ...formData,
-        email: user.email,
-        uid: user.uid,
-        updatedAt: new Date().toISOString(),
-        createdAt: profile?.createdAt || new Date().toISOString()
-      }, { merge: true });
-      
-      toast({
-        title: "IDENTITY UPDATED",
-        description: "SYSTEM METADATA SYNCHRONIZED.",
+    const userRef = doc(db, 'users', user.uid);
+    const updateData = {
+      ...formData,
+      email: user.email,
+      uid: user.uid,
+      updatedAt: new Date().toISOString(),
+      createdAt: profile?.createdAt || new Date().toISOString()
+    };
+
+    setDoc(userRef, updateData, { merge: true })
+      .then(() => {
+        toast({
+          title: "IDENTITY UPDATED",
+          description: "SYSTEM METADATA SYNCHRONIZED.",
+        });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setSaving(false);
       });
-    } catch (e) {
-      console.error(e);
-      toast({
-        variant: "destructive",
-        title: "UPLINK ERROR",
-        description: "COULD NOT SYNC IDENTITY CHANGES.",
-      });
-    } finally {
-      setSaving(false);
-    }
   };
 
   const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';

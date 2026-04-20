@@ -1,14 +1,16 @@
-
 'use client';
 
 import { doc, setDoc, Firestore } from 'firebase/firestore';
 import { User } from 'firebase/auth';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
 /**
  * VOID WEAR // DOSSIER SYNCHRONIZATION
  * Persists user identity metadata to the Firestore database.
+ * Uses non-blocking pattern with contextual error emitting.
  */
-export async function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
+export function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
   if (!user) return;
 
   const userRef = doc(db, 'users', user.uid);
@@ -21,10 +23,18 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     photoURL: user.photoURL || '',
     role: user.email?.toLowerCase() === 'voidwear26@gmail.com' ? 'ADMIN' : 'OPERATOR',
     updatedAt: new Date().toISOString(),
-    // Preserve createdAt if it already exists
+    // Preserve createdAt if provided, otherwise set new
     createdAt: extraData.createdAt || new Date().toISOString()
   };
 
   // Perform non-blocking set with merge protocol
-  return setDoc(userRef, dossierData, { merge: true });
+  setDoc(userRef, dossierData, { merge: true })
+    .catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: userRef.path,
+        operation: 'write',
+        requestResourceData: dossierData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
 }

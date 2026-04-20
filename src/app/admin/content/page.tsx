@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function BrandControlPage() {
   const db = useFirestore();
@@ -39,31 +41,35 @@ export default function BrandControlPage() {
     }
   }, [config]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!db) return;
 
     setLoading(true);
-    try {
-      await setDoc(doc(db, 'app_config', 'global'), {
-        ...formData,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+    const docRef = doc(db, 'app_config', 'global');
+    const updateData = {
+      ...formData,
+      updatedAt: new Date().toISOString()
+    };
 
-      toast({
-        title: "CONTENT DEPLOYED",
-        description: "BRAND INTERFACE UPDATED GLOBALLY.",
+    setDoc(docRef, updateData, { merge: true })
+      .then(() => {
+        toast({
+          title: "CONTENT DEPLOYED",
+          description: "BRAND INTERFACE UPDATED GLOBALLY.",
+        });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-    } catch (e) {
-      console.error(e);
-      toast({
-        variant: "destructive",
-        title: "DEPLOYMENT FAILED",
-        description: "COULD NOT SYNC CONTENT CHANGES.",
-      });
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (configLoading) {
