@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, setDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap, Wallet, Sparkles, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap, Wallet, Sparkles, ExternalLink, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -92,6 +93,17 @@ export default function CheckoutPage() {
 
   const handleFinalize = async () => {
     if (!user || !db || !cartItems) return;
+
+    // Check if Razorpay is loaded
+    if (!(window as any).Razorpay) {
+      toast({ 
+        title: "GATEWAY LATEST", 
+        description: "PAYMENT MODULE IS STILL BUFFERING. PLEASE WAIT A MOMENT.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -102,13 +114,16 @@ export default function CheckoutPage() {
         body: JSON.stringify({ amount: subtotal }),
       });
 
-      if (!res.ok) throw new Error('COULD NOT INITIALIZE ORDER PACKET');
       const orderData = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(orderData.message || 'COULD NOT INITIALIZE ORDER PACKET');
+      }
       
       // 2. Initialize Razorpay Checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
+        amount: orderData.amount, // Already in Paise from server
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'SECURE DIGITAL TRANSMISSION',
@@ -116,49 +131,54 @@ export default function CheckoutPage() {
         handler: async function (response: any) {
           setLoading(true);
           // 3. Verify Signature on Backend
-          const verifyRes = await fetch('/api/checkout/verify-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(response),
-          });
-
-          if (verifyRes.ok) {
-            // 4. Atomic Transaction: Log Order and Purge Cart
-            const batch = writeBatch(db);
-            const orderId = `VOID-${Date.now()}`;
-            const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
-            
-            const userRef = doc(db, 'users', user.uid);
-            batch.set(userRef, {
-              ...formData,
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-
-            batch.set(orderRef, {
-              id: orderId,
-              userId: user.uid,
-              ...formData,
-              items: cartItems,
-              productIds: cartItems.map(item => item.productId),
-              totalAmount: subtotal,
-              orderDate: new Date().toISOString(),
-              shippingStatus: 'processing',
-              paymentStatus: 'paid',
-              paymentProviderId: response.razorpay_payment_id,
-              paymentMethod: selectedMethod.toUpperCase(),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+          try {
+            const verifyRes = await fetch('/api/checkout/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response),
             });
 
-            const cartSnap = await getDocs(cartItemsRef!);
-            cartSnap.docs.forEach(d => batch.delete(d.ref));
+            if (verifyRes.ok) {
+              // 4. Atomic Transaction: Log Order and Purge Cart
+              const batch = writeBatch(db);
+              const orderId = `VOID-${Date.now()}`;
+              const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
+              
+              const userRef = doc(db, 'users', user.uid);
+              batch.set(userRef, {
+                ...formData,
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
 
-            await batch.commit();
-            setFinalOrderId(orderId);
-            setStep('success');
-            setLoading(false);
-          } else {
-            toast({ title: "VERIFICATION FAILURE", description: "TRANSACTION SECURITY MISMATCH.", variant: "destructive" });
+              batch.set(orderRef, {
+                id: orderId,
+                userId: user.uid,
+                ...formData,
+                items: cartItems,
+                productIds: cartItems.map(item => item.productId),
+                totalAmount: subtotal,
+                orderDate: new Date().toISOString(),
+                shippingStatus: 'processing',
+                paymentStatus: 'paid',
+                paymentProviderId: response.razorpay_payment_id,
+                paymentMethod: selectedMethod.toUpperCase(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              });
+
+              const cartSnap = await getDocs(cartItemsRef!);
+              cartSnap.docs.forEach(d => batch.delete(d.ref));
+
+              await batch.commit();
+              setFinalOrderId(orderId);
+              setStep('success');
+            } else {
+              toast({ title: "VERIFICATION FAILURE", description: "TRANSACTION SECURITY MISMATCH. CONTACT SUPPORT.", variant: "destructive" });
+            }
+          } catch (err) {
+            console.error('VERIFY_ERROR', err);
+            toast({ title: "UPLINK ERROR", description: "FAILED TO VERIFY TRANSMISSION STATUS.", variant: "destructive" });
+          } finally {
             setLoading(false);
           }
         },
@@ -176,7 +196,7 @@ export default function CheckoutPage() {
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
     } catch (e: any) {
-      console.error(e);
+      console.error('[RAZORPAY_FLOW_ERROR]', e);
       toast({ 
         title: "UPLINK FAILURE", 
         description: e.message || "COULD NOT ESTABLISH SECURE PAYMENT GATEWAY.", 
@@ -420,9 +440,16 @@ export default function CheckoutPage() {
                       </p>
                     </div>
 
+                    {!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+                      <div className="p-4 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-500 text-[9px] tracking-widest uppercase font-bold">
+                        <AlertTriangle className="w-4 h-4" />
+                        SYSTEM_ERROR: PAYMENT GATEWAY IDENTIFIER NOT DETECTED.
+                      </div>
+                    )}
+
                     <Button 
                       onClick={handleFinalize}
-                      disabled={loading}
+                      disabled={loading || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
                       className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(255,255,255,0.2)]"
                     >
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
