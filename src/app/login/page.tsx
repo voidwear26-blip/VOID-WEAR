@@ -71,11 +71,17 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
       let errorTitle = "ACCESS_DENIED";
-      let errorMsg = "INVALID IDENTITY CREDENTIALS.";
+      let errorMsg = err.message || "INVALID IDENTITY CREDENTIALS.";
+
+      // Handle specific provider configuration error
+      if (err.code === 'auth/configuration-not-found') {
+        errorTitle = "PROVIDER_OFFLINE";
+        errorMsg = "EMAIL/PASSWORD AUTH IS NOT ENABLED IN FIREBASE CONSOLE. PLEASE ENABLE IT IN THE AUTHENTICATION TAB.";
+      }
 
       if (email.toLowerCase() === 'voidwear26@gmail.com' && (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found')) {
          errorTitle = "MASTER_NOT_FOUND";
-         errorMsg = "ADMIN RECORD NOT INITIALIZED. PLEASE USE 'SIGN UP' WITH KEY 'admin2026' TO INITIALIZE MASTER STATUS.";
+         errorMsg = "ADMIN RECORD NOT INITIALIZED. PLEASE USE 'SIGN UP' WITH PASSWORD 'admin2026' TO INITIALIZE MASTER STATUS.";
       }
 
       toast({
@@ -94,8 +100,13 @@ export default function LoginPage() {
       const cred = await initiateGoogleSignIn(auth);
       await saveUserToFirestore(db, cred.user);
       toast({ title: "GOOGLE UPLINK SECURED" });
-    } catch (err) {
-      toast({ variant: "destructive", title: "UPLINK_FAILED" });
+    } catch (err: any) {
+      console.error('[GOOGLE_AUTH_FAILURE]', err);
+      let msg = "UPLINK FAILED";
+      if (err.code === 'auth/configuration-not-found') {
+        msg = "GOOGLE PROVIDER NOT ENABLED IN FIREBASE CONSOLE.";
+      }
+      toast({ variant: "destructive", title: msg });
     } finally {
       setLoading(false);
     }
