@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -55,11 +54,12 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "VOID WEAR",
-    "url": "https://void-wear.vercel.app",
-    "logo": "https://void-wear.vercel.app/logo.png",
+    "url": "https://voidwear.co.in",
+    "logo": "https://voidwear.co.in/logo.png",
     "sameAs": [
-      "https://instagram.com/voidwear",
-      "https://twitter.com/voidwear"
+      "https://www.instagram.com/voidwearofficial_?igsh=MWs4NWJ6aXRhcnZ2dA==",
+      "https://www.facebook.com/share/1DbtMjAWYh/",
+      "https://x.com/voidwear"
     ],
     "description": "Premium futuristic technical shells for the digital migration."
   };

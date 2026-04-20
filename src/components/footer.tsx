@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Instagram } from 'lucide-react';
+import { Instagram, Facebook } from 'lucide-react';
 
 export function Footer() {
   const [mounted, setMounted] = useState(false);
@@ -41,28 +41,36 @@ export function Footer() {
             </p>
             <div className="flex flex-wrap gap-4">
               <a 
-                href="#" 
+                href="https://www.instagram.com/voidwearofficial_?igsh=MWs4NWJ6aXRhcnZ2dA==" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-4 border border-white/10 bg-white/[0.02] hover:bg-white/10 hover:border-white/30 transition-all group"
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
               </a>
               <a 
-                href="#" 
+                href="https://www.facebook.com/share/1DbtMjAWYh/" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-4 border border-white/10 bg-white/[0.02] hover:bg-white/10 hover:border-white/30 transition-all group"
-                aria-label="Telegram"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+              </a>
+              <a 
+                href="#" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 border border-white/10 bg-white/[0.02] hover:bg-white/10 hover:border-white/30 transition-all group"
+                aria-label="X (Twitter)"
               >
                 <svg 
                   viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
+                  fill="currentColor" 
                   className="w-5 h-5 text-white/60 group-hover:text-white transition-colors"
                 >
-                  <path d="M21 2 2 9.4s.2 3.1 3 4.2L16.2 19l4.8-17z" />
-                  <path d="M5.1 13.6 21 2 11.2 15.1l-1.1 5.9 3.5-3.3" />
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
             </div>
