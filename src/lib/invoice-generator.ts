@@ -2,10 +2,11 @@
 
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 /**
- * VOID WEAR // INVOICE GENERATOR
- * Generates a cinematic 3.93x5.90 inch PDF transmission log.
+ * VOID WEAR // INVOICE GENERATOR V2.0
+ * Generates a cinematic 3.93x5.90 inch PDF transmission log with QR verification.
  */
 export async function generateInvoicePDF(order: any) {
   // Dimensions: 3.93in x 5.90in = ~100mm x 150mm
@@ -61,6 +62,12 @@ export async function generateInvoicePDF(order: any) {
   const splitAddress = doc.splitTextToSize(address.toUpperCase(), 80);
   doc.text(splitAddress, 10, 60);
 
+  // Added Phone/Mobile Metadata
+  doc.setFont('helvetica', 'bold');
+  doc.text('UPLINK MODULE (MOBILE):', 10, 68);
+  doc.setFont('helvetica', 'normal');
+  doc.text(order.mobileNumber || 'NOT LOGGED', 45, 68);
+
   // 4. Module Table (Products)
   const tableData = order.items.map((item: any) => [
     item.name.toUpperCase(),
@@ -104,7 +111,34 @@ export async function generateInvoicePDF(order: any) {
   doc.setFontSize(8);
   doc.text(`TOTAL: INR ${order.totalAmount}`, 58, finalY);
 
-  // 6. Footer / Compliance
+  // 6. Security / QR Verification
+  try {
+    // Encode high-integrity transmission data into the QR
+    const qrPayload = JSON.stringify({
+      uid: order.id,
+      val: order.totalAmount,
+      auth: order.paymentProviderId || 'INTERNAL'
+    });
+    
+    const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    
+    // Position QR at the bottom right
+    doc.addImage(qrCodeDataUrl, 'PNG', 75, 125, 18, 18);
+    
+    doc.setTextColor(secondaryColor);
+    doc.setFontSize(5);
+    doc.text('SCAN TO VERIFY TRANSMISSION', 68, 145);
+  } catch (err) {
+    console.error('QR_GEN_FAILURE', err);
+  }
+
+  // 7. Footer / Compliance
   doc.setTextColor(secondaryColor);
   doc.setFontSize(5);
   doc.setFont('helvetica', 'italic');

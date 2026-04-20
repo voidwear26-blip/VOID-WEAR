@@ -47,6 +47,7 @@
     "next": "^15.5.15",
     "nodemailer": "^8.0.5",
     "patch-package": "^8.0.0",
+    "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
     "react": "^19.2.1",
     "react-day-picker": "^9.11.3",
@@ -60,6 +61,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
     "postcss": "^8",
