@@ -1,6 +1,7 @@
+
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, ChevronRight, Heart, Loader2 } from 'lucide-react';
@@ -19,6 +20,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { toast } = useToast();
   const [adding, setAdding] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   const productRef = useMemoFirebase(() => {
     if (!db || !id) return null;
@@ -27,9 +29,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const { data: product, isLoading } = useDoc(productRef);
 
+  // Derive available sizes based on stock matrix
+  const availableSizes = useMemo(() => {
+    if (!product?.stockMatrix) return [];
+    return Object.keys(product.stockMatrix).filter(size => {
+      const colors = product.stockMatrix[size];
+      return Object.values(colors).some((qty: any) => qty > 0);
+    });
+  }, [product]);
+
+  // Derive available colors for selected size
+  const availableColors = useMemo(() => {
+    if (!product?.stockMatrix || !selectedSize) return [];
+    const colors = product.stockMatrix[selectedSize] || {};
+    return Object.keys(colors).filter(color => colors[color] > 0);
+  }, [product, selectedSize]);
+
   const handleAdd = async () => {
-    if (!selectedSize) {
-      toast({ title: "CONFIGURATION REQUIRED", description: "SELECT A SIZE MODULE TO PROCEED." });
+    if (!selectedSize || !selectedColor) {
+      toast({ title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR TO PROCEED." });
       return;
     }
     if (!user || !db || !product) {
@@ -38,9 +56,17 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
     setAdding(true);
     try {
-      // Pass the complete product object which includes color metadata
-      await addToCart(db, user.uid, product as any, selectedSize);
-      toast({ title: "MODULE ADDED", description: `SIZE ${selectedSize} ASSEMBLAGE LOGGED.` });
+      // Pass selection metadata to cart
+      await addToCart(db, user.uid, {
+        ...product,
+        id: product.id,
+        color: selectedColor 
+      } as any, selectedSize);
+      
+      toast({ 
+        title: "MODULE ADDED", 
+        description: `${selectedSize} // ${selectedColor} ASSEMBLAGE LOGGED.` 
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -64,36 +90,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   const displayImage = (product as any)?.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/800/1000';
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
-  // Product Structured Data for SEO
-  const productJsonLd = {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    "name": product.name,
-    "image": displayImage,
-    "description": product.description,
-    "brand": {
-      "@type": "Brand",
-      "name": "VOID WEAR"
-    },
-    "offers": {
-      "@type": "Offer",
-      "url": `https://void-wear.vercel.app/products/${product.id}`,
-      "priceCurrency": "INR",
-      "price": product.basePrice,
-      "availability": "https://schema.org/InStock",
-      "itemCondition": "https://schema.org/NewCondition"
-    }
-  };
 
   return (
     <div className="pt-32 pb-24 bg-transparent min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
-      />
-      
       <div className="container mx-auto px-6">
         <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/70 mb-12 uppercase font-bold">
           <Link href="/" className="hover:text-white transition-colors">HOME</Link>
@@ -131,21 +130,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               {(product as any)?.description}
             </p>
 
-            <div className="space-y-8">
+            <div className="space-y-10">
+              {/* SIZE SELECTION */}
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">SELECT SIZE</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">01. SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
-                  {availableSizes.map(size => {
-                    const isOutOfStock = (product as any)?.stockBySize && ((product as any).stockBySize[size] || 0) <= 0;
+                  {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => {
+                    const isDisabled = !availableSizes.includes(size);
                     return (
                       <button 
                         key={size} 
-                        disabled={isOutOfStock}
-                        onClick={() => setSelectedSize(size)}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          setSelectedSize(size);
+                          setSelectedColor(null); // Reset color on size change
+                        }}
                         className={cn(
                           "w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
                           selectedSize === size ? "bg-white text-black border-white" : "border-white/20 hover:border-white bg-white/[0.02] text-white/70",
-                          isOutOfStock && "opacity-20 cursor-not-allowed line-through"
+                          isDisabled && "opacity-10 cursor-not-allowed"
                         )}
                       >
                         {size}
@@ -155,11 +158,32 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              {/* COLOR SELECTION */}
+              {selectedSize && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">02. SELECT COLOR</h4>
+                  <div className="flex flex-wrap gap-4">
+                    {availableColors.map(color => (
+                      <button 
+                        key={color} 
+                        onClick={() => setSelectedColor(color)}
+                        className={cn(
+                          "px-6 h-12 border flex items-center justify-center text-[9px] font-black tracking-[0.3em] uppercase transition-all backdrop-blur-sm",
+                          selectedColor === color ? "bg-white text-black border-white" : "border-white/10 hover:border-white bg-white/[0.01] text-white/60"
+                        )}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-4">
                 <Button 
                   onClick={handleAdd}
-                  disabled={adding}
-                  className="flex-1 bg-white text-black hover:bg-white/90 h-20 text-xs font-bold tracking-[0.5em] rounded-none group shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+                  disabled={adding || !selectedSize || !selectedColor}
+                  className="flex-1 bg-white text-black hover:bg-white/90 h-20 text-xs font-bold tracking-[0.5em] rounded-none group shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-30"
                 >
                   {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'ADD TO BAG'}
                   <ShoppingBag className="ml-4 w-4 h-4 group-hover:scale-110 transition-transform" />

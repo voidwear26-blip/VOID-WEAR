@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc, setDoc, updateDoc, Firestore } from 'firebase/firestore';
@@ -14,8 +15,8 @@ export async function addToCart(
   size: string,
   quantity: number = 1
 ) {
-  // Use a composite ID for unique product/size combinations in the cart
-  const cartItemId = `${product.id}_${size}`;
+  // Use a composite ID for unique product/size/color combinations in the cart
+  const cartItemId = `${product.id}_${size}_${product.color || 'DEFAULT'}`;
   const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
   const itemSnap = await getDoc(itemRef);
 

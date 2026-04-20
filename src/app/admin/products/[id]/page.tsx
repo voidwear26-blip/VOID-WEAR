@@ -3,7 +3,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import { doc, updateDoc, collectionGroup, query, where } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Upload, Trash2, TrendingUp, DollarSign, Users, ShoppingBag, Calendar } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Upload, Trash2, TrendingUp, DollarSign, Users, ShoppingBag, Calendar, Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
+
+type StockMatrix = {
+  [size: string]: {
+    [color: string]: number;
+  };
+};
 
 export default function ProductAdminDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -71,13 +77,14 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     basePrice: '',
     description: '',
     imageUrl: '',
-    color: '',
     details: ''
   });
 
-  const [stockBySize, setStockBySize] = useState<{ [key: string]: number }>({
-    'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, 'XXL': 0
+  const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
+    'XS': {}, 'S': {}, 'M': {}, 'L': {}, 'XL': {}, 'XXL': {}
   });
+
+  const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
 
   useEffect(() => {
     if (product) {
@@ -87,27 +94,54 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         basePrice: product.basePrice?.toString() || '',
         description: product.description || '',
         imageUrl: product.imageUrls?.[0] || '',
-        color: product.color || '',
         details: product.details?.join('\n') || ''
       });
-      if (product.stockBySize) {
-        setStockBySize({
-          'XS': product.stockBySize.XS || 0,
-          'S': product.stockBySize.S || 0,
-          'M': product.stockBySize.M || 0,
-          'L': product.stockBySize.L || 0,
-          'XL': product.stockBySize.XL || 0,
-          'XXL': product.stockBySize.XXL || 0
+      if (product.stockMatrix) {
+        setStockMatrix({
+          'XS': product.stockMatrix.XS || {},
+          'S': product.stockMatrix.S || {},
+          'M': product.stockMatrix.M || {},
+          'L': product.stockMatrix.L || {},
+          'XL': product.stockMatrix.XL || {},
+          'XXL': product.stockMatrix.XXL || {}
         });
       }
     }
   }, [product]);
 
-  const totalStock = Object.values(stockBySize).reduce((a, b) => a + (b || 0), 0);
+  const calculateTotalStock = () => {
+    let total = 0;
+    Object.values(stockMatrix).forEach(colors => {
+      Object.values(colors).forEach(qty => total += qty);
+    });
+    return total;
+  };
 
-  const handleSizeStockChange = (size: string, value: string) => {
-    const num = parseInt(value) || 0;
-    setStockBySize(prev => ({ ...prev, [size]: Math.max(0, num) }));
+  const handleAddColor = (size: string) => {
+    const color = newColor[size]?.trim().toUpperCase();
+    if (!color) return;
+    
+    setStockMatrix(prev => ({
+      ...prev,
+      [size]: { ...prev[size], [color]: 0 }
+    }));
+    setNewColor(prev => ({ ...prev, [size]: '' }));
+  };
+
+  const handleRemoveColor = (size: string, color: string) => {
+    setStockMatrix(prev => {
+      const updated = { ...prev[size] };
+      delete updated[color];
+      return { ...prev, [size]: updated };
+    });
+  };
+
+  const handleQtyChange = (size: string, color: string, value: string) => {
+    const qty = parseInt(value) || 0;
+    setStockMatrix(prev => ({
+      ...prev,
+      [size]: { ...prev[size], [color]: Math.max(0, qty) }
+    }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +162,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     setLoading(true);
     try {
       const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
+      const totalStock = calculateTotalStock();
       
       await updateDoc(doc(db, 'products', id), {
         name: formData.name.toUpperCase(),
@@ -135,10 +170,9 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         basePrice: parseFloat(formData.basePrice),
         description: formData.description,
         imageUrls: [formData.imageUrl],
-        color: formData.color.toUpperCase(),
-        stockBySize: stockBySize,
+        stockMatrix: stockMatrix,
         stockQuantity: totalStock,
-        sizes: Object.keys(stockBySize).filter(size => stockBySize[size] > 0),
+        sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
         details: detailsArray,
         updatedAt: new Date().toISOString()
       });
@@ -222,32 +256,55 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                     className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
                   />
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">COLOR</label>
-                  <Input 
-                    required
-                    value={formData.color}
-                    onChange={e => setFormData({ ...formData, color: e.target.value })}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
-                  />
+                <div className="flex flex-col justify-end">
+                  <div className="p-4 border border-white/5 bg-white/[0.01]">
+                    <p className="text-[10px] tracking-[0.3em] font-bold text-white/40 uppercase">TOTAL STOCK: {calculateTotalStock()}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">STOCK CONFIGURATION</label>
-                  <span className="text-[10px] font-bold tracking-[0.2em] text-white/80">TOTAL ASSEMBLAGE: {totalStock}</span>
+              <div className="space-y-8">
+                <div className="border-b border-white/10 pb-4">
+                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">INVENTORY MATRIX (SIZE // COLOR // QTY)</label>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
-                  {Object.keys(stockBySize).map(size => (
-                    <div key={size} className="space-y-2">
-                      <Label className="text-[9px] tracking-widest text-white/60 font-bold uppercase">{size}</Label>
-                      <Input 
-                        type="number"
-                        value={stockBySize[size]}
-                        onChange={e => handleSizeStockChange(size, e.target.value)}
-                        className="bg-black/40 border-white/10 rounded-none h-10 text-[10px] tracking-widest text-white focus:border-white/40"
-                      />
+                
+                <div className="grid gap-10">
+                  {Object.keys(stockMatrix).map(size => (
+                    <div key={size} className="space-y-6 p-6 border border-white/5 bg-white/[0.01]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl font-black tracking-widest text-white/80">{size}</span>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="COLOR NAME" 
+                            value={newColor[size] || ''}
+                            onChange={e => setNewColor({...newColor, [size]: e.target.value})}
+                            className="h-10 w-40 bg-black/40 border-white/10 text-[9px] tracking-widest uppercase rounded-none"
+                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddColor(size))}
+                          />
+                          <Button type="button" onClick={() => handleAddColor(size)} size="sm" className="h-10 rounded-none bg-white/10 hover:bg-white/20 text-white border-white/10">
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {Object.keys(stockMatrix[size]).map(color => (
+                          <div key={color} className="flex items-center gap-3 p-3 bg-black/40 border border-white/5">
+                            <div className="flex-1 space-y-1">
+                              <p className="text-[8px] tracking-[0.2em] font-bold text-white/40 uppercase">{color}</p>
+                              <Input 
+                                type="number"
+                                value={stockMatrix[size][color]}
+                                onChange={e => handleQtyChange(size, color, e.target.value)}
+                                className="h-8 bg-transparent border-0 border-b border-white/10 focus:border-white/40 text-[10px] p-0 rounded-none font-mono"
+                              />
+                            </div>
+                            <button type="button" onClick={() => handleRemoveColor(size, color)} className="text-white/20 hover:text-red-500 transition-colors">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
