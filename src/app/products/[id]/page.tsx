@@ -109,7 +109,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 src={displayImage} 
                 alt={(product as any)?.name || 'Product module visualization'} 
                 fill 
-                className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+                className="object-cover grayscale-0 group-hover:grayscale transition-all duration-1000"
                 unoptimized
                 priority
               />

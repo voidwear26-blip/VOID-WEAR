@@ -70,7 +70,7 @@ export function ProductCard({ product }: ProductCardProps) {
             src={displayImage}
             alt={product.name || 'Assemblage Module'}
             fill
-            className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 ease-out"
+            className="object-cover grayscale-0 group-hover:grayscale group-hover:scale-105 transition-all duration-1000 ease-out"
             data-ai-hint="cyberpunk product"
           />
           
