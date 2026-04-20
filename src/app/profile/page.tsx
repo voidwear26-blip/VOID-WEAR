@@ -3,7 +3,7 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar, Zap, Bell, MapPin, CreditCard, ChevronRight, Info } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar, Zap, Bell, MapPin, CreditCard, ChevronRight, Info, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { submitReview } from '@/firebase/review-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { generateInvoicePDF } from '@/lib/invoice-generator';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -23,7 +24,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('identity');
   const [saving, setSaving] = useState(false);
 
-  // Firestore User Profile
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'users', user.uid);
@@ -31,7 +31,6 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
-  // Transmissions (Orders)
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -40,7 +39,6 @@ export default function ProfilePage() {
     );
   }, [db, user]);
 
-  // Stasis (Wishlist)
   const wishlistQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'wishlist');
@@ -373,6 +371,12 @@ export default function ProfilePage() {
 }
 
 function OrderCard({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+  const { toast } = useToast();
+  const handleDownload = () => {
+    generateInvoicePDF(order);
+    toast({ title: "MANIFESTO RETRIEVED", description: "TRANSMISSION LOG DOWNLOADED." });
+  };
+
   return (
     <div className="group border border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all p-8 md:p-10 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -401,7 +405,12 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
             </div>
           </div>
           
-          <OrderDossierDialog order={order} userId={userId} userName={userName} db={db} />
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={handleDownload} className="text-white/60 hover:text-white transition-colors">
+              <Download className="w-4 h-4" />
+            </Button>
+            <OrderDossierDialog order={order} userId={userId} userName={userName} db={db} />
+          </div>
           
           {order.shippingStatus === 'delivered' && (
             <ReviewDialog order={order} userId={userId} userName={userName} db={db} />
@@ -413,6 +422,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
 }
 
 function OrderDossierDialog({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+  const { toast } = useToast();
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -422,8 +432,15 @@ function OrderDossierDialog({ order, userId, userName, db }: { order: any, userI
       </DialogTrigger>
       <DialogContent className="bg-black border-white/20 rounded-none text-white max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar">
         <DialogHeader className="mb-10">
-          <DialogTitle className="text-xl font-bold tracking-[0.5em] uppercase glow-text">Mission Dossier</DialogTitle>
-          <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">UID: {order.id}</DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl font-bold tracking-[0.5em] uppercase glow-text">Mission Dossier</DialogTitle>
+              <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">UID: {order.id}</DialogDescription>
+            </div>
+            <Button onClick={() => { generateInvoicePDF(order); toast({ title: "LOG DOWNLOADED" }); }} size="sm" variant="outline" className="border-white/20 text-white text-[8px] tracking-[0.3em] font-black hover:bg-white hover:text-black rounded-none h-10 px-6 bg-transparent">
+               BILL (PDF) <Download className="ml-2 w-3 h-3" />
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-16">
@@ -434,7 +451,7 @@ function OrderDossierDialog({ order, userId, userName, db }: { order: any, userI
               {order.items?.map((item: any, idx: number) => (
                 <div key={idx} className="flex gap-6 items-center p-6 border border-white/5 bg-white/[0.01]">
                    <div className="relative w-20 aspect-[3/4] bg-white/5 border border-white/10">
-                      <Image src={item.image} alt={item.name} fill className="object-cover grayscale" />
+                      <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
                    </div>
                    <div className="flex-1 space-y-2">
                       <p className="text-xs font-bold tracking-widest uppercase">{item.name}</p>

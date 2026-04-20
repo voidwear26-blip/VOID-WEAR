@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { generateInvoicePDF } from '@/lib/invoice-generator';
 
 type CheckoutStep = 'shipping' | 'review' | 'payment' | 'success';
 type PaymentMethod = 'card' | 'upi' | 'wallet';
@@ -25,8 +26,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('upi');
   const [finalOrderId, setFinalOrderId] = useState<string | null>(null);
+  const [orderObject, setOrderObject] = useState<any>(null);
 
-  // 1. DATA UPLINK: Fetch Profile
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'users', user.uid);
@@ -34,7 +35,6 @@ export default function CheckoutPage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
-  // 2. DATA UPLINK: Fetch Active Cart
   const cartItemsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
@@ -54,7 +54,6 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
-  // 3. SYNCHRONIZATION: Pre-populate from Identity logs
   useEffect(() => {
     if (user && profile) {
       setFormData(prev => ({
@@ -71,18 +70,16 @@ export default function CheckoutPage() {
     }
   }, [user, profile]);
 
-  // 4. PROTOCOL: Guard empty carts
   useEffect(() => {
-    if (!isUserLoading && !isCartLoading) {
+    if (!isUserLoading && !isCartLoading && step !== 'success') {
       if (!user || (cartItems && cartItems.length === 0)) {
         router.push('/');
       }
     }
-  }, [user, isUserLoading, cartItems, isCartLoading, router]);
+  }, [user, isUserLoading, cartItems, isCartLoading, router, step]);
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
 
-  // 5. TRANSACTION: Finalize DB Entry
   const finalizeOrderData = async (paymentId: string) => {
     if (!user || !db || !cartItems) return;
     
@@ -90,15 +87,13 @@ export default function CheckoutPage() {
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
     
-    // Sync address to profile if it was updated during checkout
     const userRef = doc(db, 'users', user.uid);
     batch.set(userRef, {
       ...formData,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
-    // Initialize Order Document
-    batch.set(orderRef, {
+    const newOrder = {
       id: orderId,
       userId: user.uid,
       displayName: formData.displayName,
@@ -118,13 +113,15 @@ export default function CheckoutPage() {
       paymentMethod: selectedMethod.toUpperCase(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    });
+    };
 
-    // Clear active cart items
+    batch.set(orderRef, newOrder);
+
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
     await batch.commit();
+    setOrderObject(newOrder);
     setFinalOrderId(orderId);
     setStep('success');
   };
@@ -148,7 +145,6 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Step A: Initialize order on server
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,7 +155,6 @@ export default function CheckoutPage() {
       
       if (!res.ok) throw new Error(orderData.message || 'GATEWAY_HANDSHAKE_FAILED');
 
-      // Step B: Handle Dev/Mock mode
       if (orderData.isMock) {
         toast({ title: "DEVELOPER PROTOCOL", description: "BYPASSING LIVE GATEWAY. SIMULATING UPLINK." });
         setTimeout(async () => {
@@ -169,7 +164,6 @@ export default function CheckoutPage() {
         return;
       }
       
-      // Step C: Production Razorpay Handshake
       if (!(window as any).Razorpay) {
         throw new Error('PAYMENT_MODULE_NOT_DETECTED');
       }
@@ -220,7 +214,14 @@ export default function CheckoutPage() {
     }
   };
 
-  if (isUserLoading || isCartLoading || isProfileLoading) {
+  const handleDownloadInvoice = () => {
+    if (orderObject) {
+      generateInvoicePDF(orderObject);
+      toast({ title: "MANIFESTO RETRIEVED", description: "TRANSMISSION LOG DOWNLOADED SUCCESSFULLY." });
+    }
+  };
+
+  if (isUserLoading || (step !== 'success' && isCartLoading) || isProfileLoading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/40 mb-6" />
@@ -249,7 +250,10 @@ export default function CheckoutPage() {
               <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
             </div>
             <div className="pt-8 flex flex-col gap-4">
-              <Button asChild className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
+              <Button onClick={handleDownloadInvoice} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
+                DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
+              </Button>
+              <Button asChild variant="outline" className="h-16 border-white/20 text-white hover:bg-white/5 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase bg-transparent">
                 <Link href="/profile">TRACK TRANSMISSION <ExternalLink className="ml-3 w-4 h-4" /></Link>
               </Button>
             </div>
