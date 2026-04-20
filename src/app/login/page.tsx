@@ -64,13 +64,16 @@ export default function LoginPage() {
       let errorTitle = "LINK_FAILURE";
       
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        errorTitle = "ACCESS_DENIED";
         errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
-        // Specific hint for the administrator
+        
+        // Specific hint for the administrator transition
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
-          errorMessage = "ADMIN ACCESS DENIED. IF YOU RECENTLY CHANGED YOUR PASSWORD TO 'admin2026', ENSURE IT IS UPDATED IN THE FIREBASE CONSOLE.";
+          errorMessage = "ADMIN ACCESS DENIED. IF YOU HAVE NOT CREATED THIS ACCOUNT WITH THE NEW 'admin2026' PASSWORD, PLEASE USE THE 'SIGN UP' TAB FIRST TO INITIALIZE IT.";
         }
       } else if (err.code === 'auth/email-already-in-use') {
-        errorMessage = "ENTITY ALREADY EXISTS IN THE SYSTEM.";
+        errorTitle = "ENTITY_EXISTS";
+        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF THIS IS YOUR ADMIN ACCOUNT, TRY LOGGING IN WITH 'admin2026'.";
       } else if (err.code === 'auth/weak-password') {
         errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
       } else if (err.code === 'auth/too-many-requests') {
