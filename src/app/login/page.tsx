@@ -6,7 +6,7 @@ import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, init
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone } from 'lucide-react';
+import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,11 +38,9 @@ export default function LoginPage() {
       if (isSignUp) {
         await initiateEmailSignUp(auth, email, password, { displayName, mobileNumber });
       } else {
-        // Services handle their own error UI; we await to manage local loading state
         await initiateEmailSignIn(auth, email, password);
       }
     } catch (err) {
-      // Catch any unexpected bubbling to prevent Turbopack overlays
       console.warn('[AUTH_HANDLED]');
     } finally {
       setLoading(false);
@@ -142,15 +141,25 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY / PASSWORD</label>
-              <Input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
-                placeholder="••••••••"
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input 
+                  type={showPassword ? 'text' : 'password'} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white pr-12" 
+                  placeholder="••••••••"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <Button 
