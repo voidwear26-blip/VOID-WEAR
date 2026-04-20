@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -63,17 +64,17 @@ export default function LoginPage() {
       let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
       let errorTitle = "LINK_FAILURE";
       
+      // Handle Firebase error codes
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         errorTitle = "ACCESS_DENIED";
-        errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
-        
-        // Specific hint for the administrator transition
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
-          errorMessage = "ADMIN ACCESS DENIED. IF YOU HAVE NOT CREATED THIS ACCOUNT WITH THE NEW 'admin2026' PASSWORD, PLEASE USE THE 'SIGN UP' TAB FIRST TO INITIALIZE IT.";
+          errorMessage = "ADMIN ACCESS DENIED. IF YOU ARE UPDATING TO 'admin2026', PLEASE USE THE 'SIGN UP' TAB BELOW TO RE-INITIALIZE YOUR ACCOUNT RECORD.";
+        } else {
+          errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
         }
       } else if (err.code === 'auth/email-already-in-use') {
         errorTitle = "ENTITY_EXISTS";
-        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF THIS IS YOUR ADMIN ACCOUNT, TRY LOGGING IN WITH 'admin2026'.";
+        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF YOU CANNOT LOGIN, RESET YOUR PASSWORD IN THE FIREBASE CONSOLE.";
       } else if (err.code === 'auth/weak-password') {
         errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
       } else if (err.code === 'auth/too-many-requests') {
