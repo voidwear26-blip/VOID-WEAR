@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -121,8 +120,10 @@ export default function CheckoutPage() {
       }
       
       // 2. Initialize Razorpay Checkout
+      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder';
+      
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: rzpKey,
         amount: orderData.amount, // Already in Paise from server
         currency: orderData.currency,
         name: 'VOID WEAR',
@@ -267,6 +268,8 @@ export default function CheckoutPage() {
     router.push('/');
     return null;
   }
+
+  const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
@@ -440,7 +443,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
 
-                    {!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+                    {!rzpKey && (
                       <div className="p-4 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-500 text-[9px] tracking-widest uppercase font-bold">
                         <AlertTriangle className="w-4 h-4" />
                         SYSTEM_ERROR: PAYMENT GATEWAY IDENTIFIER NOT DETECTED.
@@ -449,7 +452,7 @@ export default function CheckoutPage() {
 
                     <Button 
                       onClick={handleFinalize}
-                      disabled={loading || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
+                      disabled={loading}
                       className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(255,255,255,0.2)]"
                     >
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
