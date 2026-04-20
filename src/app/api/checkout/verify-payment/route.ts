@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 /**
- * PRODUCTION HARDENED: Razorpay Payment Verification
- * Implements HMAC-SHA256 signature verification for live transaction integrity.
+ * SECURE BACKEND PROTOCOL: Payment Verification
+ * Implements HMAC-SHA256 signature verification for transaction integrity.
  */
 export async function POST(request: Request) {
   const timestamp = new Date().toISOString();
@@ -12,17 +12,25 @@ export async function POST(request: Request) {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await request.json();
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return NextResponse.json({ error: 'MISSING_PARAMETERS', message: 'Incomplete verification packet.' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'MISSING_DATA_NODES', 
+        message: 'Incomplete verification packet.' 
+      }, { status: 400 });
     }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!secret) {
-      console.error(`[${timestamp}] CRITICAL_CONFIG_ERROR: Verification secret missing.`);
-      return NextResponse.json({ error: 'SERVER_CONFIG_ERROR', message: 'VERIFICATION_SECRET_MISSING' }, { status: 500 });
+      console.error(`[${timestamp}] SECURITY_FAILURE: Verification secret missing from server.`);
+      return NextResponse.json({ 
+        error: 'AUTH_NODE_OFFLINE', 
+        message: 'Internal security audit failed.' 
+      }, { status: 500 });
     }
 
-    // Verify signature: HMAC-SHA256(order_id + "|" + payment_id, secret)
-    // This ensures the transmission was signed by Razorpay's live private key.
+    /**
+     * VERIFICATION SEQUENCE:
+     * signature = HMAC-SHA256(order_id + "|" + payment_id, secret)
+     */
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     
     const expectedSignature = crypto
@@ -33,17 +41,20 @@ export async function POST(request: Request) {
     const isValid = expectedSignature === razorpay_signature;
 
     if (isValid) {
-      console.log(`[${timestamp}] PAYMENT_VERIFIED_SUCCESS: ${razorpay_order_id}`);
+      console.log(`[${timestamp}] AUDIT_PASSED: TRANSACTION_SECURED ${razorpay_order_id}`);
       return NextResponse.json({ status: 'success' });
     } else {
-      console.warn(`[${timestamp}] SECURITY_ALERT: Signature mismatch for order ${razorpay_order_id}. Possible spoof attempt.`);
-      return NextResponse.json({ status: 'failure', message: 'INVALID_SIGNATURE_MATCH' }, { status: 400 });
+      console.warn(`[${timestamp}] SECURITY_ALERT: Signature mismatch. Unauthorized access attempt detected.`);
+      return NextResponse.json({ 
+        status: 'failure', 
+        message: 'TRANSACTION_INTEGRITY_MISMATCH' 
+      }, { status: 400 });
     }
   } catch (error: any) {
-    console.error(`[${timestamp}] VERIFICATION_CRITICAL_FAILURE:`, error);
+    console.error(`[${timestamp}] AUDIT_CRASH:`, error);
     return NextResponse.json({ 
-      error: 'VERIFICATION_FAILED', 
-      message: error.message || 'SYSTEM_INTEGRITY_MISMATCH' 
+      error: 'VERIFICATION_ERROR', 
+      message: 'System could not verify transaction authenticity.' 
     }, { status: 500 });
   }
 }
