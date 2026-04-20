@@ -4,6 +4,7 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /checkout/
 Disallow: /profile/
+Disallow: /login/
 Disallow: /*?*
 
 Sitemap: https://voidwear.co.in/sitemap.xml
