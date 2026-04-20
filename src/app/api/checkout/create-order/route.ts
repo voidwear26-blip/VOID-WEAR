@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
   
   try {
     const body = await request.json();
-    const { amount, currency = 'INR' } = body;
+    const { amount, currency = 'INR', notes = {} } = body;
 
     // 1. Input Validation (Amount must be at least 1 INR / 100 Paise)
     if (!amount || typeof amount !== 'number' || amount <= 0) {
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     // Razorpay requires amount in smallest currency unit (Paise for INR)
-    // IMPORTANT: Math.round ensures we have no floating point numbers
+    // IMPORTANT: Math.round ensures we have no floating point numbers (CRITICAL for API acceptance)
     const amountInPaise = Math.round(amount * 100);
     
     if (amountInPaise < 100) {
@@ -27,12 +28,11 @@ export async function POST(request: Request) {
     }
 
     // 2. Initialize Razorpay Client with Safety Check
-    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || !keySecret || keyId === 'rzp_test_placeholder' || !keyId.startsWith('rzp_')) {
       console.warn(`[${timestamp}] CONFIG_WARNING: Razorpay keys missing or invalid. Returning mock transmission packet.`);
-      // In development/test, we return a mock order to prevent frontend crash
       return NextResponse.json({
         id: `order_mock_${Date.now()}`,
         amount: amountInPaise,
@@ -51,6 +51,10 @@ export async function POST(request: Request) {
       amount: amountInPaise,
       currency,
       receipt: `void_transmission_${Date.now()}`,
+      notes: {
+        ...notes,
+        system: 'VOID_WEAR_CORE_V12'
+      }
     });
     
     console.log(`[${timestamp}] ORDER_CREATED: ID=${order.id}, Amount=${amountInPaise} Paise`);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -148,7 +148,13 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: subtotal }),
+        body: JSON.stringify({ 
+          amount: subtotal,
+          notes: {
+            user_id: user.uid,
+            operator_name: formData.displayName
+          }
+        }),
       });
 
       const orderData = await res.json();
@@ -170,10 +176,11 @@ export default function CheckoutPage() {
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
+        amount: orderData.amount, // Created server-side as strict integer
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'TECHNICAL ASSEMBLAGE UPLINK',
+        image: 'https://voidwear.co.in/logo.png', // Fallback branding
         order_id: orderData.id,
         handler: async function (response: any) {
           setLoading(true);
@@ -201,11 +208,26 @@ export default function CheckoutPage() {
           email: formData.email, 
           contact: formData.mobileNumber 
         },
+        notes: {
+          address: formData.addressLine1,
+          city: formData.city
+        },
         theme: { color: '#000000' },
-        modal: { ondismiss: () => setLoading(false) }
+        modal: { 
+          ondismiss: () => setLoading(false),
+          escape: false,
+          backdropclose: false
+        }
       };
 
       const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        toast({
+          variant: "destructive",
+          title: "TRANSMISSION_FAILED",
+          description: response.error.description.toUpperCase(),
+        });
+      });
       rzp.open();
     } catch (e: any) {
       console.error('[TRANSACTION_CRASH]', e);
