@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, Download } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -70,31 +70,18 @@ export default function CheckoutPage() {
     }
   }, [user, profile]);
 
-  useEffect(() => {
-    if (!isUserLoading && !isCartLoading && step !== 'success') {
-      if (!user) {
-        router.push('/login');
-      } else if (cartItems && cartItems.length === 0) {
-        router.push('/');
-      }
-    }
-  }, [user, isUserLoading, cartItems, isCartLoading, router, step]);
-
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
 
-  const finalizeOrderData = async (paymentId: string) => {
+  const finalizeOrderInFirestore = async (paymentId: string) => {
     if (!user || !db || !cartItems) return;
     
     const batch = writeBatch(db);
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
     
-    // Update user profile with latest shipping info
+    // Update profile
     const userRef = doc(db, 'users', user.uid);
-    batch.set(userRef, {
-      ...formData,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+    batch.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
     const newOrder = {
       id: orderId,
@@ -102,12 +89,7 @@ export default function CheckoutPage() {
       displayName: formData.displayName,
       email: formData.email,
       mobileNumber: formData.mobileNumber,
-      city: formData.city,
-      stateProvince: formData.stateProvince,
-      postalCode: formData.postalCode,
-      addressLine1: formData.addressLine1,
       items: cartItems,
-      productIds: cartItems.map(item => item.productId),
       totalAmount: subtotal,
       orderDate: new Date().toISOString(),
       shippingStatus: 'processing',
@@ -120,7 +102,7 @@ export default function CheckoutPage() {
 
     batch.set(orderRef, newOrder);
 
-    // Clear cart
+    // Clear cart items
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
@@ -130,68 +112,48 @@ export default function CheckoutPage() {
     setStep('success');
   };
 
-  const handleFinalize = async () => {
+  const handlePaymentUplink = async () => {
     if (!user || !db || !cartItems) return;
     setLoading(true);
 
     try {
-      /**
-       * STAGE 1: SECURE BACKEND ORDER CREATION
-       */
+      // 1. Create order on backend securely
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           amount: subtotal,
-          notes: {
-            user_id: user.uid,
-            operator_name: formData.displayName
-          }
+          notes: { operator_name: formData.displayName, user_uid: user.uid }
         }),
       });
 
       const orderData = await res.json();
-      if (!res.ok) throw new Error(orderData.message || 'GATEWAY_HANDSHAKE_FAILED');
+      if (!res.ok) throw new Error(orderData.message || 'UPLINK_FAILURE');
 
-      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      
-      if (!rzpKey) {
-        toast({ title: "GATEWAY_ID_MISSING", description: "CONFIGURATION ANOMALY DETECTED.", variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-
-      /**
-       * STAGE 2: FRONTEND MODAL INITIALIZATION
-       */
+      // 2. Initialize Modal
       const options = {
-        key: rzpKey,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'TECHNICAL ASSEMBLAGE UPLINK',
-        image: 'https://void-wear-853ff.web.app/logo.png',
         order_id: orderData.id,
         config: {
           display: {
             blocks: {
               preferred: {
                 name: `Pay with ${selectedMethod.toUpperCase()}`,
-                instruments: [{ 
-                  method: selectedMethod === 'card' ? 'card' : selectedMethod === 'upi' ? 'upi' : 'wallet' 
-                }],
-              },
+                instruments: [{ method: selectedMethod }]
+              }
             },
             sequence: ["block.preferred", "block.other"],
-            preferences: { show_default_blocks: true },
-          },
+            preferences: { show_default_blocks: true }
+          }
         },
         handler: async function (response: any) {
           setLoading(true);
           try {
-            /**
-             * STAGE 3: SECURE SIGNATURE VERIFICATION
-             */
+            // 3. Verify on backend
             const verifyRes = await fetch('/api/checkout/verify-payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -199,85 +161,53 @@ export default function CheckoutPage() {
             });
 
             if (verifyRes.ok) {
-              await finalizeOrderData(response.razorpay_payment_id);
+              await finalizeOrderInFirestore(response.razorpay_payment_id);
               toast({ title: "TRANSMISSION SECURED", description: "UPLINK VERIFIED SUCCESSFULLY." });
             } else {
-              toast({ variant: "destructive", title: "VERIFICATION_FAILURE", description: "TRANSACTION INTEGRITY MISMATCH." });
+              toast({ variant: "destructive", title: "VERIFICATION_FAILURE" });
             }
           } catch (err) {
-            toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "SYSTEM DISCONNECTION DURING VERIFICATION." });
+            toast({ variant: "destructive", title: "CONNECTION_TIMEOUT" });
           } finally {
             setLoading(false);
           }
         },
         prefill: { 
-          name: formData.displayName,
+          name: formData.displayName, 
           email: formData.email, 
-          contact: formData.mobileNumber
+          contact: formData.mobileNumber 
         },
         theme: { color: '#000000' }
       };
 
       const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', (response: any) => {
-        toast({ variant: "destructive", title: "UPLINK_FAILED", description: response.error.description.toUpperCase() });
-      });
       rzp.open();
     } catch (e: any) {
-      console.error('[UPLINK_CRASH]', e);
-      toast({ variant: "destructive", title: "UPLINK_FAILURE", description: e.message || "SYSTEM CONNECTION TIMEOUT." });
+      toast({ variant: "destructive", title: "GATEWAY_ERROR", description: e.message });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleNext = () => {
-    if (step === 'shipping') {
-      const required = ['displayName', 'addressLine1', 'city', 'postalCode', 'mobileNumber', 'email'];
-      const missing = required.filter(key => !formData[key as keyof typeof formData]);
-      if (missing.length > 0) {
-        toast({ title: "DATA NODES MISSING", description: "PLEASE FILL ALL REQUIRED FIELDS.", variant: "destructive" });
-        return;
-      }
-      setStep('review');
-    } else if (step === 'review') {
-      setStep('payment');
-    }
-  };
-
   if (isUserLoading || (step !== 'success' && isCartLoading) || isProfileLoading) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/40 mb-6" />
-        <p className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Syncing Protocols...</p>
-      </div>
-    );
+    return <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase">Syncing Protocols...</div>;
   }
 
   if (step === 'success') {
     return (
       <div className="min-h-screen flex items-center justify-center pt-32 pb-24 px-6 bg-black">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl">
-          <div className="flex justify-center">
-            <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-white" />
-            </div>
-          </div>
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase text-white">TRANSMISSION SECURED</h1>
-            <p className="text-[10px] tracking-[0.6em] text-white/80 uppercase font-bold">THANKS FOR YOUR ACQUISITION</p>
-          </div>
+          <CheckCircle2 className="w-16 h-16 text-white mx-auto" />
+          <h1 className="text-4xl font-black tracking-tight glow-text uppercase">TRANSMISSION SECURED</h1>
           <div className="bg-black/40 border border-white/10 p-8 space-y-3">
-            <p className="text-[9px] tracking-[0.4em] text-white/60 uppercase font-bold">TRANSMISSION_UID</p>
-            <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
+             <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase">TRANSMISSION_UID</p>
+             <p className="text-xl font-mono text-white font-black">{finalOrderId}</p>
           </div>
-          <div className="pt-8 flex flex-col gap-4">
-            <Button onClick={() => { if(orderObject) generateInvoicePDF(orderObject); }} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
-              DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
-            </Button>
-            <Button asChild variant="outline" className="h-16 border-white/20 text-white hover:bg-white/5 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase bg-transparent">
-              <Link href="/profile">TRACK IN DOSSIER <ExternalLink className="ml-3 w-4 h-4" /></Link>
-            </Button>
+          <div className="flex flex-col gap-4">
+             <Button onClick={() => orderObject && generateInvoicePDF(orderObject)} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
+                DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
+             </Button>
+             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-white/40 hover:text-white transition-all uppercase">RETURN TO DOSSIER</Link>
           </div>
         </motion.div>
       </div>
@@ -289,107 +219,84 @@ export default function CheckoutPage() {
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="flex flex-col md:flex-row gap-16">
           <div className="flex-1 space-y-12">
-            <div className="flex items-center gap-6 mb-12">
-              <StepIndicator current={step} target="shipping" label="LOGISTICS" />
-              <div className="h-[1px] w-8 bg-white/10" />
-              <StepIndicator current={step} target="review" label="REVIEW" />
-              <div className="h-[1px] w-8 bg-white/10" />
-              <StepIndicator current={step} target="payment" label="UPLINK" />
+            <div className="flex items-center gap-6 mb-12 opacity-50">
+              <span className={`text-[10px] tracking-widest ${step === 'shipping' ? 'text-white font-bold opacity-100' : ''}`}>LOGISTICS</span>
+              <span className={`text-[10px] tracking-widest ${step === 'review' ? 'text-white font-bold opacity-100' : ''}`}>AUDIT</span>
+              <span className={`text-[10px] tracking-widest ${step === 'payment' ? 'text-white font-bold opacity-100' : ''}`}>UPLINK</span>
             </div>
 
             <AnimatePresence mode="wait">
               {step === 'shipping' && (
-                <motion.div key="shipping" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-10">
-                  <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
+                <motion.div key="ship" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
+                  <h2 className="text-3xl font-black tracking-tighter uppercase glow-text">Logistics Node</h2>
                   <div className="grid md:grid-cols-2 gap-8">
-                    <Field label="NAME" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} required />
-                    <Field label="EMAIL" type="email" value={formData.email} onChange={v => setFormData({...formData, email: v})} required />
-                    <Field label="CONTACT" type="tel" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} required />
-                    <Field label="STATE" value={formData.stateProvince} onChange={v => setFormData({...formData, stateProvince: v})} required />
-                    <Field label="CITY" value={formData.city} onChange={v => setFormData({...formData, city: v})} required />
-                    <Field label="PIN CODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} required />
-                    <div className="md:col-span-2">
-                      <Field label="STREET ADDRESS" value={formData.addressLine1} onChange={v => setFormData({...formData, addressLine1: v})} required />
-                    </div>
+                     <Field label="IDENTIFIER (NAME)" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} />
+                     <Field label="COMM-CHANNEL (EMAIL)" value={formData.email} onChange={v => setFormData({...formData, email: v})} />
+                     <Field label="UPLINK (MOBILE)" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} />
+                     <Field label="CITY" value={formData.city} onChange={v => setFormData({...formData, city: v})} />
+                     <Field label="STATE" value={formData.stateProvince} onChange={v => setFormData({...formData, stateProvince: v})} />
+                     <Field label="PIN CODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} />
+                     <div className="md:col-span-2">
+                        <Field label="ADDRESS NODE" value={formData.addressLine1} onChange={v => setFormData({...formData, addressLine1: v})} />
+                     </div>
                   </div>
-                  <Button onClick={handleNext} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
-                    PROCEED TO REVIEW <ArrowRight className="ml-3 w-4 h-4" />
+                  <Button onClick={() => setStep('review')} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
+                    PROCEED TO AUDIT <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
               )}
 
               {step === 'review' && (
-                <motion.div key="review" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-12">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase text-white">Transmission Audit</h2>
-                    <Button variant="ghost" onClick={() => setStep('shipping')} className="text-[10px] tracking-widest text-white/60 hover:text-white uppercase font-bold">
-                      <ArrowLeft className="mr-2 w-3 h-3" /> EDIT LOGISTICS
-                    </Button>
-                  </div>
-                  <div className="bg-white/5 p-10 border border-white/10 space-y-6">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-white/40 tracking-widest uppercase">RECIPIENT_ENTITY</p>
-                      <p className="text-sm font-bold tracking-widest uppercase">{formData.displayName}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-white/40 tracking-widest uppercase">DESTINATION_NODE</p>
-                      <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
-                        {formData.addressLine1}, {formData.city}, {formData.stateProvince} - {formData.postalCode}
+                <motion.div key="rev" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+                   <h2 className="text-3xl font-black tracking-tighter uppercase glow-text">Transmission Audit</h2>
+                   <div className="bg-white/5 border border-white/10 p-10 space-y-6">
+                      <p className="text-[10px] tracking-widest text-white/40 uppercase">RECIPIENT: <span className="text-white font-bold">{formData.displayName}</span></p>
+                      <p className="text-[10px] tracking-widest text-white/40 uppercase leading-relaxed">
+                         DESTINATION: <span className="text-white font-bold">{formData.addressLine1}, {formData.city}, {formData.stateProvince} - {formData.postalCode}</span>
                       </p>
-                    </div>
-                  </div>
-                  <Button onClick={handleNext} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
-                    CONFIRM & PROCEED <ArrowRight className="ml-3 w-4 h-4" />
+                   </div>
+                   <Button onClick={() => setStep('payment')} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
+                    FINALIZE UPLINK <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
               )}
 
               {step === 'payment' && (
-                <motion.div key="payment" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-12">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase text-white">Uplink Channel</h2>
-                    <Button variant="ghost" onClick={() => setStep('review')} className="text-[10px] tracking-widest text-white/60 hover:text-white uppercase font-bold">
-                      <ArrowLeft className="mr-2 w-3 h-3" /> BACK TO REVIEW
-                    </Button>
-                  </div>
-                  <div className="bg-white/5 border border-white/10 p-12 space-y-10">
-                    <div className="grid gap-4">
-                      <PaymentOption label="UPI TRANSMISSION" icon={<Zap className="w-4 h-4" />} selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
-                      <PaymentOption label="CREDIT / DEBIT MODULE" icon={<CreditCard className="w-4 h-4" />} selected={selectedMethod === 'card'} onClick={() => setSelectedMethod('card')} />
-                      <PaymentOption label="DIGITAL WALLET" icon={<Wallet className="w-4 h-4" />} selected={selectedMethod === 'wallet'} onClick={() => setSelectedMethod('wallet')} />
-                    </div>
-                    <Button onClick={handleFinalize} disabled={loading} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                        <>INITIALIZE SECURE UPLINK <ShieldCheck className="ml-3 w-4 h-4" /></>
-                      )}
-                    </Button>
-                  </div>
+                <motion.div key="pay" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+                   <h2 className="text-3xl font-black tracking-tighter uppercase glow-text">Uplink Channel</h2>
+                   <div className="grid gap-4">
+                      <PaymentOption label="UPI TRANSMISSION" selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
+                      <PaymentOption label="CREDIT / DEBIT MODULE" selected={selectedMethod === 'card'} onClick={() => setSelectedMethod('card')} />
+                   </div>
+                   <Button onClick={handlePaymentUplink} disabled={loading} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                      {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>INITIALIZE SECURE UPLINK <Zap className="ml-3 w-4 h-4" /></>}
+                   </Button>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           <div className="w-full md:w-96">
-            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl sticky top-40">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase border-b border-white/10 pb-4">MISSION ASSEMBLAGE</h3>
-              <div className="space-y-6 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
-                {cartItems?.map(item => (
-                  <div key={item.id} className="flex gap-4">
-                    <div className="relative w-12 h-16 bg-white/5 border border-white/10 shrink-0">
-                      <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
+            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
+               <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase border-b border-white/10 pb-4">BAG CONTENTS</h3>
+               <div className="space-y-6">
+                  {cartItems?.map(item => (
+                    <div key={item.id} className="flex gap-4">
+                       <div className="relative w-12 aspect-[3/4] bg-white/5">
+                          <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
+                       </div>
+                       <div className="flex-1 space-y-1">
+                          <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>
+                          <p className="text-[8px] text-white/40 uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
+                          <p className="text-[9px] text-white font-bold">₹{item.price * item.quantity}</p>
+                       </div>
                     </div>
-                    <div className="flex-1 space-y-1 overflow-hidden">
-                      <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>
-                      <p className="text-[8px] text-white/60 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
-                      <p className="text-[9px] font-bold text-white">₹{item.price * item.quantity}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-8 border-t border-white/10 flex justify-between items-center">
-                <span className="text-[10px] font-black tracking-widest uppercase text-white/60">TOTAL VALUE</span>
-                <span className="text-2xl font-black tracking-tight glow-text text-white">₹{subtotal}</span>
-              </div>
+                  ))}
+               </div>
+               <div className="pt-8 border-t border-white/10 flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase text-white/60">TOTAL</span>
+                  <span className="text-2xl font-black glow-text text-white">₹{subtotal}</span>
+               </div>
             </div>
           </div>
         </div>
@@ -398,35 +305,19 @@ export default function CheckoutPage() {
   );
 }
 
-function StepIndicator({ current, target, label }: { current: string, target: string, label: string }) {
-  const isActive = current === target;
-  return (
-    <div className={`flex items-center gap-3 transition-all duration-500 ${isActive ? 'opacity-100' : 'opacity-30'}`}>
-      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white shadow-[0_0_10px_white]' : 'bg-white/40'}`} />
-      <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-white">{label}</span>
-    </div>
-  );
-}
-
-function Field({ label, value, onChange, type = "text", required }: { label: string, value: string, onChange: (v: string) => void, type?: string, required?: boolean }) {
+function Field({ label, value, onChange }: { label: string, value: string, onChange: (v: string) => void }) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
-        {label} {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
-      <Input type={type} value={value} onChange={e => onChange(e.target.value)} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase" placeholder={label} />
+      <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">{label}</label>
+      <Input value={value} onChange={e => onChange(e.target.value)} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase" />
     </div>
   );
 }
 
-function PaymentOption({ label, icon, selected, onClick }: { label: string, icon: React.ReactNode, selected?: boolean, onClick: () => void }) {
+function PaymentOption({ label, selected, onClick }: { label: string, selected?: boolean, onClick: () => void }) {
   return (
-    <div onClick={onClick} className={`flex items-center justify-between p-6 border transition-all cursor-pointer ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/40 bg-black/40'}`}>
-      <div className="flex items-center gap-4">
-        <div className={selected ? 'text-white' : 'text-white/60'}>{icon}</div>
-        <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-white' : 'text-white/80'}`}>{label}</span>
-      </div>
-      {selected && <CheckCircle2 className="w-4 h-4 text-white" />}
+    <div onClick={onClick} className={`p-6 border cursor-pointer transition-all ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/40 bg-black/40'}`}>
+       <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-white' : 'text-white/40'}`}>{label}</span>
     </div>
   );
 }

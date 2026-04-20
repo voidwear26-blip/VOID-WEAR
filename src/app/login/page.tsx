@@ -41,86 +41,47 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (mode === 'reset') {
-      const sanitizedEmail = email.trim();
-      if (!sanitizedEmail || !sanitizedEmail.includes('@')) {
-        toast({ 
-          variant: "destructive", 
-          title: "IDENTIFIER_INVALID", 
-          description: "ENTER A VALID COMM-CHANNEL (EMAIL) FOR RECOVERY." 
-        });
-        return;
-      }
+      if (!email.includes('@')) return;
       setLoading(true);
       try {
-        await initiatePasswordReset(auth, sanitizedEmail);
-        toast({ 
-          title: "RECOVERY TRANSMITTED", 
-          description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." 
-        });
+        await initiatePasswordReset(auth, email.trim());
+        toast({ title: "RECOVERY TRANSMITTED", description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." });
         setMode('login');
-      } catch (err: any) {
-        console.error('[RECOVERY_FAILURE]', err);
-        let msg = "COULD NOT INITIALIZE RECOVERY PROTOCOL.";
-        if (err.code === 'auth/user-not-found') msg = "NO ENTITY FOUND WITH THIS IDENTIFIER.";
-        
-        toast({ 
-          variant: "destructive", 
-          title: "UPLINK_FAILURE", 
-          description: msg.toUpperCase() 
-        });
+      } catch (err) {
+        toast({ variant: "destructive", title: "RECOVERY_FAILURE" });
       } finally {
         setLoading(false);
       }
       return;
     }
 
-    if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "DATA_NODES_MISSING",
-        description: "PLEASE ENTER BOTH COMM-CHANNEL AND ACCESS KEY.",
-      });
-      return;
-    }
+    if (!email || !password) return;
     
     setLoading(true);
     try {
       if (mode === 'signup') {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
         await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
-        toast({
-          title: "IDENTITY INITIALIZED",
-          description: "YOUR ENTITY HAS BEEN LOGGED IN THE VOID.",
-        });
+        toast({ title: "IDENTITY INITIALIZED", description: "YOUR ENTITY HAS BEEN LOGGED IN THE VOID." });
       } else {
         const cred = await initiateEmailSignIn(auth, email.trim(), password);
         await saveUserToFirestore(db, cred.user);
-        toast({
-          title: "LINK ESTABLISHED",
-          description: "UPLINK SECURED. WELCOME BACK, OPERATOR.",
-        });
+        toast({ title: "LINK ESTABLISHED", description: "WELCOME BACK, OPERATOR." });
       }
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
-      let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
-      let errorTitle = "LINK_FAILURE";
-      
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        errorTitle = "ACCESS_DENIED";
-        if (email.toLowerCase() === 'voidwear26@gmail.com') {
-          errorMessage = "ADMIN RECORD NOT FOUND OR INVALID. IF THIS IS YOUR FIRST ACCESS, USE 'SIGN UP' WITH KEY 'admin2026' TO INITIALIZE MASTER STATUS.";
-        } else {
-          errorMessage = "INVALID IDENTITY CREDENTIALS DETECTED.";
-        }
-      } else if (err.code === 'auth/email-already-in-use') {
-        errorTitle = "ENTITY_EXISTS";
-        errorMessage = "IDENTIFIER ALREADY REGISTERED. PLEASE PROCEED TO LOGIN.";
+      let errorTitle = "ACCESS_DENIED";
+      let errorMsg = "INVALID IDENTITY CREDENTIALS.";
+
+      if (email.toLowerCase() === 'voidwear26@gmail.com' && (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found')) {
+         errorTitle = "MASTER_NOT_FOUND";
+         errorMsg = "ADMIN RECORD NOT INITIALIZED. PLEASE USE 'SIGN UP' WITH KEY 'admin2026' TO INITIALIZE MASTER STATUS.";
       }
 
       toast({
         variant: "destructive",
         title: errorTitle,
-        description: errorMessage.toUpperCase(),
+        description: errorMsg.toUpperCase(),
       });
     } finally {
       setLoading(false);
@@ -132,241 +93,76 @@ export default function LoginPage() {
     try {
       const cred = await initiateGoogleSignIn(auth);
       await saveUserToFirestore(db, cred.user);
-      toast({ title: "GOOGLE UPLINK SECURED", description: "EXTERNAL IDENTITY VERIFIED." });
-    } catch (err: any) {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        toast({ variant: "destructive", title: "GOOGLE_LINK_FAILED" });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGuestSignIn = async () => {
-    setLoading(true);
-    try {
-      await initiateAnonymousSignIn(auth);
-      toast({ title: "ANONYMOUS UPLINK", description: "GUEST SESSION INITIALIZED." });
+      toast({ title: "GOOGLE UPLINK SECURED" });
     } catch (err) {
-      toast({ variant: "destructive", title: "GUEST_LINK_FAILED" });
+      toast({ variant: "destructive", title: "UPLINK_FAILED" });
     } finally {
       setLoading(false);
     }
   };
 
-  if (isUserLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/40" />
-      </div>
-    );
-  }
+  if (isUserLoading) return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="animate-spin text-white/20" /></div>;
 
   return (
-    <div className="min-h-screen bg-transparent flex items-center justify-center p-6 pt-32">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] rounded-full blur-[120px]" />
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="w-full max-w-md space-y-12 relative z-10"
-      >
-        <div className="text-center space-y-8 flex flex-col items-center">
-          <Link href="/" className="group flex flex-col items-center gap-6">
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              className="flex flex-col items-center gap-6"
-            >
-              <Image 
-                src="/logo.png" 
-                alt="VOID WEAR LOGO" 
-                width={80} 
-                height={80} 
-                className="h-20 w-auto object-contain brightness-200 grayscale opacity-80"
-                priority
-                unoptimized
-              />
-              <span className="text-2xl font-black tracking-[0.5em] text-white uppercase glow-text">VOID WEAR</span>
-            </motion.div>
-          </Link>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase font-bold">
-              {mode === 'login' ? 'AUTHENTICATION PROTOCOL' : mode === 'signup' ? 'IDENTITY INITIALIZATION' : 'RECOVERY PROTOCOL'}
-            </p>
-            <div className="h-px w-12 bg-white/10" />
-          </div>
+    <div className="min-h-screen flex items-center justify-center p-6 pt-32 bg-black">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-12">
+        <div className="text-center space-y-6">
+           <Image src="/logo.png" alt="VOID WEAR" width={80} height={80} className="mx-auto brightness-200 grayscale" unoptimized />
+           <p className="text-[10px] tracking-[0.8em] text-white/40 uppercase font-black">
+             {mode === 'login' ? 'AUTHENTICATION' : mode === 'signup' ? 'INITIALIZATION' : 'RECOVERY'}
+           </p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
           <form onSubmit={handleAuth} className="space-y-6">
-            <AnimatePresence mode="wait">
-              {mode === 'signup' && (
-                <motion.div 
-                  key="signup-fields"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-6 overflow-hidden"
-                >
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ENTITY NAME</label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                      <Input 
-                        type="text" 
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white uppercase" 
-                        placeholder="IDENTIFIER"
-                        required={mode === 'signup'}
-                        disabled={loading}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CONTACT MODULE</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                      <Input 
-                        type="tel" 
-                        value={mobileNumber}
-                        onChange={(e) => setMobileNumber(e.target.value)}
-                        className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
-                        placeholder="+91 XXXX XXX XXX"
-                        required={mode === 'signup'}
-                        disabled={loading}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">COMM-CHANNEL / EMAIL</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                <Input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
-                  placeholder="ID@NETWORK.COM"
-                  required
-                  disabled={loading}
-                />
+            {mode === 'signup' && (
+              <div className="space-y-6">
+                <Field label="ENTITY NAME" value={displayName} onChange={setDisplayName} placeholder="IDENTIFIER" />
+                <Field label="CONTACT MODULE" value={mobileNumber} onChange={setMobileNumber} placeholder="+91..." />
               </div>
-            </div>
-
+            )}
+            
+            <Field label="COMM-CHANNEL / EMAIL" value={email} onChange={setEmail} type="email" placeholder="ID@NETWORK.COM" />
+            
             {mode !== 'reset' && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ACCESS KEY / PASSWORD</label>
-                  {mode === 'login' && (
-                    <button 
-                      type="button" 
-                      onClick={() => setMode('reset')}
-                      className="text-[8px] tracking-widest text-white/30 hover:text-white transition-colors uppercase font-bold"
-                    >
-                      FORGOT?
-                    </button>
-                  )}
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY</label>
+                  {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-white/20 hover:text-white transition-colors font-black">FORGOT?</button>}
                 </div>
-                <div className="relative">
-                  <Input 
-                    type={showPassword ? 'text' : 'password'} 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white pr-12 font-mono" 
-                    placeholder="••••••••"
-                    required={mode !== 'reset'}
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors focus:outline-none"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+                <Input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white font-mono" />
               </div>
             )}
 
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none group shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500 uppercase"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  {mode === 'signup' ? 'INITIALIZE ACCOUNT' : mode === 'reset' ? 'SEND RECOVERY LINK' : 'ESTABLISH LINK'}
-                  <ArrowRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
+            <Button disabled={loading} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-black tracking-[0.5em] rounded-none">
+              {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'INITIALIZE' : mode === 'reset' ? 'RECOVER' : 'ESTABLISH LINK')}
             </Button>
           </form>
 
           {mode !== 'reset' && (
-            <div className="space-y-4">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-                <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em] font-bold"><span className="bg-[#050505] px-4 text-white/20">OR CONNECT VIA</span></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                  className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
-                >
-                  <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
-                  GOOGLE
-                </Button>
-
-                <Button 
-                  variant="outline" 
-                  onClick={handleGuestSignIn}
-                  disabled={loading}
-                  className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
-                >
-                  <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
-                  GUEST
-                </Button>
-              </div>
-            </div>
+             <Button variant="outline" onClick={handleGoogleSignIn} disabled={loading} className="w-full border-white/10 h-14 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
+                <Chrome className="mr-3 w-4 h-4" /> GOOGLE UPLINK
+             </Button>
           )}
 
           {mode === 'reset' && (
-            <button 
-              type="button"
-              onClick={() => setMode('login')}
-              className="w-full flex items-center justify-center gap-2 text-[8px] tracking-[0.4em] text-white/40 hover:text-white transition-colors uppercase font-bold pt-4"
-            >
-              <ChevronLeft className="w-3 h-3" />
-              BACK TO UPLINK
-            </button>
+             <button onClick={() => setMode('login')} className="w-full text-[8px] tracking-[0.4em] text-white/20 hover:text-white uppercase font-black">BACK TO UPLINK</button>
           )}
         </div>
 
-        <div className="text-center flex flex-col gap-4">
-          <button 
-            type="button"
-            disabled={loading}
-            onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}
-            className="text-[10px] tracking-[0.3em] text-white/40 hover:text-white transition-colors uppercase font-bold border-b border-white/5 hover:border-white pb-1 mx-auto"
-          >
-            {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
-          </button>
-        </div>
+        <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-white/40 hover:text-white border-b border-white/5 pb-1 uppercase font-black">
+          {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
+        </button>
       </motion.div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = "text", placeholder }: any) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">{label}</label>
+      <Input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white placeholder:text-white/5 uppercase" />
     </div>
   );
 }
