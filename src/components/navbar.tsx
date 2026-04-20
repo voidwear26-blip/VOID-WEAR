@@ -66,7 +66,7 @@ export function Navbar() {
             
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
               <Link href="/products" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">COLLECTION</Link>
-              <Link href="/story" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">STORY</Link>
+              <Link href="/story" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">TRENDS</Link>
               <Link href="/contact" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
             </div>
           </div>

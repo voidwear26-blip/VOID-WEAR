@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -85,7 +86,7 @@ export function Footer() {
               <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
               <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
               <Link href="/about" className="hover:text-white transition-colors">OUR STORY</Link>
-              <Link href="/story" className="hover:text-white transition-colors">TRANSMISSIONS</Link>
+              <Link href="/story" className="hover:text-white transition-colors">TRENDS</Link>
             </div>
           </div>
 
