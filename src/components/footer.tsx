@@ -60,7 +60,7 @@ export function Footer() {
                 <Facebook className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
               </a>
               <a 
-                href="#" 
+                href="https://x.com/voidwearoff_26" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-4 border border-white/10 bg-white/[0.02] hover:bg-white/10 hover:border-white/30 transition-all group"

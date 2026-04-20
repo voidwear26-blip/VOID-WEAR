@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/navbar';
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VOID WEAR | EMBRACE THE UNKNOWN',
     description: 'Premium futuristic technical shells for the digital migration.',
-    creator: '@voidwear',
+    creator: '@voidwearoff_26',
     images: ['/logo.png'],
   },
   robots: {

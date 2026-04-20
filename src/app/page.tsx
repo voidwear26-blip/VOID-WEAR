@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -59,7 +60,7 @@ export default function Home() {
     "sameAs": [
       "https://www.instagram.com/voidwearofficial_?igsh=MWs4NWJ6aXRhcnZ2dA==",
       "https://www.facebook.com/share/1DbtMjAWYh/",
-      "https://x.com/voidwear"
+      "https://x.com/voidwearoff_26"
     ],
     "description": "Premium futuristic technical shells for the digital migration."
   };
