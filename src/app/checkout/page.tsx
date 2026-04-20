@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -176,12 +175,31 @@ export default function CheckoutPage() {
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount, // Created server-side as strict integer
+        amount: orderData.amount, 
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'TECHNICAL ASSEMBLAGE UPLINK',
-        image: 'https://voidwear.co.in/logo.png', // Fallback branding
+        image: 'https://voidwear.co.in/logo.png',
         order_id: orderData.id,
+        // Professional pre-selection of method
+        config: {
+          display: {
+            blocks: {
+              preferred: {
+                name: `Pay with ${selectedMethod.toUpperCase()}`,
+                instruments: [
+                  {
+                    method: selectedMethod,
+                  },
+                ],
+              },
+            },
+            sequence: ["block.preferred", "block.other"],
+            preferences: {
+              show_default_blocks: true,
+            },
+          },
+        },
         handler: async function (response: any) {
           setLoading(true);
           try {
@@ -206,11 +224,13 @@ export default function CheckoutPage() {
         prefill: { 
           name: formData.displayName,
           email: formData.email, 
-          contact: formData.mobileNumber 
+          contact: formData.mobileNumber,
+          method: selectedMethod
         },
         notes: {
           address: formData.addressLine1,
-          city: formData.city
+          city: formData.city,
+          operator_id: user.uid
         },
         theme: { color: '#000000' },
         modal: { 
