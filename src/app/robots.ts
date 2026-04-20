@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 /**
  * VOID WEAR ROBOTS PROTOCOL
- * Guides search crawlers through the public void while guarding restricted nodes.
+ * Optimized for https://voidwear.co.in
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -15,10 +15,10 @@ export default function robots(): MetadataRoute.Robots {
           '/api/', 
           '/checkout/', 
           '/profile/', 
-          '/*?*' // Disallow tracking parameters to prevent duplicate indexing
+          '/*?*'
         ],
       },
     ],
-    sitemap: 'https://void-wear.vercel.app/sitemap.xml',
+    sitemap: 'https://voidwear.co.in/sitemap.xml',
   };
 }

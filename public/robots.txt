@@ -6,4 +6,4 @@ Disallow: /checkout/
 Disallow: /profile/
 Disallow: /*?*
 
-Sitemap: https://void-wear.vercel.app/sitemap.xml
+Sitemap: https://voidwear.co.in/sitemap.xml

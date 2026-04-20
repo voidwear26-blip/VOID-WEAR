@@ -12,16 +12,16 @@
     --popover-foreground: 0 0% 100%;
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 40%;
+    --secondary: 0 0% 60%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 40%;
-    --muted-foreground: 0 0% 85%;
+    --muted: 0 0% 60%;
+    --muted-foreground: 0 0% 90%;
     --accent: 0 0% 100%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 45%;
-    --input: 0 0% 40%;
+    --border: 0 0% 60%;
+    --input: 0 0% 60%;
     --ring: 0 0% 100%;
     --radius: 0rem;
   }
@@ -80,7 +80,7 @@
 
 .glow-border:hover {
   box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .eclipse-logo {
@@ -118,7 +118,6 @@
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
 
-/* Custom Scrollbar - Hardened Visibility */
 ::-webkit-scrollbar {
   width: 12px;
 }
@@ -128,10 +127,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.6);
   border: 3px solid black;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
 }

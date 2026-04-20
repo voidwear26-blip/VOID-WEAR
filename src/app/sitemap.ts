@@ -2,11 +2,11 @@ import { MetadataRoute } from 'next';
 
 /**
  * VOID WEAR DYNAMIC SITEMAP GENERATOR
- * This file generates the sitemap.xml dynamically at build/request time.
- * Ensure the baseUrl matches your production deployment coordinates.
+ * This file generates the sitemap.xml dynamically.
+ * Base URL: https://voidwear.co.in
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://void-wear.vercel.app';
+  const baseUrl = 'https://voidwear.co.in';
   
   const routes = [
     {
