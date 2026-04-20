@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { Instagram } from 'lucide-react';
 
 export function Footer() {
   const [mounted, setMounted] = useState(false);
@@ -38,16 +39,32 @@ export function Footer() {
             <p className="text-white/90 text-[10px] md:text-xs max-w-sm tracking-[0.4em] leading-relaxed uppercase font-light">
               REDEFINING APPAREL FOR THE ERA OF ACCELERATION. DESIGNED IN THE VOID, CRAFTED FOR THE WORLD.
             </p>
-            <div className="flex flex-wrap gap-8 md:gap-12">
-              {['INSTAGRAM', 'TWITTER', 'DISCORD', 'TELEGRAM'].map((social) => (
-                <a 
-                  key={social} 
-                  href="#" 
-                  className="text-[9px] font-bold tracking-[0.4em] text-white/80 hover:text-white transition-all duration-300 hover:glow-text uppercase"
+            <div className="flex flex-wrap gap-4">
+              <a 
+                href="#" 
+                className="p-4 border border-white/10 bg-white/[0.02] hover:bg-white/10 hover:border-white/30 transition-all group"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+              </a>
+              <a 
+                href="#" 
+                className="p-4 border border-white/10 bg-white/[0.02] hover:bg-white/10 hover:border-white/30 transition-all group"
+                aria-label="Telegram"
+              >
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="w-5 h-5 text-white/60 group-hover:text-white transition-colors"
                 >
-                  {social}
-                </a>
-              ))}
+                  <path d="M21 2 2 9.4s.2 3.1 3 4.2L16.2 19l4.8-17z" />
+                  <path d="M5.1 13.6 21 2 11.2 15.1l-1.1 5.9 3.5-3.3" />
+                </svg>
+              </a>
             </div>
           </div>
           
