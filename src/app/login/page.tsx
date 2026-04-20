@@ -1,24 +1,26 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@/firebase';
-import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, initiateGoogleSignIn } from '@/firebase/non-blocking-login';
+import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, initiateGoogleSignIn, initiatePasswordReset } from '@/firebase/non-blocking-login';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
-import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff, ShieldAlert, KeyRound, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+
+type AuthMode = 'login' | 'signup' | 'reset';
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [isSignUp, setIsSignUp] = useState(false);
+  
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,6 +37,24 @@ export default function LoginPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (mode === 'reset') {
+      if (!email) {
+        toast({ variant: "destructive", title: "IDENTIFIER_MISSING", description: "ENTER COMM-CHANNEL FOR RECOVERY." });
+        return;
+      }
+      setLoading(true);
+      try {
+        await initiatePasswordReset(auth, email);
+        toast({ title: "RECOVERY TRANSMITTED", description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." });
+        setMode('login');
+      } catch (err: any) {
+        toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "COULD NOT INITIALIZE RECOVERY PROTOCOL." });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!email || !password) {
       toast({
         variant: "destructive",
@@ -46,7 +66,7 @@ export default function LoginPage() {
     
     setLoading(true);
     try {
-      if (isSignUp) {
+      if (mode === 'signup') {
         await initiateEmailSignUp(auth, email, password);
         toast({
           title: "IDENTITY INITIALIZED",
@@ -64,7 +84,6 @@ export default function LoginPage() {
       let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
       let errorTitle = "LINK_FAILURE";
       
-      // Handle Firebase error codes
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         errorTitle = "ACCESS_DENIED";
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
@@ -74,7 +93,7 @@ export default function LoginPage() {
         }
       } else if (err.code === 'auth/email-already-in-use') {
         errorTitle = "ENTITY_EXISTS";
-        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF YOU CANNOT LOGIN, RESET YOUR PASSWORD IN THE FIREBASE CONSOLE.";
+        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF YOU CANNOT LOGIN, RESET YOUR PASSWORD.";
       } else if (err.code === 'auth/weak-password') {
         errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
       } else if (err.code === 'auth/too-many-requests') {
@@ -95,18 +114,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await initiateGoogleSignIn(auth);
-      toast({
-        title: "GOOGLE UPLINK SECURED",
-        description: "EXTERNAL IDENTITY VERIFIED.",
-      });
+      toast({ title: "GOOGLE UPLINK SECURED", description: "EXTERNAL IDENTITY VERIFIED." });
     } catch (err: any) {
-      console.error(err);
       if (err.code !== 'auth/popup-closed-by-user') {
-        toast({
-          variant: "destructive",
-          title: "GOOGLE_LINK_FAILED",
-          description: "EXTERNAL AUTHENTICATION SERVER UNREACHABLE.",
-        });
+        toast({ variant: "destructive", title: "GOOGLE_LINK_FAILED", description: "EXTERNAL AUTHENTICATION SERVER UNREACHABLE." });
       }
     } finally {
       setLoading(false);
@@ -117,17 +128,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await initiateAnonymousSignIn(auth);
-      toast({
-        title: "ANONYMOUS UPLINK",
-        description: "GUEST SESSION INITIALIZED.",
-      });
+      toast({ title: "ANONYMOUS UPLINK", description: "GUEST SESSION INITIALIZED." });
     } catch (err) {
-      console.error(err);
-      toast({
-        variant: "destructive",
-        title: "GUEST_LINK_FAILED",
-        description: "COULD NOT ESTABLISH ANONYMOUS CONNECTION.",
-      });
+      toast({ variant: "destructive", title: "GUEST_LINK_FAILED", description: "COULD NOT ESTABLISH ANONYMOUS CONNECTION." });
     } finally {
       setLoading(false);
     }
@@ -165,82 +168,109 @@ export default function LoginPage() {
             </motion.div>
           </Link>
           <div className="flex flex-col items-center gap-2">
-            <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase font-bold">AUTHENTICATION PROTOCOL</p>
+            <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase font-bold">
+              {mode === 'login' ? 'AUTHENTICATION PROTOCOL' : mode === 'signup' ? 'IDENTITY INITIALIZATION' : 'RECOVERY PROTOCOL'}
+            </p>
             <div className="h-px w-12 bg-white/10" />
           </div>
         </div>
 
         <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
           <form onSubmit={handleAuth} className="space-y-6">
-            {isSignUp && (
-              <>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ENTITY NAME</label>
-                  <div className="relative">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    <Input 
-                      type="text" 
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white uppercase" 
-                      placeholder="IDENTIFIER"
-                      required={isSignUp}
-                      disabled={loading}
-                    />
+            <AnimatePresence mode="wait">
+              {mode === 'signup' && (
+                <motion.div 
+                  key="signup-fields"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-6 overflow-hidden"
+                >
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ENTITY NAME</label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                      <Input 
+                        type="text" 
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white uppercase" 
+                        placeholder="IDENTIFIER"
+                        required={mode === 'signup'}
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CONTACT MODULE</label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    <Input 
-                      type="tel" 
-                      value={mobileNumber}
-                      onChange={(e) => setMobileNumber(e.target.value)}
-                      className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
-                      placeholder="+91 XXXX XXX XXX"
-                      required={isSignUp}
-                      disabled={loading}
-                    />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CONTACT MODULE</label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                      <Input 
+                        type="tel" 
+                        value={mobileNumber}
+                        onChange={(e) => setMobileNumber(e.target.value)}
+                        className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
+                        placeholder="+91 XXXX XXX XXX"
+                        required={mode === 'signup'}
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             <div className="space-y-2">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">COMM-CHANNEL / EMAIL</label>
-              <Input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
-                placeholder="ID@NETWORK.COM"
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ACCESS KEY / PASSWORD</label>
               <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                 <Input 
-                  type={showPassword ? 'text' : 'password'} 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white pr-12 font-mono" 
-                  placeholder="••••••••"
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-black/50 border-white/10 rounded-none h-14 pl-12 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white" 
+                  placeholder="ID@NETWORK.COM"
                   required
                   disabled={loading}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors focus:outline-none"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
             </div>
+
+            {mode !== 'reset' && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ACCESS KEY / PASSWORD</label>
+                  {mode === 'login' && (
+                    <button 
+                      type="button" 
+                      onClick={() => setMode('reset')}
+                      className="text-[8px] tracking-widest text-white/30 hover:text-white transition-colors uppercase font-bold"
+                    >
+                      FORGOT?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? 'text' : 'password'} 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-black/50 border-white/10 rounded-none h-14 text-xs tracking-widest focus-visible:border-white/40 placeholder:text-white/5 text-white pr-12 font-mono" 
+                    placeholder="••••••••"
+                    required={mode !== 'reset'}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <Button 
               type="submit" 
@@ -251,52 +281,65 @@ export default function LoginPage() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  {isSignUp ? 'INITIALIZE ACCOUNT' : 'ESTABLISH LINK'}
+                  {mode === 'signup' ? 'INITIALIZE ACCOUNT' : mode === 'reset' ? 'SEND RECOVERY LINK' : 'ESTABLISH LINK'}
                   <ArrowRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </Button>
           </form>
 
-          <div className="space-y-4">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em] font-bold"><span className="bg-[#050505] px-4 text-white/20">OR CONNECT VIA</span></div>
-            </div>
+          {mode !== 'reset' && (
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+                <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em] font-bold"><span className="bg-[#050505] px-4 text-white/20">OR CONNECT VIA</span></div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
-              >
-                <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
-                GOOGLE
-              </Button>
+              <div className="grid grid-cols-2 gap-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
+                >
+                  <Chrome className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
+                  GOOGLE
+                </Button>
 
-              <Button 
-                variant="outline" 
-                onClick={handleGuestSignIn}
-                disabled={loading}
-                className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
-              >
-                <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
-                GUEST
-              </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleGuestSignIn}
+                  disabled={loading}
+                  className="border-white/10 h-14 text-[9px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 rounded-none bg-transparent group font-bold"
+                >
+                  <Sparkles className="mr-3 w-4 h-4 group-hover:glow-icon transition-all" />
+                  GUEST
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="text-center">
+        <div className="text-center flex flex-col gap-4">
           <button 
             type="button"
             disabled={loading}
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-[10px] tracking-[0.3em] text-white/40 hover:text-white transition-colors uppercase font-bold border-b border-white/5 hover:border-white pb-1"
+            onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}
+            className="text-[10px] tracking-[0.3em] text-white/40 hover:text-white transition-colors uppercase font-bold border-b border-white/5 hover:border-white pb-1 mx-auto"
           >
-            {isSignUp ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
+            {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
           </button>
+          
+          {mode === 'reset' && (
+            <button 
+              type="button"
+              disabled={loading}
+              onClick={() => setMode('login')}
+              className="text-[9px] tracking-widest text-white/20 hover:text-white transition-colors uppercase font-bold"
+            >
+              BACK TO UPLINK
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
