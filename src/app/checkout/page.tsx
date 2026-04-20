@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, FileText, Download } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -86,6 +86,7 @@ export default function CheckoutPage() {
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
     
+    // Update user profile metadata
     const userRef = doc(db, 'users', user.uid);
     batch.set(userRef, {
       ...formData,
@@ -116,6 +117,7 @@ export default function CheckoutPage() {
 
     batch.set(orderRef, newOrder);
 
+    // Clear cart
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
@@ -125,25 +127,12 @@ export default function CheckoutPage() {
     setStep('success');
   };
 
-  const handleNext = () => {
-    if (step === 'shipping') {
-      const required = ['displayName', 'stateProvince', 'addressLine1', 'city', 'postalCode', 'mobileNumber', 'email'];
-      const missing = required.filter(key => !formData[key as keyof typeof formData]);
-      if (missing.length > 0) {
-        toast({ title: "DATA NODES MISSING", description: "PLEASE FILL ALL REQUIRED FIELDS.", variant: "destructive" });
-        return;
-      }
-      setStep('review');
-    } else if (step === 'review') {
-      setStep('payment');
-    }
-  };
-
   const handleFinalize = async () => {
     if (!user || !db || !cartItems) return;
     setLoading(true);
 
     try {
+      // 1. Create order on backend
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -157,47 +146,30 @@ export default function CheckoutPage() {
       });
 
       const orderData = await res.json();
-      
-      if (!res.ok) throw new Error(orderData.message || 'GATEWAY_HANDSHAKE_FAILED');
+      if (!res.ok) throw new Error(orderData.message || 'UPLINK_INITIALIZATION_FAILED');
 
-      if (orderData.isMock) {
-        toast({ title: "DEVELOPER PROTOCOL", description: "BYPASSING LIVE GATEWAY. SIMULATING UPLINK." });
-        setTimeout(async () => {
-          await finalizeOrderData(`MOCK_${Date.now()}`);
-          setLoading(false);
-        }, 2000);
-        return;
-      }
-      
-      if (!(window as any).Razorpay) {
-        throw new Error('PAYMENT_MODULE_NOT_DETECTED');
-      }
+      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      if (!rzpKey) throw new Error('CLIENT_IDENTIFIER_MISSING');
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount, 
+        key: rzpKey,
+        amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'TECHNICAL ASSEMBLAGE UPLINK',
         image: 'https://voidwear.co.in/logo.png',
         order_id: orderData.id,
-        // Professional pre-selection of method
+        // Payment method prioritization
         config: {
           display: {
             blocks: {
               preferred: {
                 name: `Pay with ${selectedMethod.toUpperCase()}`,
-                instruments: [
-                  {
-                    method: selectedMethod,
-                  },
-                ],
+                instruments: [{ method: selectedMethod === 'card' ? 'card' : selectedMethod === 'upi' ? 'upi' : 'wallet' }],
               },
             },
             sequence: ["block.preferred", "block.other"],
-            preferences: {
-              show_default_blocks: true,
-            },
+            preferences: { show_default_blocks: true },
           },
         },
         handler: async function (response: any) {
@@ -215,7 +187,6 @@ export default function CheckoutPage() {
               toast({ variant: "destructive", title: "VERIFICATION_FAILURE", description: "TRANSACTION SECURITY MISMATCH." });
             }
           } catch (err) {
-            console.error('[UPLINK_VERIFY_ERROR]', err);
             toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "SYSTEM DISCONNECTION." });
           } finally {
             setLoading(false);
@@ -224,42 +195,39 @@ export default function CheckoutPage() {
         prefill: { 
           name: formData.displayName,
           email: formData.email, 
-          contact: formData.mobileNumber,
-          method: selectedMethod
+          contact: formData.mobileNumber
         },
         notes: {
           address: formData.addressLine1,
           city: formData.city,
           operator_id: user.uid
         },
-        theme: { color: '#000000' },
-        modal: { 
-          ondismiss: () => setLoading(false),
-          escape: false,
-          backdropclose: false
-        }
+        theme: { color: '#000000' }
       };
 
       const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', function (response: any) {
-        toast({
-          variant: "destructive",
-          title: "TRANSMISSION_FAILED",
-          description: response.error.description.toUpperCase(),
-        });
+      rzp.on('payment.failed', (response: any) => {
+        toast({ variant: "destructive", title: "TRANSMISSION_FAILED", description: response.error.description.toUpperCase() });
       });
       rzp.open();
     } catch (e: any) {
       console.error('[TRANSACTION_CRASH]', e);
-      toast({ variant: "destructive", title: "UPLINK_FAILURE", description: e.message || "COULD NOT INITIALIZE PAYMENT MODULE." });
+      toast({ variant: "destructive", title: "UPLINK_FAILURE", description: e.message || "COULD NOT INITIALIZE MODULE." });
       setLoading(false);
     }
   };
 
-  const handleDownloadInvoice = () => {
-    if (orderObject) {
-      generateInvoicePDF(orderObject);
-      toast({ title: "MANIFESTO RETRIEVED", description: "TRANSMISSION LOG DOWNLOADED SUCCESSFULLY." });
+  const handleNext = () => {
+    if (step === 'shipping') {
+      const required = ['displayName', 'addressLine1', 'city', 'postalCode', 'mobileNumber', 'email'];
+      const missing = required.filter(key => !formData[key as keyof typeof formData]);
+      if (missing.length > 0) {
+        toast({ title: "DATA NODES MISSING", description: "PLEASE FILL ALL REQUIRED FIELDS.", variant: "destructive" });
+        return;
+      }
+      setStep('review');
+    } else if (step === 'review') {
+      setStep('payment');
     }
   };
 
@@ -275,30 +243,27 @@ export default function CheckoutPage() {
   if (step === 'success') {
     return (
       <div className="min-h-screen flex items-center justify-center pt-32 pb-24 px-6 bg-black">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl relative overflow-hidden">
-          <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/5 rounded-full blur-[100px] animate-pulse" />
-          <div className="relative z-10 space-y-12">
-            <div className="flex justify-center">
-              <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-white animate-in zoom-in-50" />
-              </div>
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl">
+          <div className="flex justify-center">
+            <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-white" />
             </div>
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">TRANSMISSION SECURED</h1>
-              <p className="text-[10px] tracking-[0.6em] text-white/80 uppercase font-bold">THANKS FOR YOUR ACQUISITION</p>
-            </div>
-            <div className="bg-black/40 border border-white/10 p-8 space-y-3">
-              <p className="text-[9px] tracking-[0.4em] text-white/60 uppercase font-bold">TRANSMISSION_UID</p>
-              <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
-            </div>
-            <div className="pt-8 flex flex-col gap-4">
-              <Button onClick={handleDownloadInvoice} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
-                DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
-              </Button>
-              <Button asChild variant="outline" className="h-16 border-white/20 text-white hover:bg-white/5 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase bg-transparent">
-                <Link href="/profile">TRACK TRANSMISSION <ExternalLink className="ml-3 w-4 h-4" /></Link>
-              </Button>
-            </div>
+          </div>
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase text-white">TRANSMISSION SECURED</h1>
+            <p className="text-[10px] tracking-[0.6em] text-white/80 uppercase font-bold">THANKS FOR YOUR ACQUISITION</p>
+          </div>
+          <div className="bg-black/40 border border-white/10 p-8 space-y-3">
+            <p className="text-[9px] tracking-[0.4em] text-white/60 uppercase font-bold">TRANSMISSION_UID</p>
+            <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
+          </div>
+          <div className="pt-8 flex flex-col gap-4">
+            <Button onClick={() => { if(orderObject) generateInvoicePDF(orderObject); }} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
+              DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-white/20 text-white hover:bg-white/5 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase bg-transparent">
+              <Link href="/profile">TRACK IN DOSSIER <ExternalLink className="ml-3 w-4 h-4" /></Link>
+            </Button>
           </div>
         </motion.div>
       </div>
@@ -321,10 +286,7 @@ export default function CheckoutPage() {
             <AnimatePresence mode="wait">
               {step === 'shipping' && (
                 <motion.div key="shipping" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-10">
-                  <div className="space-y-4">
-                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
-                    <p className="text-[10px] tracking-[0.4em] text-white/60 uppercase font-bold">DESTINATION NODES</p>
-                  </div>
+                  <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
                   <div className="grid md:grid-cols-2 gap-8">
                     <Field label="NAME" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} required />
                     <Field label="EMAIL" type="email" value={formData.email} onChange={v => setFormData({...formData, email: v})} required />
@@ -404,17 +366,15 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 space-y-1 overflow-hidden">
                       <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>
-                      <p className="text-[8px] text-white/60 tracking-widest uppercase">SIZE: {item.size} // QTY: {item.quantity}</p>
+                      <p className="text-[8px] text-white/60 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
                       <p className="text-[9px] font-bold text-white">₹{item.price * item.quantity}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="pt-8 border-t border-white/10 space-y-4">
-                <div className="flex justify-between items-center pt-4">
-                  <span className="text-[10px] font-black tracking-widest uppercase text-white/60">TOTAL VALUE</span>
-                  <span className="text-2xl font-black tracking-tight glow-text text-white">₹{subtotal}</span>
-                </div>
+              <div className="pt-8 border-t border-white/10 flex justify-between items-center">
+                <span className="text-[10px] font-black tracking-widest uppercase text-white/60">TOTAL VALUE</span>
+                <span className="text-2xl font-black tracking-tight glow-text text-white">₹{subtotal}</span>
               </div>
             </div>
           </div>
@@ -440,7 +400,7 @@ function Field({ label, value, onChange, type = "text", required }: { label: str
       <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
         {label} {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      <Input type={type} value={value} onChange={e => onChange(e.target.value)} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase placeholder:text-white/5" placeholder={label} />
+      <Input type={type} value={value} onChange={e => onChange(e.target.value)} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase" placeholder={label} />
     </div>
   );
 }
