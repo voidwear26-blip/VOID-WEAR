@@ -105,14 +105,16 @@ export default function LoginPage() {
       let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
       let errorTitle = "LINK_FAILURE";
       
-      if (err.code === 'auth/invalid-credential') {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         errorTitle = "ACCESS_DENIED";
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
-          errorMessage = "ADMIN ACCESS DENIED. USE THE 'SIGN UP' TAB WITH KEY 'admin2026' TO INITIALIZE YOUR MASTER RECORD.";
+          errorMessage = "ADMIN RECORD NOT FOUND OR INVALID. IF THIS IS YOUR FIRST ACCESS, USE 'SIGN UP' WITH KEY 'admin2026' TO INITIALIZE MASTER STATUS.";
+        } else {
+          errorMessage = "INVALID IDENTITY CREDENTIALS DETECTED.";
         }
       } else if (err.code === 'auth/email-already-in-use') {
         errorTitle = "ENTITY_EXISTS";
-        errorMessage = "IDENTIFIER ALREADY REGISTERED. PLEASE LOGIN.";
+        errorMessage = "IDENTIFIER ALREADY REGISTERED. PLEASE PROCEED TO LOGIN.";
       }
 
       toast({
@@ -151,6 +153,14 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (isUserLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-10 h-10 animate-spin text-white/40" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-transparent flex items-center justify-center p-6 pt-32">

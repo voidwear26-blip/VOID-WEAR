@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Auth,
@@ -7,6 +8,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
+  signOut,
   UserCredential,
 } from 'firebase/auth';
 
@@ -28,7 +30,6 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 /** Initiate Google sign-in (non-blocking). */
 export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential> {
   const provider = new GoogleAuthProvider();
-  // Optional: Add custom parameters if needed
   provider.setCustomParameters({ prompt: 'select_account' });
   return signInWithPopup(authInstance, provider);
 }
@@ -36,4 +37,9 @@ export function initiateGoogleSignIn(authInstance: Auth): Promise<UserCredential
 /** Initiate password reset email (non-blocking). */
 export function initiatePasswordReset(authInstance: Auth, email: string): Promise<void> {
   return sendPasswordResetEmail(authInstance, email);
+}
+
+/** Initiate sign-out (non-blocking). */
+export function initiateSignOut(authInstance: Auth): Promise<void> {
+  return signOut(authInstance);
 }

@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
 import { motion } from 'framer-motion';
 import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { initiateSignOut } from '@/firebase/non-blocking-login';
 import { collection } from 'firebase/firestore';
 
 export function Navbar() {
@@ -42,6 +43,14 @@ export function Navbar() {
     whileHover: { scale: 1.1, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))" },
     whileTap: { scale: 0.95 },
     transition: { type: "spring", stiffness: 400, damping: 17 }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await initiateSignOut(auth);
+    } catch (err) {
+      console.error('[LOGOUT_FAILURE]', err);
+    }
   };
 
   return (
@@ -84,7 +93,7 @@ export function Navbar() {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={() => auth.signOut()}
+                  onClick={handleLogout}
                   className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none"
                 >
                   <motion.div {...iconMotionProps}>
