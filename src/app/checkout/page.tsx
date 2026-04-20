@@ -70,6 +70,15 @@ export default function CheckoutPage() {
     }
   }, [user, profile]);
 
+  // SYSTEM_FIX: Move navigation side-effects out of render phase
+  useEffect(() => {
+    if (!isUserLoading && !isCartLoading) {
+      if (!user || (cartItems && cartItems.length === 0)) {
+        router.push('/');
+      }
+    }
+  }, [user, isUserLoading, cartItems, isCartLoading, router]);
+
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
 
   const finalizeOrderData = async (paymentId: string) => {
@@ -133,7 +142,6 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // 1. Create Order on Backend
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -146,7 +154,6 @@ export default function CheckoutPage() {
         throw new Error(orderData.message || 'COULD NOT INITIALIZE ORDER PACKET');
       }
 
-      // 2. Check for Mock Mode
       if (orderData.isMock) {
         toast({ 
           title: "DEVELOPER MODE", 
@@ -159,7 +166,6 @@ export default function CheckoutPage() {
         return;
       }
       
-      // 3. Initialize Razorpay Checkout
       if (!(window as any).Razorpay) {
         throw new Error('PAYMENT MODULE NOT READY. RETRYING...');
       }
@@ -275,8 +281,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!user || cartItems?.length === 0) {
-    router.push('/');
+  if (!user || (cartItems && cartItems.length === 0)) {
     return null;
   }
 
