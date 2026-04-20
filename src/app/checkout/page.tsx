@@ -137,7 +137,6 @@ export default function CheckoutPage() {
     try {
       /**
        * STAGE 1: SECURE BACKEND ORDER CREATION
-       * We call our internal API route which uses the secret key safely on the server.
        */
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
@@ -171,7 +170,7 @@ export default function CheckoutPage() {
         currency: orderData.currency,
         name: 'VOID WEAR',
         description: 'TECHNICAL ASSEMBLAGE UPLINK',
-        image: 'https://void-wear-853ff.web.app/logo.png', // Fallback brand logo
+        image: 'https://void-wear-853ff.web.app/logo.png',
         order_id: orderData.id,
         config: {
           display: {
@@ -192,7 +191,6 @@ export default function CheckoutPage() {
           try {
             /**
              * STAGE 3: SECURE SIGNATURE VERIFICATION
-             * Audit the payment integrity on the backend before finalizing.
              */
             const verifyRes = await fetch('/api/checkout/verify-payment', {
               method: 'POST',
