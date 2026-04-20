@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     }
 
     // 2. Currency Calibration (Strict Integer Paise)
+    // Razorpay fails if amount has decimals. We multiply by 100 and round.
     const amountInPaise = Math.round(amount * 100);
     
     if (amountInPaise < 100) {
@@ -32,11 +34,11 @@ export async function POST(request: Request) {
     }
 
     // 3. Credentials Retrieval
-    const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!keyId || !keySecret || keyId.includes('YOUR_')) {
-      console.error(`[${timestamp}] CRITICAL_SYSTEM_ERROR: Razorpay gateway credentials missing.`);
+    if (!keyId || !keySecret) {
+      console.error(`[${timestamp}] CRITICAL_SYSTEM_ERROR: Razorpay credentials missing from .env`);
       return NextResponse.json({ 
         error: 'GATEWAY_ID_UNSET', 
         message: 'The transaction gateway is currently offline.' 
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
     console.error(`[${timestamp}] GATEWAY_HANDSHAKE_CRASH:`, error);
     return NextResponse.json({ 
       error: 'SERVER_UPLINK_FAILURE', 
-      message: 'Could not establish connection with the payment gateway.' 
+      message: error.message || 'Could not establish connection with the payment gateway.' 
     }, { status: 500 });
   }
 }

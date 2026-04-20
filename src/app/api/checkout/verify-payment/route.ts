@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!secret) {
-      console.error(`[${timestamp}] SECURITY_FAILURE: Verification secret missing from server.`);
+      console.error(`[${timestamp}] SECURITY_FAILURE: Verification secret missing from server archive.`);
       return NextResponse.json({ 
         error: 'AUTH_NODE_OFFLINE', 
         message: 'Internal security audit failed.' 
