@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     }
 
     // Razorpay requires amount in smallest currency unit (Paise for INR)
+    // IMPORTANT: Math.round ensures we have no floating point numbers
     const amountInPaise = Math.round(amount * 100);
     
     if (amountInPaise < 100) {
@@ -29,8 +30,8 @@ export async function POST(request: Request) {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!keyId || !keySecret || keyId.includes('placeholder') || keyId === 'undefined') {
-      console.warn(`[${timestamp}] CONFIG_WARNING: Razorpay keys missing. Returning mock transmission packet.`);
+    if (!keyId || !keySecret || keyId === 'rzp_test_placeholder' || !keyId.startsWith('rzp_')) {
+      console.warn(`[${timestamp}] CONFIG_WARNING: Razorpay keys missing or invalid. Returning mock transmission packet.`);
       // In development/test, we return a mock order to prevent frontend crash
       return NextResponse.json({
         id: `order_mock_${Date.now()}`,

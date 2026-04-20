@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, setDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, MapPin, CheckCircle2, Zap, Wallet, Sparkles, ExternalLink, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Truck, Package, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,7 +26,7 @@ export default function CheckoutPage() {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('upi');
   const [finalOrderId, setFinalOrderId] = useState<string | null>(null);
 
-  // Fetch Entity Profile for pre-population
+  // 1. DATA UPLINK: Fetch Profile
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'users', user.uid);
@@ -34,7 +34,7 @@ export default function CheckoutPage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
-  // Fetch Cart Items
+  // 2. DATA UPLINK: Fetch Active Cart
   const cartItemsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
@@ -54,23 +54,24 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
+  // 3. SYNCHRONIZATION: Pre-populate from Identity logs
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       setFormData(prev => ({
         ...prev,
-        displayName: profile?.displayName || user.displayName || '',
-        email: profile?.email || user.email || '',
-        mobileNumber: profile?.mobileNumber || '',
-        addressLine1: profile?.addressLine1 || '',
-        city: profile?.city || '',
-        stateProvince: profile?.stateProvince || '',
-        postalCode: profile?.postalCode || '',
-        landmark: profile?.landmark || '',
+        displayName: profile.displayName || user.displayName || '',
+        email: profile.email || user.email || '',
+        mobileNumber: profile.mobileNumber || '',
+        addressLine1: profile.addressLine1 || '',
+        city: profile.city || '',
+        stateProvince: profile.stateProvince || '',
+        postalCode: profile.postalCode || '',
+        landmark: profile.landmark || '',
       }));
     }
   }, [user, profile]);
 
-  // SYSTEM_FIX: Move navigation side-effects out of render phase
+  // 4. PROTOCOL: Guard empty carts
   useEffect(() => {
     if (!isUserLoading && !isCartLoading) {
       if (!user || (cartItems && cartItems.length === 0)) {
@@ -81,6 +82,7 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
 
+  // 5. TRANSACTION: Finalize DB Entry
   const finalizeOrderData = async (paymentId: string) => {
     if (!user || !db || !cartItems) return;
     
@@ -88,16 +90,24 @@ export default function CheckoutPage() {
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
     
+    // Sync address to profile if it was updated during checkout
     const userRef = doc(db, 'users', user.uid);
     batch.set(userRef, {
       ...formData,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
+    // Initialize Order Document
     batch.set(orderRef, {
       id: orderId,
       userId: user.uid,
-      ...formData,
+      displayName: formData.displayName,
+      email: formData.email,
+      mobileNumber: formData.mobileNumber,
+      city: formData.city,
+      stateProvince: formData.stateProvince,
+      postalCode: formData.postalCode,
+      addressLine1: formData.addressLine1,
       items: cartItems,
       productIds: cartItems.map(item => item.productId),
       totalAmount: subtotal,
@@ -110,6 +120,7 @@ export default function CheckoutPage() {
       updatedAt: new Date().toISOString()
     });
 
+    // Clear active cart items
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
@@ -123,11 +134,7 @@ export default function CheckoutPage() {
       const required = ['displayName', 'stateProvince', 'addressLine1', 'city', 'postalCode', 'mobileNumber', 'email'];
       const missing = required.filter(key => !formData[key as keyof typeof formData]);
       if (missing.length > 0) {
-        toast({ 
-          title: "LOGISTICS ERROR", 
-          description: "PLEASE FILL ALL REQUIRED FIELDS TO PROCEED.", 
-          variant: "destructive" 
-        });
+        toast({ title: "DATA NODES MISSING", description: "PLEASE FILL ALL REQUIRED FIELDS.", variant: "destructive" });
         return;
       }
       setStep('review');
@@ -138,10 +145,10 @@ export default function CheckoutPage() {
 
   const handleFinalize = async () => {
     if (!user || !db || !cartItems) return;
-
     setLoading(true);
 
     try {
+      // Step A: Initialize order on server
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,34 +157,29 @@ export default function CheckoutPage() {
 
       const orderData = await res.json();
       
-      if (!res.ok) {
-        throw new Error(orderData.message || 'COULD NOT INITIALIZE ORDER PACKET');
-      }
+      if (!res.ok) throw new Error(orderData.message || 'GATEWAY_HANDSHAKE_FAILED');
 
+      // Step B: Handle Dev/Mock mode
       if (orderData.isMock) {
-        toast({ 
-          title: "DEVELOPER MODE", 
-          description: "BYPASSING GATEWAY HANDSHAKE. LOGGING MOCK TRANSMISSION.", 
-        });
+        toast({ title: "DEVELOPER PROTOCOL", description: "BYPASSING LIVE GATEWAY. SIMULATING UPLINK." });
         setTimeout(async () => {
-          await finalizeOrderData(`MOCK_PAY_${Date.now()}`);
+          await finalizeOrderData(`MOCK_${Date.now()}`);
           setLoading(false);
-        }, 1500);
+        }, 2000);
         return;
       }
       
+      // Step C: Production Razorpay Handshake
       if (!(window as any).Razorpay) {
-        throw new Error('PAYMENT MODULE NOT READY. RETRYING...');
+        throw new Error('PAYMENT_MODULE_NOT_DETECTED');
       }
 
-      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      
       const options = {
-        key: rzpKey,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
-        description: 'SECURE DIGITAL TRANSMISSION',
+        description: 'TECHNICAL ASSEMBLAGE UPLINK',
         order_id: orderData.id,
         handler: async function (response: any) {
           setLoading(true);
@@ -191,11 +193,11 @@ export default function CheckoutPage() {
             if (verifyRes.ok) {
               await finalizeOrderData(response.razorpay_payment_id);
             } else {
-              toast({ title: "VERIFICATION FAILURE", description: "TRANSACTION SECURITY MISMATCH. CONTACT SUPPORT.", variant: "destructive" });
+              toast({ variant: "destructive", title: "VERIFICATION_FAILURE", description: "TRANSACTION SECURITY MISMATCH." });
             }
           } catch (err) {
-            console.error('VERIFY_ERROR', err);
-            toast({ title: "UPLINK ERROR", description: "FAILED TO VERIFY TRANSMISSION STATUS.", variant: "destructive" });
+            console.error('[UPLINK_VERIFY_ERROR]', err);
+            toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "SYSTEM DISCONNECTION." });
           } finally {
             setLoading(false);
           }
@@ -206,20 +208,14 @@ export default function CheckoutPage() {
           contact: formData.mobileNumber 
         },
         theme: { color: '#000000' },
-        modal: {
-          ondismiss: () => setLoading(false)
-        }
+        modal: { ondismiss: () => setLoading(false) }
       };
 
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
     } catch (e: any) {
-      console.error('[RAZORPAY_FLOW_ERROR]', e);
-      toast({ 
-        title: "UPLINK FAILURE", 
-        description: e.message || "COULD NOT ESTABLISH SECURE PAYMENT GATEWAY.", 
-        variant: "destructive" 
-      });
+      console.error('[TRANSACTION_CRASH]', e);
+      toast({ variant: "destructive", title: "UPLINK_FAILURE", description: e.message || "COULD NOT INITIALIZE PAYMENT MODULE." });
       setLoading(false);
     }
   };
@@ -227,7 +223,7 @@ export default function CheckoutPage() {
   if (isUserLoading || isCartLoading || isProfileLoading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/60 mb-6" />
+        <Loader2 className="w-10 h-10 animate-spin text-white/40 mb-6" />
         <p className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Syncing Protocols...</p>
       </div>
     );
@@ -236,53 +232,31 @@ export default function CheckoutPage() {
   if (step === 'success') {
     return (
       <div className="min-h-screen flex items-center justify-center pt-32 pb-24 px-6 bg-black">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl relative overflow-hidden"
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl relative overflow-hidden">
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/5 rounded-full blur-[100px] animate-pulse" />
-          
           <div className="relative z-10 space-y-12">
             <div className="flex justify-center">
-              <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+              <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="w-10 h-10 text-white animate-in zoom-in-50" />
               </div>
             </div>
-
             <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">TRANSMISSION SECURED</h1>
-              <p className="text-[10px] tracking-[0.6em] text-white/80 uppercase font-bold">THANKS FOR YOUR PURCHASE</p>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">TRANSMISSION SECURED</h1>
+              <p className="text-[10px] tracking-[0.6em] text-white/80 uppercase font-bold">THANKS FOR YOUR ACQUISITION</p>
             </div>
-
             <div className="bg-black/40 border border-white/10 p-8 space-y-3">
-              <p className="text-[9px] tracking-[0.4em] text-white/60 uppercase font-bold">TRANSMISSION IDENTIFIER</p>
+              <p className="text-[9px] tracking-[0.4em] text-white/60 uppercase font-bold">TRANSMISSION_UID</p>
               <p className="text-xl font-mono tracking-widest text-white font-black">{finalOrderId}</p>
             </div>
-
-            <p className="text-sm text-white/80 tracking-widest leading-relaxed uppercase max-w-md mx-auto">
-              YOUR ASSEMBLAGE HAS BEEN LOGGED IN THE VOID. WE ARE INITIALIZING THE EXPEDITION PROTOCOLS.
-            </p>
-
             <div className="pt-8 flex flex-col gap-4">
-              <Button asChild className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                <Link href="/profile">
-                  TRACK TRANSMISSION
-                  <ExternalLink className="ml-3 w-4 h-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="ghost" className="h-14 text-[10px] tracking-[0.4em] text-white/80 hover:text-white uppercase font-bold">
-                <Link href="/products">CONTINUE EXPLORATION</Link>
+              <Button asChild className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
+                <Link href="/profile">TRACK TRANSMISSION <ExternalLink className="ml-3 w-4 h-4" /></Link>
               </Button>
             </div>
           </div>
         </motion.div>
       </div>
     );
-  }
-
-  if (!user || (cartItems && cartItems.length === 0)) {
-    return null;
   }
 
   return (
@@ -295,178 +269,76 @@ export default function CheckoutPage() {
               <div className="h-[1px] w-8 bg-white/10" />
               <StepIndicator current={step} target="review" label="REVIEW" />
               <div className="h-[1px] w-8 bg-white/10" />
-              <StepIndicator current={step} target="payment" label="PAYMENT" />
+              <StepIndicator current={step} target="payment" label="UPLINK" />
             </div>
 
             <AnimatePresence mode="wait">
               {step === 'shipping' && (
-                <motion.div 
-                  key="shipping" 
-                  initial={{ opacity: 0, x: -20 }} 
-                  animate={{ opacity: 1, x: 0 }} 
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-10"
-                >
+                <motion.div key="shipping" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-10">
                   <div className="space-y-4">
                     <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Logistics Protocol</h2>
-                    <p className="text-[10px] tracking-[0.4em] text-white/80 uppercase font-bold">IDENTIFICATION & DESTINATION NODES</p>
+                    <p className="text-[10px] tracking-[0.4em] text-white/60 uppercase font-bold">DESTINATION NODES</p>
                   </div>
-                  
                   <div className="grid md:grid-cols-2 gap-8">
                     <Field label="NAME" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} required />
                     <Field label="EMAIL" type="email" value={formData.email} onChange={v => setFormData({...formData, email: v})} required />
-                    <Field label="CONTACT NUMBER" type="tel" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} required />
+                    <Field label="CONTACT" type="tel" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} required />
                     <Field label="STATE" value={formData.stateProvince} onChange={v => setFormData({...formData, stateProvince: v})} required />
-                    <Field label="CITY / TOWN" value={formData.city} onChange={v => setFormData({...formData, city: v})} required />
+                    <Field label="CITY" value={formData.city} onChange={v => setFormData({...formData, city: v})} required />
                     <Field label="PIN CODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} required />
                     <div className="md:col-span-2">
                       <Field label="STREET ADDRESS" value={formData.addressLine1} onChange={v => setFormData({...formData, addressLine1: v})} required />
                     </div>
-                    <Field label="LAND MARK (OPTIONAL)" value={formData.landmark} onChange={v => setFormData({...formData, landmark: v})} />
-                    <div className="md:col-span-2">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold tracking-widest text-white/80 uppercase">ADDITIONAL INFORMATION</label>
-                        <Textarea 
-                          value={formData.additionalInfo} 
-                          onChange={e => setFormData({...formData, additionalInfo: e.target.value})}
-                          className="bg-white/5 border-white/10 rounded-none h-24 text-xs tracking-widest focus:border-white/60 text-white"
-                          placeholder="E.G. SPECIAL DELIVERY INSTRUCTIONS..."
-                        />
-                      </div>
-                    </div>
                   </div>
-                  <Button 
-                    onClick={handleNext} 
-                    className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                  >
-                    PROCEED TO REVIEW
-                    <ArrowRight className="ml-3 w-4 h-4" />
+                  <Button onClick={handleNext} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
+                    PROCEED TO REVIEW <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
               )}
 
               {step === 'review' && (
-                <motion.div 
-                  key="review" 
-                  initial={{ opacity: 0, x: -20 }} 
-                  animate={{ opacity: 1, x: 0 }} 
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-12"
-                >
+                <motion.div key="review" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-12">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Transmission Audit</h2>
-                    <Button variant="ghost" onClick={() => setStep('shipping')} className="text-[10px] tracking-widest text-white/80 hover:text-white uppercase font-bold">
+                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase text-white">Transmission Audit</h2>
+                    <Button variant="ghost" onClick={() => setStep('shipping')} className="text-[10px] tracking-widest text-white/60 hover:text-white uppercase font-bold">
                       <ArrowLeft className="mr-2 w-3 h-3" /> EDIT LOGISTICS
                     </Button>
                   </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-12 border-t border-white/10 pt-12">
-                    <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">ENTITY COORDINATES</h4>
-                      <div className="bg-white/5 p-8 border border-white/10 space-y-4">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-white/60 tracking-widest uppercase">NAME</p>
-                          <p className="text-xs font-bold tracking-widest uppercase">{formData.displayName}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-white/60 tracking-widest uppercase">DESTINATION</p>
-                          <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
-                            {formData.addressLine1}, {formData.landmark && `${formData.landmark}, `}{formData.city}<br />
-                            {formData.stateProvince} - {formData.postalCode}
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <p className="text-[10px] text-white/60 tracking-widest uppercase">CONTACT</p>
-                            <p className="text-[10px] text-white/80 tracking-widest uppercase">{formData.mobileNumber}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] text-white/60 tracking-widest uppercase">EMAIL</p>
-                            <p className="text-[10px] text-white/80 tracking-widest uppercase truncate">{formData.email}</p>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="bg-white/5 p-10 border border-white/10 space-y-6">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-white/40 tracking-widest uppercase">RECIPIENT_ENTITY</p>
+                      <p className="text-sm font-bold tracking-widest uppercase">{formData.displayName}</p>
                     </div>
-                    <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">NARRATIVE LOGS</h4>
-                      <div className="bg-white/5 p-8 border border-white/10 min-h-[160px]">
-                        <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
-                          {formData.additionalInfo || 'NO ADDITIONAL DATA LOGGED.'}
-                        </p>
-                      </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-white/40 tracking-widest uppercase">DESTINATION_NODE</p>
+                      <p className="text-[10px] text-white/80 tracking-widest leading-relaxed uppercase">
+                        {formData.addressLine1}, {formData.city}, {formData.stateProvince} - {formData.postalCode}
+                      </p>
                     </div>
                   </div>
-
-                  <Button 
-                    onClick={handleNext} 
-                    className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                  >
-                    CONFIRM & PROCEED TO UPLINK
-                    <ArrowRight className="ml-3 w-4 h-4" />
+                  <Button onClick={handleNext} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
+                    CONFIRM & PROCEED <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
               )}
 
               {step === 'payment' && (
-                <motion.div 
-                  key="payment" 
-                  initial={{ opacity: 0, x: -20 }} 
-                  animate={{ opacity: 1, x: 0 }} 
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-12"
-                >
+                <motion.div key="payment" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-12">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase">Uplink Channel</h2>
-                    <Button variant="ghost" onClick={() => setStep('review')} className="text-[10px] tracking-widest text-white/80 hover:text-white uppercase font-bold">
+                    <h2 className="text-3xl font-black tracking-tight glow-text uppercase text-white">Uplink Channel</h2>
+                    <Button variant="ghost" onClick={() => setStep('review')} className="text-[10px] tracking-widest text-white/60 hover:text-white uppercase font-bold">
                       <ArrowLeft className="mr-2 w-3 h-3" /> BACK TO REVIEW
                     </Button>
                   </div>
-
                   <div className="bg-white/5 border border-white/10 p-12 space-y-10">
-                    <div className="space-y-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">SELECT PAYMENT MODULE</h4>
-                      <div className="grid gap-4">
-                        <PaymentOption 
-                          label="UPI TRANSMISSION (FASTEST)" 
-                          icon={<Zap className="w-4 h-4" />} 
-                          selected={selectedMethod === 'upi'} 
-                          onClick={() => setSelectedMethod('upi')}
-                        />
-                        <PaymentOption 
-                          label="CREDIT / DEBIT CARD" 
-                          icon={<CreditCard className="w-4 h-4" />} 
-                          selected={selectedMethod === 'card'} 
-                          onClick={() => setSelectedMethod('card')}
-                        />
-                        <PaymentOption 
-                          label="DIGITAL WALLETS" 
-                          icon={<Wallet className="w-4 h-4" />} 
-                          selected={selectedMethod === 'wallet'} 
-                          onClick={() => setSelectedMethod('wallet')}
-                        />
-                      </div>
+                    <div className="grid gap-4">
+                      <PaymentOption label="UPI TRANSMISSION" icon={<Zap className="w-4 h-4" />} selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
+                      <PaymentOption label="CREDIT / DEBIT MODULE" icon={<CreditCard className="w-4 h-4" />} selected={selectedMethod === 'card'} onClick={() => setSelectedMethod('card')} />
+                      <PaymentOption label="DIGITAL WALLET" icon={<Wallet className="w-4 h-4" />} selected={selectedMethod === 'wallet'} onClick={() => setSelectedMethod('wallet')} />
                     </div>
-
-                    <div className="p-8 border border-white/10 bg-black/40 space-y-4">
-                      <div className="flex items-center gap-3 text-white/80">
-                        <ShieldCheck className="w-4 h-4" />
-                        <span className="text-[9px] tracking-[0.3em] uppercase">ENCRYPTED TRANSACTION CHANNEL</span>
-                      </div>
-                      <p className="text-[9px] text-white/80 tracking-widest leading-relaxed uppercase">
-                        YOUR DATA IS PROTECTED BY 256-BIT QUANTUM SECURITY. ALL TRANSMISSIONS ARE ENCRYPTED AND LOGGED IN THE VOID.
-                      </p>
-                    </div>
-
-                    <Button 
-                      onClick={handleFinalize}
-                      disabled={loading}
-                      className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(255,255,255,0.2)]"
-                    >
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                        <>
-                          INITIALIZE SECURE UPLINK
-                          <ShieldCheck className="ml-3 w-4 h-4" />
-                        </>
+                    <Button onClick={handleFinalize} disabled={loading} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                        <>INITIALIZE SECURE UPLINK <ShieldCheck className="ml-3 w-4 h-4" /></>
                       )}
                     </Button>
                   </div>
@@ -475,35 +347,27 @@ export default function CheckoutPage() {
             </AnimatePresence>
           </div>
 
-          <div className="w-full md:w-96 space-y-8">
-            <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
-              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/80 uppercase">MISSION ASSEMBLAGE</h3>
+          <div className="w-full md:w-96">
+            <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl sticky top-40">
+              <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase border-b border-white/10 pb-4">MISSION ASSEMBLAGE</h3>
               <div className="space-y-6 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
                 {cartItems?.map(item => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="relative w-12 h-16 bg-white/5 border border-white/10 flex-shrink-0">
+                    <div className="relative w-12 h-16 bg-white/5 border border-white/10 shrink-0">
                       <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
                     </div>
-                    <div className="flex-1 space-y-1">
+                    <div className="flex-1 space-y-1 overflow-hidden">
                       <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>
-                      <p className="text-[8px] text-white/80 tracking-widest uppercase">SIZE: {item.size} // QTY: {item.quantity}</p>
-                      <p className="text-[9px] font-bold">₹{item.price * item.quantity}</p>
+                      <p className="text-[8px] text-white/60 tracking-widest uppercase">SIZE: {item.size} // QTY: {item.quantity}</p>
+                      <p className="text-[9px] font-bold text-white">₹{item.price * item.quantity}</p>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="pt-8 border-t border-white/10 space-y-4">
-                <div className="flex justify-between items-center text-[10px] tracking-widest">
-                  <span className="text-white/80 uppercase font-bold">SUBTOTAL</span>
-                  <span className="font-bold">₹{subtotal}</span>
-                </div>
-                <div className="flex justify-between items-center text-[10px] tracking-widest">
-                  <span className="text-white/80 uppercase font-bold">EXPEDITION</span>
-                  <span className="text-green-500 font-bold">FREE</span>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                  <span className="text-[10px] font-black tracking-widest uppercase">TOTAL MISSION COST</span>
-                  <span className="text-2xl font-black tracking-tight glow-text">₹{subtotal}</span>
+                <div className="flex justify-between items-center pt-4">
+                  <span className="text-[10px] font-black tracking-widest uppercase text-white/60">TOTAL VALUE</span>
+                  <span className="text-2xl font-black tracking-tight glow-text text-white">₹{subtotal}</span>
                 </div>
               </div>
             </div>
@@ -516,14 +380,10 @@ export default function CheckoutPage() {
 
 function StepIndicator({ current, target, label }: { current: string, target: string, label: string }) {
   const isActive = current === target;
-  const isCompleted = (current === 'review' && target === 'shipping') || 
-                      (current === 'payment' && (target === 'shipping' || target === 'review')) ||
-                      (current === 'success');
-  
   return (
     <div className={`flex items-center gap-3 transition-all duration-500 ${isActive ? 'opacity-100' : 'opacity-30'}`}>
-      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white glow-text shadow-[0_0_10px_white]' : isCompleted ? 'bg-white/80' : 'border border-white/30'}`} />
-      <span className="text-[9px] font-bold tracking-[0.4em] uppercase">{label}</span>
+      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white shadow-[0_0_10px_white]' : 'bg-white/40'}`} />
+      <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-white">{label}</span>
     </div>
   );
 }
@@ -531,26 +391,17 @@ function StepIndicator({ current, target, label }: { current: string, target: st
 function Field({ label, value, onChange, type = "text", required }: { label: string, value: string, onChange: (v: string) => void, type?: string, required?: boolean }) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold tracking-widest text-white/80 uppercase">
+      <label className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
         {label} {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      <Input 
-        type={type} 
-        value={value} 
-        onChange={e => onChange(e.target.value)}
-        className="bg-white/5 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/60 text-white uppercase placeholder:text-white/20"
-        placeholder={label}
-      />
+      <Input type={type} value={value} onChange={e => onChange(e.target.value)} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase placeholder:text-white/5" placeholder={label} />
     </div>
   );
 }
 
 function PaymentOption({ label, icon, selected, onClick }: { label: string, icon: React.ReactNode, selected?: boolean, onClick: () => void }) {
   return (
-    <div 
-      onClick={onClick}
-      className={`flex items-center justify-between p-6 border transition-all cursor-pointer ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/40 bg-black/40'}`}
-    >
+    <div onClick={onClick} className={`flex items-center justify-between p-6 border transition-all cursor-pointer ${selected ? 'border-white bg-white/5' : 'border-white/10 hover:border-white/40 bg-black/40'}`}>
       <div className="flex items-center gap-4">
         <div className={selected ? 'text-white' : 'text-white/60'}>{icon}</div>
         <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-white' : 'text-white/80'}`}>{label}</span>

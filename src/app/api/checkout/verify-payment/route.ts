@@ -22,12 +22,12 @@ export async function POST(request: Request) {
     }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
-    if (!secret || secret === 'placeholder_secret') {
+    if (!secret || secret === 'rzp_test_secret_placeholder') {
       console.error(`[${timestamp}] CONFIG_ERROR: Razorpay secret missing.`);
       return NextResponse.json({ error: 'SERVER_CONFIG_ERROR' }, { status: 500 });
     }
 
-    // Generate signature using the key secret
+    // Generate signature using the key secret: razorpay_order_id + "|" + razorpay_payment_id
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     
     const generated_signature = crypto
