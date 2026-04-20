@@ -6,7 +6,7 @@ import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, init
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff, ShieldAlert, KeyRound, Mail } from 'lucide-react';
+import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff, ShieldAlert, KeyRound, Mail, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -38,17 +38,33 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (mode === 'reset') {
-      if (!email) {
-        toast({ variant: "destructive", title: "IDENTIFIER_MISSING", description: "ENTER COMM-CHANNEL FOR RECOVERY." });
+      if (!email || !email.includes('@')) {
+        toast({ 
+          variant: "destructive", 
+          title: "IDENTIFIER_INVALID", 
+          description: "ENTER A VALID COMM-CHANNEL (EMAIL) FOR RECOVERY." 
+        });
         return;
       }
       setLoading(true);
       try {
-        await initiatePasswordReset(auth, email);
-        toast({ title: "RECOVERY TRANSMITTED", description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." });
+        await initiatePasswordReset(auth, email.trim());
+        toast({ 
+          title: "RECOVERY TRANSMITTED", 
+          description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." 
+        });
         setMode('login');
       } catch (err: any) {
-        toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "COULD NOT INITIALIZE RECOVERY PROTOCOL." });
+        console.error('[RECOVERY_FAILURE]', err);
+        let msg = "COULD NOT INITIALIZE RECOVERY PROTOCOL.";
+        if (err.code === 'auth/user-not-found') msg = "NO ENTITY FOUND WITH THIS IDENTIFIER.";
+        if (err.code === 'auth/invalid-email') msg = "THE IDENTIFIER FORMAT IS MALFORMED.";
+        
+        toast({ 
+          variant: "destructive", 
+          title: "UPLINK_FAILURE", 
+          description: msg.toUpperCase() 
+        });
       } finally {
         setLoading(false);
       }
@@ -67,13 +83,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'signup') {
-        await initiateEmailSignUp(auth, email, password);
+        await initiateEmailSignUp(auth, email.trim(), password);
         toast({
           title: "IDENTITY INITIALIZED",
           description: "YOUR ENTITY HAS BEEN LOGGED IN THE VOID.",
         });
       } else {
-        await initiateEmailSignIn(auth, email, password);
+        await initiateEmailSignIn(auth, email.trim(), password);
         toast({
           title: "LINK ESTABLISHED",
           description: "UPLINK SECURED. WELCOME BACK, OPERATOR.",
@@ -318,6 +334,17 @@ export default function LoginPage() {
               </div>
             </div>
           )}
+
+          {mode === 'reset' && (
+            <button 
+              type="button"
+              onClick={() => setMode('login')}
+              className="w-full flex items-center justify-center gap-2 text-[8px] tracking-[0.4em] text-white/40 hover:text-white transition-colors uppercase font-bold pt-4"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              BACK TO UPLINK
+            </button>
+          )}
         </div>
 
         <div className="text-center flex flex-col gap-4">
@@ -329,17 +356,6 @@ export default function LoginPage() {
           >
             {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
           </button>
-          
-          {mode === 'reset' && (
-            <button 
-              type="button"
-              disabled={loading}
-              onClick={() => setMode('login')}
-              className="text-[9px] tracking-widest text-white/20 hover:text-white transition-colors uppercase font-bold"
-            >
-              BACK TO UPLINK
-            </button>
-          )}
         </div>
       </motion.div>
     </div>
