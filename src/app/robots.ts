@@ -1,9 +1,5 @@
 import { MetadataRoute } from 'next';
 
-/**
- * VOID WEAR ROBOTS PROTOCOL
- * Optimized for https://voidwear.co.in
- */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -14,7 +10,8 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/', 
           '/api/', 
           '/checkout/', 
-          '/profile/', 
+          '/profile/',
+          '/login/',
           '/*?*'
         ],
       },

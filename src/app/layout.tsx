@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 import Script from 'next/script';
 
-const siteUrl = 'https://void-wear.vercel.app'; // Replace with production URL
+const siteUrl = 'https://voidwear.co.in';
 
 export const viewport: Viewport = {
   themeColor: '#000000',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     siteName: 'VOID WEAR',
     images: [
       {
-        url: '/og-image.jpg', // Placeholder for actual OG image
+        url: '/logo.png',
         width: 1200,
         height: 630,
         alt: 'VOID WEAR Manifesto',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: 'VOID WEAR | EMBRACE THE UNKNOWN',
     description: 'Premium futuristic technical shells for the digital migration.',
     creator: '@voidwear',
-    images: ['/og-image.jpg'],
+    images: ['/logo.png'],
   },
   robots: {
     index: true,
@@ -80,7 +80,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet" />
         
-        {/* Google Analytics */}
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
