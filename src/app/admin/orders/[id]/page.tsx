@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -24,16 +24,16 @@ export default function OrderDetailsPage() {
   const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const orderRef = useMemoFirebase(() => {
-    if (!db || !userId || !orderId) return null;
+    if (!db || !userId || !orderId || !isAdmin) return null;
     return doc(db, 'users', userId, 'orders', orderId);
-  }, [db, userId, orderId]);
+  }, [db, userId, orderId, isAdmin]);
 
   const { data: order, isLoading } = useDoc(orderRef);
 
   const entityRef = useMemoFirebase(() => {
-    if (!db || !userId) return null;
+    if (!db || !userId || !isAdmin) return null;
     return doc(db, 'users', userId);
-  }, [db, userId]);
+  }, [db, userId, isAdmin]);
 
   const { data: entity } = useDoc(entityRef);
 
@@ -79,7 +79,7 @@ export default function OrderDetailsPage() {
   };
 
   if (!isAdmin) {
-    return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase">Authenticating...</div>;
+    return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase">Authenticating Protocol...</div>;
   }
 
   if (isLoading) {

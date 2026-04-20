@@ -20,19 +20,19 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
   const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const userRef = useMemoFirebase(() => {
-    if (!db || !userId) return null;
+    if (!db || !userId || !isAdmin) return null;
     return doc(db, 'users', userId);
-  }, [db, userId]);
+  }, [db, userId, isAdmin]);
 
   const { data: entity, isLoading: isEntityLoading } = useDoc(userRef);
 
   const ordersQuery = useMemoFirebase(() => {
-    if (!db || !userId) return null;
+    if (!db || !userId || !isAdmin) return null;
     return query(
       collection(db, 'users', userId, 'orders'),
       orderBy('createdAt', 'desc')
     );
-  }, [db, userId]);
+  }, [db, userId, isAdmin]);
 
   const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
 
@@ -99,7 +99,7 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
   };
 
   if (!isAdmin) {
-    return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase text-white">ACCESS DENIED</div>;
+    return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase text-white">Authenticating Protocol...</div>;
   }
 
   if (isEntityLoading) {
