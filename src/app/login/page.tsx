@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -58,10 +57,15 @@ export default function LoginPage() {
         setMode('login');
       } catch (err: any) {
         console.error('[RECOVERY_FAILURE]', err);
+        let msg = "COULD NOT INITIALIZE RECOVERY PROTOCOL.";
+        if (err.code === 'auth/user-not-found') msg = "NO ENTITY FOUND WITH THIS IDENTIFIER.";
+        if (err.code === 'auth/invalid-email') msg = "THE IDENTIFIER FORMAT IS MALFORMED.";
+        if (err.code === 'auth/too-many-requests') msg = "SYSTEM OVERLOAD. RETRY LATER.";
+        
         toast({ 
           variant: "destructive", 
           title: "UPLINK_FAILURE", 
-          description: "COULD NOT INITIALIZE RECOVERY PROTOCOL." 
+          description: msg.toUpperCase() 
         });
       } finally {
         setLoading(false);
@@ -98,18 +102,16 @@ export default function LoginPage() {
       let errorMessage = "COULD NOT ESTABLISH CONNECTION.";
       let errorTitle = "LINK_FAILURE";
       
-      const isAdminEmail = email.toLowerCase() === 'voidwear26@gmail.com';
-
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         errorTitle = "ACCESS_DENIED";
-        if (isAdminEmail && mode === 'login') {
-          errorMessage = "ADMIN ACCESS DENIED. IF THIS IS YOUR FIRST TIME WITH 'admin2026', PLEASE USE THE 'SIGN UP' TAB TO INITIALIZE THE MASTER RECORD.";
+        if (email.toLowerCase() === 'voidwear26@gmail.com') {
+          errorMessage = "ADMIN ACCESS DENIED. IF THIS IS YOUR FIRST TIME WITH 'admin2026', USE THE 'SIGN UP' TAB TO INITIALIZE YOUR RECORD.";
         } else {
           errorMessage = "INVALID ACCESS KEY OR IDENTIFIER. ENSURE YOUR CREDENTIALS ARE CORRECT.";
         }
       } else if (err.code === 'auth/email-already-in-use') {
         errorTitle = "ENTITY_EXISTS";
-        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. USE THE 'LOGIN' TAB TO ESTABLISH LINK.";
+        errorMessage = "THIS EMAIL IS ALREADY REGISTERED. IF YOU CANNOT LOGIN, RESET YOUR PASSWORD.";
       } else if (err.code === 'auth/weak-password') {
         errorMessage = "ACCESS KEY IS TOO WEAK. MINIMUM 6 CHARACTERS REQUIRED.";
       } else if (err.code === 'auth/too-many-requests') {

@@ -26,9 +26,9 @@ export async function POST(request: Request) {
     const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!keyId || !keySecret) {
-      console.error(`[${timestamp}] CRITICAL_CONFIG_ERROR: Razorpay credentials missing from environment.`);
-      return NextResponse.json({ error: 'SERVER_CONFIG_ERROR', message: 'GATEWAY_IDENTIFIER_MISSING' }, { status: 500 });
+    if (!keyId || !keySecret || keyId.includes('YOUR_')) {
+      console.error(`[${timestamp}] CRITICAL_CONFIG_ERROR: Razorpay credentials missing or invalid.`);
+      return NextResponse.json({ error: 'SERVER_CONFIG_ERROR', message: 'GATEWAY_IDENTIFIER_UNSET' }, { status: 500 });
     }
 
     const rzp = new Razorpay({
@@ -57,7 +57,6 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error(`[${timestamp}] GATEWAY_CONNECTION_FAILURE:`, error);
     
-    // Provide diagnostic nodes if authentication or network fails
     const diagnosticMessage = error.error?.description || error.message || 'CONNECTION_TO_LIVE_GATEWAY_FAILED';
     
     return NextResponse.json({ 
