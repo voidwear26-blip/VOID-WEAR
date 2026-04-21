@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, UserMinus, UserCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, ExternalLink, Search, SlidersHorizontal, Trash2, Shield, UserCog } from 'lucide-react';
+import { ChevronLeft, ShieldAlert, ShieldCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, Search, SlidersHorizontal, Trash2, Shield, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,12 +25,13 @@ export default function AdminUsersPage() {
     setMounted(true);
   }, []);
 
-  const isAdmin = mounted && currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const usersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
+    // CRITICAL: Depend on user.uid to ensure query resets after auth
+    if (!db || !currentUser?.uid || !isAdmin) return null;
     return collection(db, 'users');
-  }, [db, isAdmin]);
+  }, [db, currentUser?.uid, isAdmin]);
 
   const { data: users, isLoading: isCollectionLoading } = useCollection(usersQuery);
 
@@ -144,7 +146,6 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        {/* Search and Sort Interface */}
         <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
           <div className="relative w-full md:w-96 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
@@ -165,7 +166,7 @@ export default function AdminUsersPage() {
               <SelectTrigger className="w-full md:w-64 bg-white/5 border-white/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase focus:ring-0 text-white font-bold transition-all hover:bg-white/10">
                 <SelectValue placeholder="SORT_BY" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-white/10 text-white rounded-none">
+              <SelectContent className="bg-black border-white/20 text-white rounded-none">
                 <SelectItem value="joined-newest" className="text-[9px] tracking-widest uppercase">RECENT INITIALIZATION</SelectItem>
                 <SelectItem value="joined-oldest" className="text-[9px] tracking-widest uppercase">LEGACY ENTITIES</SelectItem>
                 <SelectItem value="name-asc" className="text-[9px] tracking-widest uppercase">IDENTITY: A - Z</SelectItem>

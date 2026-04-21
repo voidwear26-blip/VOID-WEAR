@@ -3,7 +3,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, MessageSquare, Megaphone, Database } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,10 +27,21 @@ export default function AdminDashboard() {
     }
   }, [mounted, isUserLoading, isAdmin, router]);
 
-  // Sync real-time data for stats
-  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
-  const ordersQuery = useMemoFirebase(() => collectionGroup(db, 'orders'), [db]);
-  const usersQuery = useMemoFirebase(() => collection(db, 'users'), [db]);
+  // Sync real-time data for stats - Dependency on user.uid ensures listeners re-trigger after auth
+  const productsQuery = useMemoFirebase(() => {
+    if (!db || !user?.uid || !isAdmin) return null;
+    return collection(db, 'products');
+  }, [db, user?.uid, isAdmin]);
+
+  const ordersQuery = useMemoFirebase(() => {
+    if (!db || !user?.uid || !isAdmin) return null;
+    return collectionGroup(db, 'orders');
+  }, [db, user?.uid, isAdmin]);
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!db || !user?.uid || !isAdmin) return null;
+    return collection(db, 'users');
+  }, [db, user?.uid, isAdmin]);
 
   const { data: products } = useCollection(productsQuery);
   const { data: orders } = useCollection(ordersQuery);

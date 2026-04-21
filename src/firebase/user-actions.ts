@@ -9,10 +9,9 @@ import { FirestorePermissionError } from './errors';
 /**
  * VOID WEAR // DOSSIER SYNCHRONIZATION
  * Persists user identity metadata to the Firestore database.
- * Uses non-blocking pattern with contextual error emitting.
- * Optimized to preserve logistical coordinates if present.
+ * Optimized for reliability and preventing silent write failures.
  */
-export function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
+export async function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
   if (!user) return;
 
   const userRef = doc(db, 'users', user.uid);
@@ -22,16 +21,15 @@ export function saveUserToFirestore(db: Firestore, user: User, extraData: any = 
     email: user.email,
     displayName: user.displayName || extraData.displayName || user.email?.split('@')[0].toUpperCase(),
     mobileNumber: extraData.mobileNumber || '',
-    photoURL: user.photoURL || '',
     role: user.email?.toLowerCase() === 'voidwear26@gmail.com' ? 'ADMIN' : 'OPERATOR',
     updatedAt: new Date().toISOString(),
     createdAt: extraData.createdAt || new Date().toISOString(),
-    // Logistical coordinates handled via merge logic in setDoc
     ...extraData
   };
 
-  // Perform non-blocking set with merge protocol to prevent field destruction
-  setDoc(userRef, dossierData, { merge: true })
+  // Perform set with merge protocol. 
+  // Note: We return the promise to allow login/signup pages to wait for initialization if needed.
+  return setDoc(userRef, dossierData, { merge: true })
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: userRef.path,
@@ -39,5 +37,6 @@ export function saveUserToFirestore(db: Firestore, user: User, extraData: any = 
         requestResourceData: dossierData,
       });
       errorEmitter.emit('permission-error', permissionError);
+      throw serverError;
     });
 }

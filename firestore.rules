@@ -7,7 +7,7 @@ service cloud.firestore {
      * VOID WEAR SECURITY RULES
      * 
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 12.2 - REINFORCED PUBLIC ACCESS
+     * VERSION: 12.3 - REINFORCED ADMIN LISTING
      */
 
     // --- Helper Functions ---
@@ -24,63 +24,46 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
     // --- Collection Rules ---
 
-    /**
-     * @description Public application configuration.
-     */
     match /app_config/{configId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    /**
-     * @description Public brand narratives and arrival logs.
-     */
     match /stories/{storyId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    /**
-     * @description Master product catalogue.
-     */
     match /products/{productId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    /**
-     * @description Product feedback audit logs.
-     */
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    /**
-     * @description Rules for the User profile and nested mission logs.
-     */
     match /users/{userId} {
-      allow get, list: if isOwner(userId) || isAdmin();
+      // CRITICAL: Ensure admin can list the collection
+      allow list: if isAdmin();
+      allow get: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId);
-      allow update: if (isExistingOwner(userId) || isAdmin());
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
 
       match /carts/{cartId} {
         allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
-        allow update, delete: if isExistingOwner(userId) || isAdmin();
+        allow update, delete: if isOwner(userId) || isAdmin();
 
         match /items/{itemId} {
           allow get, list: if isOwner(userId) || isAdmin();
           allow create: if isOwner(userId);
-          allow update, delete: if isExistingOwner(userId) || isAdmin();
+          allow update, delete: if isOwner(userId) || isAdmin();
         }
       }
 
