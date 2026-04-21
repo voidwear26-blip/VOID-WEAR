@@ -62,8 +62,8 @@ export default function Home() {
       "https://www.facebook.com/share/1DbtMjAWYh/",
       "https://x.com/voidwearoff_26"
     ],
-    "description": "Embrace The Unknown",
-    };
+    "description": "Premium futuristic technical shells for the digital migration. Designed in the void, crafted for the world.",
+  };
 
   return (
     <div className="space-y-0 bg-transparent text-white">
