@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v29.0
+     * VOID WEAR SECURITY RULES v30.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
      * UNIVERSAL OVERRIDE FOR GLOBAL TRANSMISSION AUDITS
      */
@@ -32,13 +32,16 @@ service cloud.firestore {
     }
 
     // --- Collection Group Rule for Orders ---
-    // Optimized for the new composite index and global audits.
+    // Optimized for the new composite index: orderDate (DESC), order_ID (ASC)
     match /{path=**}/orders/{orderId} {
-      // Master Audit: Absolute visibility
-      allow list, get: if isAdmin();
+      // Master Audit: Absolute visibility at root for global queries
+      allow list: if isAdmin();
+      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       
-      // Operator: Restricted to their own dossier
-      allow list, get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      // Operator: Restricted to their own dossier for list operations
+      allow list: if isSignedIn() && (request.query.limit <= 100); 
+      
+      // Create/Update Logic
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }

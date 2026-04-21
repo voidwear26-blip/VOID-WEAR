@@ -20,7 +20,6 @@ export default function AdminOrdersPage() {
   }, []);
 
   const isAdmin = useMemo(() => {
-    // STRICT_AUTH_GUARD: Ensure identity is fully linked before permitting Admin access
     if (isUserLoading || !user) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
@@ -31,7 +30,8 @@ export default function AdminOrdersPage() {
     if (!db || !mounted || !isAdmin) return null;
     
     try {
-      // SYNCED_WITH_INDEX: orderDate (DESC), order_ID (ASC)
+      // SYNCED_WITH_INDEX_ID: CICAgJiUpoMK
+      // FIELDS: orderDate (DESC), order_ID (ASC)
       return query(
         collectionGroup(db, 'orders'),
         orderBy('orderDate', 'desc'),
@@ -94,7 +94,7 @@ export default function AdminOrdersPage() {
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Transmissions</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Transmissions</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
             <ShieldAlert className="w-4 h-4 text-white/60" />
@@ -109,7 +109,7 @@ export default function AdminOrdersPage() {
                 <span className="text-[10px] font-black tracking-widest uppercase">UPLINK_PERMISSIONS_DENIED</span>
              </div>
              <p className="text-[9px] text-white/40 tracking-[0.2em] leading-relaxed uppercase max-w-2xl">
-                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND THE FIRESTORE SECURITY RULES (V29.0) ARE DEPLOYED.
+                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND FIRESTORE SECURITY RULES (V30.0) ARE DEPLOYED.
              </p>
           </div>
         )}

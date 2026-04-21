@@ -43,15 +43,9 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
   
-  // Track query string to prevent redundant listener re-registration
   const queryRef = useRef<string>('');
 
   useEffect(() => {
-    // DIAGNOSTIC_UPLINK: Verify the target reference or query path
-    if (process.env.NODE_ENV === 'development' || true) {
-      console.log('[useCollection] targetRefOrQuery:', targetRefOrQuery);
-    }
-
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
@@ -82,21 +76,19 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        console.error('[useCollection] SNAPSHOT_FAILURE:', error);
-        
         const path: string =
           targetRefOrQuery.type === 'collection'
             ? (targetRefOrQuery as CollectionReference).path
-            : (targetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+            : (targetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path,
-        })
+        });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
         errorEmitter.emit('permission-error', contextualError);
       }
     );
