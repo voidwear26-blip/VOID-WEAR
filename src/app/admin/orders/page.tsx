@@ -31,9 +31,11 @@ export default function AdminOrdersPage() {
     if (!db || !mounted || !isAdmin) return null;
     
     try {
+      // SYNCED_WITH_INDEX: orderDate (DESC), order_ID (ASC)
       return query(
         collectionGroup(db, 'orders'),
         orderBy('orderDate', 'desc'),
+        orderBy('order_ID', 'asc'),
         limit(100)
       );
     } catch (e) {
@@ -107,7 +109,7 @@ export default function AdminOrdersPage() {
                 <span className="text-[10px] font-black tracking-widest uppercase">UPLINK_PERMISSIONS_DENIED</span>
              </div>
              <p className="text-[9px] text-white/40 tracking-[0.2em] leading-relaxed uppercase max-w-2xl">
-                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND THE FIRESTORE SECURITY RULES (V28.0) ARE DEPLOYED.
+                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND THE FIRESTORE SECURITY RULES (V29.0) ARE DEPLOYED.
              </p>
           </div>
         )}
