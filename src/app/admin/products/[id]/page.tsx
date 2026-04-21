@@ -3,7 +3,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import { doc, updateDoc, collectionGroup, query, where } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Upload, Trash2, TrendingUp, DollarSign, Users, ShoppingBag, Calendar, Plus, X } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Upload, Trash2, TrendingUp, DollarSign, Users, ShoppingBag, Calendar, Plus, X, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 
@@ -30,23 +29,30 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  // v18.0 UID-First Master Authority Protocol
+  const isAdmin = !isUserLoading && (
+    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
+  );
 
   useEffect(() => {
     setMounted(true);
-    if (!isUserLoading && !isAdmin) {
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isUserLoading && !isAdmin) {
       router.push('/');
     }
-  }, [isUserLoading, isAdmin, router]);
+  }, [mounted, isUserLoading, isAdmin, router]);
 
   const productRef = useMemoFirebase(() => {
-    if (!db || !id) return null;
+    if (!db || !id || !isAdmin) return null;
     return doc(db, 'products', id);
-  }, [db, id]);
+  }, [db, id, isAdmin]);
 
   const { data: product, isLoading: productLoading } = useDoc(productRef);
 
-  // Fetch all orders containing this product
+  // Fetch all transmissions containing this module
   const salesQuery = useMemoFirebase(() => {
     if (!db || !id || !isAdmin) return null;
     return query(
@@ -94,7 +100,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         basePrice: product.basePrice?.toString() || '',
         description: product.description || '',
         imageUrl: product.imageUrls?.[0] || '',
-        details: product.details?.join('\n') || ''
+        details: Array.isArray(product.details) ? product.details.join('\n') : ''
       });
       if (product.stockMatrix) {
         setStockMatrix({
@@ -112,7 +118,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const calculateTotalStock = () => {
     let total = 0;
     Object.values(stockMatrix).forEach(colors => {
-      Object.values(colors).forEach(qty => total += qty);
+      Object.values(colors).forEach(qty => total += Number(qty) || 0);
     });
     return total;
   };
@@ -164,7 +170,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
       const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
       const totalStock = calculateTotalStock();
       
-      await updateDoc(doc(db, 'products', id), {
+      const updateData = {
         name: formData.name.toUpperCase(),
         category: formData.category.toUpperCase(),
         basePrice: parseFloat(formData.basePrice),
@@ -174,12 +180,15 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         stockQuantity: totalStock,
         sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
         details: detailsArray,
+        slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
         updatedAt: new Date().toISOString()
-      });
+      };
+
+      await updateDoc(doc(db, 'products', id), updateData);
 
       toast({
         title: "MODULE UPDATED",
-        description: "ASSEMBLAGE CONFIGURATION SAVED.",
+        description: "ASSEMBLAGE CONFIGURATION SAVED TO VOID.",
       });
       router.push('/admin/products');
     } catch (e) {
@@ -194,7 +203,11 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     }
   };
 
-  if (productLoading || isUserLoading) {
+  if (isUserLoading || !mounted) {
+    return <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase text-white/40">Authenticating Protocol...</div>;
+  }
+
+  if (productLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-white/20" />
@@ -205,7 +218,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   if (!isAdmin) return null;
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="space-y-4 mb-16">
           <Link href="/admin/products" className="flex items-center gap-2 text-[10px] text-white/80 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
@@ -231,7 +244,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                     required
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                   />
                 </div>
                 <div className="space-y-3">
@@ -240,7 +253,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                     required
                     value={formData.category}
                     onChange={e => setFormData({ ...formData, category: e.target.value })}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                   />
                 </div>
               </div>
@@ -253,7 +266,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                     type="number"
                     value={formData.basePrice}
                     onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40"
+                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
                   />
                 </div>
                 <div className="flex flex-col justify-end">
@@ -269,7 +282,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                 </div>
                 
                 <div className="grid gap-10">
-                  {Object.keys(stockMatrix).map(size => (
+                  {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
                     <div key={size} className="space-y-6 p-6 border border-white/5 bg-white/[0.01]">
                       <div className="flex items-center justify-between">
                         <span className="text-xl font-black tracking-widest text-white/80">{size}</span>
@@ -278,7 +291,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                             placeholder="COLOR NAME" 
                             value={newColor[size] || ''}
                             onChange={e => setNewColor({...newColor, [size]: e.target.value})}
-                            className="h-10 w-40 bg-black/40 border-white/10 text-[9px] tracking-widest uppercase rounded-none"
+                            className="h-10 w-40 bg-black/40 border-white/10 text-[9px] tracking-widest uppercase rounded-none text-white"
                             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddColor(size))}
                           />
                           <Button type="button" onClick={() => handleAddColor(size)} size="sm" className="h-10 rounded-none bg-white/10 hover:bg-white/20 text-white border-white/10">
@@ -296,7 +309,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                                 type="number"
                                 value={stockMatrix[size][color]}
                                 onChange={e => handleQtyChange(size, color, e.target.value)}
-                                className="h-8 bg-transparent border-0 border-b border-white/10 focus:border-white/40 text-[10px] p-0 rounded-none font-mono"
+                                className="h-8 bg-transparent border-0 border-b border-white/10 focus:border-white/40 text-[10px] p-0 rounded-none font-mono text-white"
                               />
                             </div>
                             <button type="button" onClick={() => handleRemoveColor(size, color)} className="text-white/20 hover:text-red-500 transition-colors">
@@ -348,7 +361,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                   required
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40"
+                  className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white"
                 />
               </div>
 
@@ -357,7 +370,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                 <Textarea 
                   value={formData.details}
                   onChange={e => setFormData({ ...formData, details: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40"
+                  className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white"
+                  placeholder="WATERPROOF SHELL&#10;NEON FIBER OPTICS"
                 />
               </div>
 
@@ -432,7 +446,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                             </div>
                           </td>
                           <td className="px-10 py-8 text-[10px] font-mono text-white/80 tracking-widest uppercase">
-                            {order.id}
+                            {order.order_ID || order.id}
                           </td>
                           <td className="px-10 py-8">
                             <div className="flex items-center gap-3 text-white/60">

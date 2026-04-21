@@ -3,7 +3,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc, query, limit } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info, SlidersHorizontal, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useMemo } from 'react';
@@ -11,10 +11,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-type AdminSortOption = 'newest' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc' | 'color-asc' | 'most-sold';
+type AdminSortOption = 'newest' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc' | 'most-sold';
 
 export default function AdminProductsPage() {
   const { user, isUserLoading } = useUser();
@@ -29,7 +28,10 @@ export default function AdminProductsPage() {
     setMounted(true);
   }, []);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = !isUserLoading && (
+    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
+  );
 
   useEffect(() => {
     if (mounted && !isUserLoading && !isAdmin) {
@@ -39,8 +41,7 @@ export default function AdminProductsPage() {
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    // Optimized: Limit to 20 recent modules to speed up retrieval
-    return query(collection(db, 'products'), limit(20));
+    return query(collection(db, 'products'), limit(50));
   }, [db, isAdmin]);
 
   const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
@@ -64,15 +65,13 @@ export default function AdminProductsPage() {
         case 'name-desc':
           return (b.name || '').localeCompare(a.name || '');
         case 'price-asc':
-          return (a.basePrice || 0) - (b.basePrice || 0);
+          return (Number(a.basePrice) || 0) - (Number(b.basePrice) || 0);
         case 'price-desc':
-          return (b.basePrice || 0) - (a.basePrice || 0);
+          return (Number(b.basePrice) || 0) - (Number(a.basePrice) || 0);
         case 'stock-asc':
-          return (a.stockQuantity || 0) - (b.stockQuantity || 0);
+          return (Number(a.stockQuantity) || 0) - (Number(b.stockQuantity) || 0);
         case 'stock-desc':
-          return (b.stockQuantity || 0) - (a.stockQuantity || 0);
-        case 'most-sold':
-          return (b.unitsSold || 0) - (a.unitsSold || 0);
+          return (Number(b.stockQuantity) || 0) - (Number(a.stockQuantity) || 0);
         case 'newest':
         default:
           return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
@@ -97,16 +96,21 @@ export default function AdminProductsPage() {
     }
   };
 
-  if (!mounted || isUserLoading || !isAdmin) {
+  if (!mounted || isUserLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/40" />
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/40" />
+          <div className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Authenticating Protocol...</div>
+        </div>
       </div>
     );
   }
 
+  if (!isAdmin) return null;
+
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
@@ -148,13 +152,12 @@ export default function AdminProductsPage() {
               </SelectTrigger>
               <SelectContent className="bg-black border-white/20 text-white rounded-none">
                 <SelectItem value="newest" className="text-[9px] tracking-widest uppercase">RECENT ARRIVALS</SelectItem>
-                <SelectItem value="most-sold" className="text-[9px] tracking-widest uppercase text-green-500">HIGH DEMAND</SelectItem>
                 <SelectItem value="price-asc" className="text-[9px] tracking-widest uppercase">PRICE: LOW TO HIGH</SelectItem>
                 <SelectItem value="price-desc" className="text-[9px] tracking-widest uppercase">PRICE: HIGH TO LOW</SelectItem>
                 <SelectItem value="name-asc" className="text-[9px] tracking-widest uppercase">IDENTITY: A - Z</SelectItem>
                 <SelectItem value="name-desc" className="text-[9px] tracking-widest uppercase">IDENTITY: Z - A</SelectItem>
                 <SelectItem value="stock-desc" className="text-[9px] tracking-widest uppercase">INVENTORY: HIGH AVAILABILITY</SelectItem>
-                <SelectItem value="stock-asc" className="text-[9px] tracking-widest uppercase">INVENTORY: DEPLETING FAST</SelectItem>
+                <SelectItem value="stock-asc" className="text-[9px] tracking-widest uppercase text-red-500">INVENTORY: DEPLETING FAST</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -167,7 +170,7 @@ export default function AdminProductsPage() {
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">MODULE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CATEGORY</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">PRICE (₹)</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TOTAL STOCK</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">STOCK</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
               </tr>
             </thead>
@@ -183,13 +186,13 @@ export default function AdminProductsPage() {
                   <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-6">
-                        <div className="relative w-12 h-16 bg-white/5 border border-white/5">
+                        <div className="relative w-12 h-16 bg-white/5 border border-white/5 overflow-hidden">
                           <Image 
                             src={product.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/200/300'} 
                             alt={product.name} 
                             fill 
                             unoptimized
-                            className="object-cover grayscale"
+                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                           />
                         </div>
                         <div className="space-y-1">
@@ -205,11 +208,14 @@ export default function AdminProductsPage() {
                       ₹{product.basePrice}
                     </td>
                     <td className="px-10 py-8">
-                      <span className={`font-mono text-[10px] tracking-widest ${
-                        (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
-                      }`}>
-                        {product.stockQuantity || 0}
-                      </span>
+                      <div className="flex items-center gap-3">
+                         <span className={`font-mono text-[10px] tracking-widest ${
+                           (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
+                         }`}>
+                           {product.stockQuantity || 0}
+                         </span>
+                         {(product.stockQuantity || 0) < 5 && <ShieldAlert className="w-3 h-3 text-red-500/60" />}
+                      </div>
                     </td>
                     <td className="px-10 py-8 text-right">
                       <div className="flex items-center justify-end gap-4">
