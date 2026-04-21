@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -19,10 +18,11 @@ export default function AdminDashboard() {
     setMounted(true);
   }, []);
 
-  const isAdmin = !isUserLoading && (
-    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
-  );
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+  }, [user, isUserLoading]);
 
   useEffect(() => {
     if (mounted && !isUserLoading && !isAdmin) {
@@ -30,8 +30,6 @@ export default function AdminDashboard() {
     }
   }, [mounted, isUserLoading, isAdmin, router]);
 
-  // Sync real-time data for stats - STRICT AUTH GUARD
-  // Queries remain null until isAdmin is verified to prevent permission race conditions
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collection(db, 'products');
@@ -51,7 +49,6 @@ export default function AdminDashboard() {
   const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
-  // High-Precision Revenue Aggregation
   const totalRevenue = useMemo(() => {
     if (!orders) return 0;
     return orders.reduce((acc, order) => {

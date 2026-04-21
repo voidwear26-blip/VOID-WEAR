@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -8,33 +7,32 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export default function AdminOrdersPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
 
-  const isAdmin = !isUserLoading && (
-    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
-  );
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+  }, [user, isUserLoading]);
 
   const allOrdersQuery = useMemoFirebase(() => {
-    // CRITICAL: Ensure admin identity is stabilized before initiating transmission audit
-    // Using collectionGroup requires specific security rule matching version 23.0
-    if (!db || !user?.uid || !isAdmin) return null;
+    if (!db || !isAdmin) return null;
     return query(
       collectionGroup(db, 'orders'),
       orderBy('orderDate', 'desc'),
       limit(100)
     );
-  }, [db, user?.uid, isAdmin]);
+  }, [db, isAdmin]);
 
   const { data: orders, isLoading } = useCollection(allOrdersQuery);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: string) => {
-    if (!db) return;
+    if (!db || !userId) return;
     try {
       const orderRef = doc(db, 'users', userId, 'orders', orderId);
       await updateDoc(orderRef, { 
@@ -47,6 +45,11 @@ export default function AdminOrdersPage() {
       });
     } catch (e) {
       console.error('[STATUS_UPDATE_FAILURE]', e);
+      toast({
+        variant: "destructive",
+        title: "UPLINK FAILURE",
+        description: "COULD NOT UPDATE STATUS NODE.",
+      });
     }
   };
 
@@ -60,8 +63,9 @@ export default function AdminOrdersPage() {
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 text-white font-bold">
-        ACCESS DENIED // MASTER ONLY
+      <div className="h-screen flex flex-col items-center justify-center gap-6 text-white">
+        <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-bold">ACCESS DENIED // MASTER ONLY</p>
+        <Link href="/" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO SURFACE</Link>
       </div>
     );
   }

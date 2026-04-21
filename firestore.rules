@@ -3,9 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v25.0
+     * VOID WEAR SECURITY RULES v26.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
-     * PRIORITY AUTHORIZATION FOR GLOBAL AUDITS & DUAL-ID VERIFICATION
+     * UNIVERSAL OVERRIDE FOR GLOBAL TRANSMISSION AUDITS
      */
 
     // --- Helper Functions ---
@@ -26,22 +26,21 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // This rule is the primary override for all administrative actions.
+    // Priority check for administrative identity to allow broad collection group queries.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- Specific Collection Group Rule for Orders ---
+    // --- Collection Group Rule for Orders ---
     // Critical for the Command Center's global 'list' operations.
     match /{path=**}/orders/{orderId} {
-      // Admin: Absolute oversight without document-level constraints
-      allow list, get, update, delete: if isAdmin();
+      // Admin: Absolute oversight
+      allow list, get: if isAdmin();
       
-      // Operator: Restricted to their own dossier. 
-      // Query MUST include filter: .where('userId', '==', user.uid)
-      allow list: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
-      allow get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      // Operator: Restricted to their own dossier
+      allow list, get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
     // --- Standard Collection Access ---
@@ -65,7 +64,6 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Granting full access to owners for profile management
       allow get, list, create, update: if isOwner(userId) || isAdmin();
       
       match /carts/{cartId} {
@@ -76,7 +74,6 @@ service cloud.firestore {
       }
 
       match /orders/{orderId} {
-        // Standard user access to their subcollection
         allow list, get: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
         allow update, delete: if isAdmin();
