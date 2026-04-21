@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Info } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Info, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -83,8 +83,8 @@ export default function CheckoutPage() {
 
     const newOrder = {
       id: orderId,
-      order_ID: orderId, // For product logistics
-      transition_ID: paymentId, // For amount verification
+      order_ID: orderId, // LOGISTICAL IDENTIFIER
+      transition_ID: paymentId, // FINANCIAL IDENTIFIER
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
@@ -192,12 +192,18 @@ export default function CheckoutPage() {
           <div className="bg-black/40 border border-white/10 p-10 space-y-8 text-left">
              <div className="space-y-2">
                 <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">ORDER_ID (PRODUCT)</p>
-                <p className="text-lg font-mono text-white font-black">{finalOrderId}</p>
+                <div className="flex items-center gap-3">
+                   <Hash className="w-4 h-4 text-white/20" />
+                   <p className="text-lg font-mono text-white font-black">{finalOrderId}</p>
+                </div>
              </div>
              <div className="h-px bg-white/5 w-full" />
              <div className="space-y-2">
-                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">TRANSITION_ID (PAYMENT_VERIFICATION)</p>
-                <p className="text-xs font-mono text-white/80 uppercase break-all">{orderObject?.transition_ID || 'VERIFYING...'}</p>
+                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">TRANSITION_ID (AMOUNT VERIFICATION)</p>
+                <div className="flex items-center gap-3">
+                   <Zap className="w-4 h-4 text-white/20" />
+                   <p className="text-sm font-mono text-white/80 uppercase break-all">{orderObject?.transition_ID || 'VERIFYING...'}</p>
+                </div>
              </div>
           </div>
 
@@ -205,7 +211,7 @@ export default function CheckoutPage() {
              <Button onClick={() => orderObject && generateInvoicePDF(orderObject)} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
                 DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
              </Button>
-             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-white/40 hover:text-white transition-all uppercase">RETURN TO DOSSIER</Link>
+             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-white/40 hover:text-white transition-all uppercase font-black">RETURN TO DOSSIER</Link>
           </div>
         </motion.div>
       </div>

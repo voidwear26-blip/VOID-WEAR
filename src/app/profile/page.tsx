@@ -3,7 +3,7 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -395,8 +395,15 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
               {order.shippingStatus || 'processing'}
             </span>
           </div>
-          <div className="text-[9px] text-white/40 tracking-widest uppercase font-bold">
-            INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+          <div className="flex flex-col gap-1">
+             <div className="flex items-center gap-2 text-[8px] text-white/40 tracking-widest uppercase font-bold">
+                <Calendar className="w-3 h-3 text-white/20" />
+                INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+             </div>
+             <div className="flex items-center gap-2 text-[8px] text-white/40 tracking-widest uppercase font-bold">
+                <Hash className="w-3 h-3 text-white/20" />
+                ORDER_ID: {order.order_ID || order.id}
+             </div>
           </div>
         </div>
 
@@ -438,7 +445,10 @@ function OrderDossierDialog({ order, userId, userName, db }: { order: any, userI
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-bold tracking-[0.5em] uppercase glow-text">Mission Dossier</DialogTitle>
-              <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">ORDER_ID: {order.id}</DialogDescription>
+              <div className="flex flex-col gap-1 mt-2">
+                 <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">ORDER_ID: {order.order_ID || order.id}</DialogDescription>
+                 <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/20 font-mono">TRANSITION_ID: {order.transition_ID || 'INTERNAL'}</DialogDescription>
+              </div>
             </div>
             <Button onClick={() => { generateInvoicePDF(order); toast({ title: "LOG DOWNLOADED" }); }} size="sm" variant="outline" className="border-white/20 text-white text-[8px] tracking-[0.3em] font-black hover:bg-white hover:text-black rounded-none h-10 px-6 bg-transparent">
                BILL (PDF) <Download className="ml-2 w-3 h-3" />

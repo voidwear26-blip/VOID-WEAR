@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info, Hash } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info, Hash, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useState } from 'react';

@@ -6,7 +6,6 @@ import { ShoppingBag, ChevronLeft, ShieldAlert, Clock, Hash, Info, Loader2, Zap 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
@@ -14,7 +13,6 @@ export default function AdminOrdersPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const isAdmin = !isUserLoading && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
@@ -46,26 +44,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleTrackingUpdate = async (orderId: string, userId: string, trackingId: string) => {
-    if (!db) return;
-    setUpdatingId(orderId);
-    try {
-      const orderRef = doc(db, 'users', userId, 'orders', orderId);
-      await updateDoc(orderRef, { 
-        trackingId,
-        updatedAt: new Date().toISOString()
-      });
-      toast({
-        title: "TRACKING SYNCED",
-        description: `LINKED TRACKING ID ${trackingId}.`,
-      });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   if (isUserLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white">
@@ -74,7 +52,13 @@ export default function AdminOrdersPage() {
     );
   }
 
-  if (!isAdmin) return null;
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 text-white font-bold">
+        ACCESS DENIED // MASTER ONLY
+      </div>
+    );
+  }
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
@@ -144,7 +128,7 @@ export default function AdminOrdersPage() {
                           <SelectTrigger className="w-40 bg-black/40 border-white/10 rounded-none h-10 text-[9px] tracking-[0.2em] uppercase focus:ring-0">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-black border-white/10 text-white rounded-none">
+                          <SelectContent className="bg-black border-white/20 text-white rounded-none">
                             <SelectItem value="processing" className="text-[9px] tracking-widest uppercase">PROCESSING</SelectItem>
                             <SelectItem value="shipped" className="text-[9px] tracking-widest uppercase">SHIPPED</SelectItem>
                             <SelectItem value="delivered" className="text-[9px] tracking-widest uppercase text-green-500">DELIVERED</SelectItem>
