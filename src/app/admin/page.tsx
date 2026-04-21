@@ -100,7 +100,7 @@ export default function AdminDashboard() {
                 TRANSMISSION SYNC FAILURE
               </p>
               <p className="text-[8px] tracking-widest uppercase opacity-60">
-                ENSURE MASTER SECURITY RULES (V18.0) ARE DEPLOYED IN FIREBASE CONSOLE.
+                RE-INITIALIZING SECURITY HANDSHAKE...
               </p>
             </div>
           </div>

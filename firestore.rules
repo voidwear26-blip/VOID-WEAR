@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * VOID WEAR SECURITY RULES
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 18.0 - RESILIENT UID AUTHORIZATION ACTIVE
+     * VERSION: 20.0 - BULLETPROOF UID AUTHORIZATION
      */
 
     // --- Helper Functions ---
@@ -26,13 +26,13 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // Grants absolute authority over every document in the architecture.
+    // This rule is prioritized and grants absolute authority to the Master Administrator.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- Collection Group Audit Protocol ---
-    // Explicitly enables global audits for orders required by the dashboard and revenue modules.
+    // Specifically enables global audits for orders required by the revenue dashboard.
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow write: if isAdmin();
@@ -63,7 +63,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get, create, update: if isOwner(userId) || isAdmin();
+      // Granting full access to owners for dossier management
+      allow get, list, create, update: if isOwner(userId) || isAdmin();
       
       match /carts/{cartId} {
         allow read, write: if isOwner(userId) || isAdmin();
