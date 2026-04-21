@@ -4,9 +4,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v23.0
-     * MASTER AUTHORITY: voidwear26@gmail.com
-     * BULLETPROOF UID-FIRST AUTHORIZATION
+     * VOID WEAR SECURITY RULES v24.0
+     * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
+     * BULLETPROOF AUTHORIZATION FOR GLOBAL AUDITS
      */
 
     // --- Helper Functions ---
@@ -34,10 +34,17 @@ service cloud.firestore {
 
     // --- Explicit Collection Group Audit Rule ---
     // Critical for global order tracking and revenue aggregation in Command Center.
+    // We split the rules to ensure that broad 'list' operations (like collectionGroup) 
+    // are authorized statically for admins without triggering document-relative checks.
     match /{path=**}/orders/{orderId} {
-      allow list, read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // Admin access: Absolute oversight
+      allow list, read, update, delete: if isAdmin();
+      
+      // Operator access: Restricted to own dossier
+      // Requires filter by userId in queries for 'list' to pass for non-admins
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && request.query.limit <= 100 && (resource == null || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAdmin();
     }
 
     // --- Standard Collection Access for Operators ---
