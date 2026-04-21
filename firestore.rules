@@ -7,7 +7,7 @@ service cloud.firestore {
      * VOID WEAR SECURITY RULES
      * 
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 12.5 - ABSOLUTE ADMIN OVERRIDE
+     * VERSION: 12.6 - ROBUST OWNER ACCESS
      */
 
     // --- Helper Functions ---
@@ -17,7 +17,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email.lower() == 'voidwear26@gmail.com';
+      return isSignedIn() && 
+             request.auth.token.keys().contains('email') && 
+             request.auth.token.email.lower() == 'voidwear26@gmail.com';
     }
 
     function isOwner(userId) {
@@ -48,33 +50,24 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Allow admin to list and read all users
-      allow list: if isAdmin();
-      allow get: if isOwner(userId) || isAdmin();
+      // Allow any signed-in user to manage their own dossier
+      allow get, create, update: if isOwner(userId);
       
-      // Allow any signed-in user to create their own record
-      allow create: if isOwner(userId);
-      
-      // Allow updates by owner or admin
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      // Allow admin to audit all users
+      allow list, delete: if isAdmin();
+      allow get, update: if isAdmin();
 
       match /carts/{cartId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update, delete: if isOwner(userId) || isAdmin();
+        allow get, list, create, update, delete: if isOwner(userId) || isAdmin();
 
         match /items/{itemId} {
-          allow get, list: if isOwner(userId) || isAdmin();
-          allow create: if isOwner(userId);
-          allow update, delete: if isOwner(userId) || isAdmin();
+          allow get, list, create, update, delete: if isOwner(userId) || isAdmin();
         }
       }
 
       match /orders/{orderId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
-        allow update, delete: if isAdmin();
+        allow get, list, create: if isOwner(userId);
+        allow get, list, update, delete: if isAdmin();
       }
 
       match /wishlist/{productId} {

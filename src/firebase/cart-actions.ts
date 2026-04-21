@@ -71,7 +71,7 @@ export async function addToCart(
     setDoc(itemRef, setData).catch(async (serverError) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: itemRef.path,
-        operation: 'create',
+        operation: 'update', // Using update for consistency in rules debugging
         requestResourceData: setData,
       }));
     });

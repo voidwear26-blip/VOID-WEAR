@@ -33,7 +33,7 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: userRef.path,
-        operation: 'write',
+        operation: 'update',
         requestResourceData: dossierData,
       } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
