@@ -1,9 +1,8 @@
-
 "use client"
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag, User, LogOut, Heart } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Heart, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
@@ -19,6 +18,8 @@ export function Navbar() {
   const { user } = useUser();
   const auth = useAuth();
   const db = useFirestore();
+
+  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -38,9 +39,7 @@ export function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -53,14 +52,6 @@ export function Navbar() {
     transition: { type: "spring", stiffness: 400, damping: 17 }
   };
 
-  const handleLogout = async () => {
-    try {
-      await initiateSignOut(auth);
-    } catch (err) {
-      console.error('[LOGOUT_FAILURE]', err);
-    }
-  };
-
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-black/90 backdrop-blur-xl py-4 border-b border-white/10' : 'bg-transparent py-10'}`}>
@@ -68,23 +59,14 @@ export function Navbar() {
           <div className="flex items-center gap-16">
             <Link href="/" className="group flex items-center gap-4">
               <motion.div {...iconMotionProps} className="flex items-center gap-4">
-                <Image 
-                  src="/logo.png" 
-                  alt="VOID WEAR" 
-                  width={40} 
-                  height={40} 
-                  className="h-8 w-auto object-contain brightness-200 grayscale"
-                  priority
-                  unoptimized
-                />
+                <Image src="/logo.png" alt="VOID WEAR" width={40} height={40} className="h-8 w-auto object-contain brightness-200 grayscale" priority unoptimized />
                 <span className="text-[11px] font-black tracking-[0.4em] uppercase text-white glow-text hidden sm:block">VOID WEAR</span>
               </motion.div>
             </Link>
-            
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
-              <Link href="/products" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">COLLECTION</Link>
-              <Link href="/story" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">TRENDS</Link>
-              <Link href="/contact" className="text-white/80 hover:text-white transition-all duration-500 uppercase font-bold">CONTACT</Link>
+              <Link href="/products" className="text-white/80 hover:text-white transition-all duration-500 uppercase">COLLECTION</Link>
+              <Link href="/story" className="text-white/80 hover:text-white transition-all duration-500 uppercase">TRENDS</Link>
+              <Link href="/contact" className="text-white/80 hover:text-white transition-all duration-500 uppercase">CONTACT</Link>
             </div>
           </div>
 
@@ -93,58 +75,23 @@ export function Navbar() {
               <Button variant="ghost" size="icon" className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none relative">
                 <motion.div {...iconMotionProps}>
                   <Heart className="w-4 h-4" />
-                  {wishlistCount > 0 && (
-                    <span className="absolute top-2 right-2 w-3 h-3 bg-white text-black text-[7px] font-black rounded-full flex items-center justify-center">
-                      {wishlistCount}
-                    </span>
-                  )}
+                  {wishlistCount > 0 && <span className="absolute top-2 right-2 w-3 h-3 bg-white text-black text-[7px] font-black rounded-full flex items-center justify-center">{wishlistCount}</span>}
                 </motion.div>
               </Button>
             </Link>
 
-            {user ? (
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none">
-                  <Link href="/profile">
-                    <motion.div {...iconMotionProps}>
-                      <User className="w-4 h-4" />
-                    </motion.div>
-                  </Link>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleLogout}
-                  className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none"
-                >
-                  <motion.div {...iconMotionProps}>
-                    <LogOut className="w-4 h-4" />
-                  </motion.div>
-                </Button>
-              </div>
-            ) : (
-              <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none">
-                <Link href="/login">
-                  <motion.div {...iconMotionProps}>
-                    <User className="w-4 h-4" />
-                  </motion.div>
-                </Link>
+            <Link href={user ? "/profile" : "/login"}>
+              <Button variant="ghost" size="icon" className={`h-12 w-12 rounded-none transition-all ${isAdmin ? 'text-white border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'text-white/80 hover:text-white'}`}>
+                <motion.div {...iconMotionProps}>
+                  {isAdmin ? <ShieldCheck className="w-4 h-4 text-white" /> : <User className="w-4 h-4" />}
+                </motion.div>
               </Button>
-            )}
+            </Link>
             
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hover:bg-white/10 h-12 w-12 text-white relative group rounded-none"
-              onClick={() => setIsCartOpen(true)}
-            >
+            <Button variant="ghost" size="icon" className="hover:bg-white/10 h-12 w-12 text-white relative group rounded-none" onClick={() => setIsCartOpen(true)}>
               <motion.div {...iconMotionProps}>
-                <ShoppingBag className="w-4 h-4 group-hover:glow-text" />
-                {itemCount > 0 && (
-                  <span className="absolute top-2 right-2 w-4 h-4 bg-white text-black text-[9px] font-bold rounded-full flex items-center justify-center animate-in zoom-in-50">
-                    {itemCount}
-                  </span>
-                )}
+                <ShoppingBag className="w-4 h-4" />
+                {itemCount > 0 && <span className="absolute top-2 right-2 w-4 h-4 bg-white text-black text-[9px] font-bold rounded-full flex items-center justify-center animate-in zoom-in-50">{itemCount}</span>}
               </motion.div>
             </Button>
           </div>

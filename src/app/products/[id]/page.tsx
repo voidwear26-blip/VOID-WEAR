@@ -1,12 +1,11 @@
-
 'use client';
 
 import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Heart, Loader2, Info } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { addToCart } from '@/firebase/cart-actions';
@@ -20,7 +19,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const db = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
   const [adding, setAdding] = useState(false);
+  const [buying, setBuying] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -39,7 +40,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
 
-  // Derive available sizes based on stock matrix
   const availableSizes = useMemo(() => {
     if (!product?.stockMatrix) return ['DEFAULT'];
     const keys = Object.keys(product.stockMatrix);
@@ -51,7 +51,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     });
   }, [product]);
 
-  // Derive available colors for selected size
   const availableColors = useMemo(() => {
     if (!product?.stockMatrix || !selectedSize) return ['OBSIDIAN'];
     const colors = product.stockMatrix[selectedSize] || {};
@@ -61,55 +60,58 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return keys.filter(color => colors[color] > 0);
   }, [product, selectedSize]);
 
-  const handleAdd = async () => {
-    if (!selectedSize || !selectedColor) {
-      toast({ 
-        variant: "destructive",
-        title: "CONFIGURATION REQUIRED", 
-        description: "PLEASE SELECT BOTH SIZE AND COLOR NODES." 
-      });
-      return;
-    }
-    
+  const handleAuthGuard = () => {
     if (!user) {
-      toast({ 
-        variant: "destructive",
-        title: "AUTHENTICATION REQUIRED", 
-        description: "LOG IN TO YOUR ENTITY TO ACCESS THE BAG." 
-      });
+      toast({ title: "AUTHENTICATION REQUIRED", description: "LOG IN TO YOUR ENTITY TO CONTINUE." });
+      router.push('/login');
+      return false;
+    }
+    return true;
+  };
+
+  const handleAdd = async () => {
+    if (!handleAuthGuard()) return;
+    if (!selectedSize || !selectedColor) {
+      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
       return;
     }
-
     if (!db || !product) return;
 
     setAdding(true);
     try {
-      await addToCart(db, user.uid, {
-        ...product,
-        id: product.id,
-        color: selectedColor 
-      } as any, selectedSize);
-      
-      toast({ 
-        title: "MODULE ADDED", 
-        description: `TRANSITIONING ${selectedSize} // ${selectedColor} TO BAG.` 
-      });
+      await addToCart(db, user!.uid, { ...product, id: product.id, color: selectedColor } as any, selectedSize);
+      toast({ title: "MODULE ADDED", description: "ASSEMBLAGE TRANSITIONED TO BAG." });
     } catch (e) {
-      console.error('[ACQUISITION_FAILURE]', e);
+      console.error(e);
     } finally {
       setAdding(false);
     }
   };
 
-  const handleWishlistToggle = async () => {
-    if (!user) {
-      toast({ title: "AUTHENTICATION REQUIRED", description: "PLEASE LINK YOUR IDENTITY." });
+  const handleBuyNow = async () => {
+    if (!handleAuthGuard()) return;
+    if (!selectedSize || !selectedColor) {
+      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
       return;
     }
+    if (!db || !product) return;
 
+    setBuying(true);
+    try {
+      await addToCart(db, user!.uid, { ...product, id: product.id, color: selectedColor } as any, selectedSize);
+      router.push('/checkout');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBuying(false);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!handleAuthGuard()) return;
     setToggling(true);
     try {
-      await toggleWishlist(db!, user.uid, product as any);
+      await toggleWishlist(db!, user!.uid, product as any);
       toast({ 
         title: isInWishlist ? "MODULE REMOVED" : "MODULE SECURED", 
         description: isInWishlist ? "STASIS LOG SEVERED." : "ASSEMBLAGE ADDED TO STASIS." 
@@ -122,21 +124,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <div className="flex flex-col items-center gap-6">
-          <Loader2 className="w-10 h-10 animate-spin text-white/40" />
-          <span className="text-[10px] tracking-[1em] text-white/60 uppercase font-black">Syncing Module...</span>
-        </div>
-      </div>
-    );
+    return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-10 h-10 animate-spin text-white/20" /></div>;
   }
 
-  if (!product) {
-    return notFound();
-  }
+  if (!product) return notFound();
 
-  const displayImage = (product as any)?.imageUrls?.[0] || 'https://picsum.photos/seed/void-placeholder/800/1000';
+  const displayImages = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls : ['https://picsum.photos/seed/void-placeholder/800/1000'];
 
   return (
     <div className="pt-32 pb-24 bg-transparent min-h-screen">
@@ -146,33 +139,32 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <ChevronRight className="w-3 h-3 opacity-30" />
           <Link href="/products" className="hover:text-white transition-colors">COLLECTION</Link>
           <ChevronRight className="w-3 h-3 opacity-30" />
-          <span className="text-white">{(product as any)?.name}</span>
+          <span className="text-white">{product.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-24 items-start">
           <div className="space-y-8">
-            <div className="relative aspect-[3/4] bg-white/[0.02] group overflow-hidden border border-white/10 glow-border">
-              <Image 
-                src={displayImage} 
-                alt={(product as any)?.name || 'Product module visualization'} 
-                fill 
-                className="object-cover transition-all duration-1000"
-                unoptimized
-                priority
-              />
-              <div className="absolute top-8 right-8 z-30">
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handleWishlistToggle}
-                  disabled={toggling}
-                  className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
-                    isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
-                  }`}
-                >
-                  {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
-                </motion.button>
-              </div>
+            <div className="grid grid-cols-1 gap-6">
+              {displayImages.map((url: string, idx: number) => (
+                <div key={idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
+                  <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
+                  {idx === 0 && (
+                    <div className="absolute top-8 right-8 z-30">
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={handleWishlistToggle}
+                        disabled={toggling}
+                        className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
+                          isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
+                        }`}
+                      >
+                        {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
+                      </motion.button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -180,18 +172,17 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/50 uppercase">
                 <span className="w-8 h-[1px] bg-white/20"></span>
-                {(product as any)?.category}
+                {product.category}
               </div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase text-white">{(product as any)?.name}</h1>
-              <p className="text-2xl font-light tracking-widest text-white/90">₹{(product as any)?.basePrice}</p>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase text-white">{product.name}</h1>
+              <p className="text-2xl font-light tracking-widest text-white/90">₹{product.basePrice}</p>
             </div>
 
             <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase font-light max-w-xl">
-              {(product as any)?.description}
+              {product.description}
             </p>
 
             <div className="space-y-10">
-              {/* SIZE SELECTION */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">01. SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
@@ -201,10 +192,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       <button 
                         key={size} 
                         disabled={isDisabled}
-                        onClick={() => {
-                          setSelectedSize(size);
-                          setSelectedColor(null);
-                        }}
+                        onClick={() => { setSelectedSize(size); setSelectedColor(null); }}
                         className={cn(
                           "w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
                           selectedSize === size ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
@@ -218,7 +206,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              {/* COLOR SELECTION */}
               {selectedSize && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
                   <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">02. SELECT COLOR</h4>
@@ -239,34 +226,31 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </div>
               )}
 
-              <div className="flex flex-col gap-6 pt-4">
+              <div className="grid gap-4 pt-4">
                 <Button 
-                  onClick={handleAdd}
-                  disabled={adding || !selectedSize || !selectedColor}
-                  className="w-full bg-white text-black hover:bg-white/90 h-20 text-[11px] font-black tracking-[0.5em] rounded-none group shadow-[0_0_40px_rgba(255,255,255,0.1)] disabled:opacity-30 transition-all duration-500"
+                  onClick={handleBuyNow}
+                  disabled={buying || !selectedSize || !selectedColor}
+                  className="w-full bg-white text-black hover:bg-white/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none group shadow-[0_0_40px_rgba(255,255,255,0.1)] uppercase transition-all"
                 >
-                  {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                    <>
-                      ADD TO TRANSMISSION BAG
-                      <ShoppingBag className="ml-4 w-4 h-4 group-hover:scale-110 transition-transform" />
-                    </>
-                  )}
+                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
                 </Button>
                 
-                {!user && (
-                   <div className="flex items-center gap-3 p-4 border border-white/5 bg-white/[0.01] opacity-60">
-                      <Info className="w-3.5 h-3.5 text-white/40" />
-                      <p className="text-[8px] tracking-widest text-white/60 uppercase font-bold">LINK YOUR IDENTITY TO INITIALIZE ACQUISITION.</p>
-                   </div>
-                )}
+                <Button 
+                  variant="outline"
+                  onClick={handleAdd}
+                  disabled={adding || !selectedSize || !selectedColor}
+                  className="w-full border-white/10 bg-transparent hover:bg-white/5 h-16 text-[10px] font-bold tracking-[0.4em] rounded-none text-white uppercase transition-all"
+                >
+                  {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <>ADD TO TRANSMISSION BAG <ShoppingBag className="ml-3 w-3.5 h-3.5" /></>}
+                </Button>
               </div>
             </div>
 
             <div className="border-t border-white/10 pt-12 space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">SPECIFICATIONS</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">TECHNICAL SPECIFICATIONS</h4>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/60">
-                  {(product as any)?.details?.map((detail: string, idx: number) => (
+                  {product.details?.map((detail: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 uppercase font-light">
                       <span className="w-1 h-1 bg-white/20 rounded-full"></span>
                       {detail}

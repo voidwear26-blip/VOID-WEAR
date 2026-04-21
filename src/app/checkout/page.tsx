@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Info, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,14 +84,14 @@ export default function CheckoutPage() {
 
     const newOrder = {
       id: orderId,
-      order_ID: orderId, // LOGISTICAL IDENTIFIER
-      transition_ID: paymentId, // FINANCIAL IDENTIFIER (FOR VERIFICATION)
+      order_ID: orderId, 
+      transition_ID: paymentId, 
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
       mobileNumber: formData.mobileNumber,
       items: cartItems,
-      totalAmount: subtotal,
+      totalAmount: Number(subtotal), 
       orderDate: new Date().toISOString(),
       shippingStatus: 'processing',
       paymentStatus: 'paid',
@@ -108,18 +108,32 @@ export default function CheckoutPage() {
 
     batch.set(orderRef, newOrder);
 
+    // Cleanup Cart
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
+
+    // Cleanup Wishlist for purchased items
+    for (const item of cartItems) {
+      const wishlistRef = doc(db, 'users', user.uid, 'wishlist', item.productId);
+      batch.delete(wishlistRef);
+    }
 
     await batch.commit();
     setOrderObject(newOrder);
     setFinalOrderId(orderId);
     setFinalTransitionId(paymentId);
     setStep('success');
+    
+    // Smooth transition to profile
+    setTimeout(() => {
+      router.push('/profile');
+    }, 3000);
   };
 
   const handlePaymentUplink = async () => {
     if (!user || !db || !cartItems) return;
+    if (cartItems.length === 0) return;
+    
     setLoading(true);
 
     try {
@@ -127,7 +141,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          amount: subtotal,
+          amount: Number(subtotal),
           notes: { operator_name: formData.displayName, user_uid: user.uid }
         }),
       });
@@ -153,7 +167,7 @@ export default function CheckoutPage() {
 
             if (verifyRes.ok) {
               await finalizeOrderInFirestore(response.razorpay_payment_id);
-              toast({ title: "TRANSMISSION SECURED", description: "UPLINK VERIFIED SUCCESSFULLY." });
+              toast({ title: "TRANSMISSION SECURED", description: "UPLINK VERIFIED SUCCESSFULLY. REDIRECTING..." });
             } else {
               toast({ variant: "destructive", title: "VERIFICATION_FAILURE" });
             }
@@ -190,6 +204,7 @@ export default function CheckoutPage() {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl">
           <CheckCircle2 className="w-16 h-16 text-white mx-auto" />
           <h1 className="text-4xl font-black tracking-tight glow-text uppercase">TRANSMISSION SECURED</h1>
+          <p className="text-[10px] tracking-[0.5em] text-white/40 uppercase font-black">LOGGING ACQUISITION TO YOUR DOSSIER...</p>
           
           <div className="bg-black/40 border border-white/10 p-10 space-y-8 text-left">
              <div className="space-y-2">
@@ -213,7 +228,7 @@ export default function CheckoutPage() {
              <Button onClick={() => orderObject && generateInvoicePDF(orderObject)} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
                 DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
              </Button>
-             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-white/40 hover:text-white transition-all uppercase font-black">RETURN TO DOSSIER</Link>
+             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-white/40 hover:text-white transition-all uppercase font-black">MANUAL RETURN TO DOSSIER</Link>
           </div>
         </motion.div>
       </div>

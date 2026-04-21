@@ -27,34 +27,25 @@ export default function ProductsPage() {
 
     let result = [...dbProducts];
 
-    // 1. Filtering with safety checks
     if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      result = result.filter(p => 
-        (p.name?.toLowerCase() || '').includes(lowerSearch) || 
-        (p.category?.toLowerCase() || '').includes(lowerSearch) ||
-        (p.description?.toLowerCase() || '').includes(lowerSearch)
-      );
+      const lowerSearch = searchTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
+      result = result.filter(p => {
+        const name = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const category = (p.category || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return name.includes(lowerSearch) || category.includes(lowerSearch);
+      });
     }
 
-    // 2. Sorting Logic
     result.sort((a, b) => {
       switch (sortBy) {
-        case 'name-asc':
-          return (a.name || '').localeCompare(b.name || '');
-        case 'name-desc':
-          return (b.name || '').localeCompare(a.name || '');
-        case 'price-asc':
-          return (Number(a.basePrice) || 0) - (Number(b.basePrice) || 0);
-        case 'price-desc':
-          return (Number(b.basePrice) || 0) - (Number(a.basePrice) || 0);
-        case 'stock-asc':
-          return (Number(a.stockQuantity) || 0) - (Number(b.stockQuantity) || 0);
-        case 'stock-desc':
-          return (Number(b.stockQuantity) || 0) - (Number(a.stockQuantity) || 0);
+        case 'name-asc': return (a.name || '').localeCompare(b.name || '');
+        case 'name-desc': return (b.name || '').localeCompare(a.name || '');
+        case 'price-asc': return (Number(a.basePrice) || 0) - (Number(b.basePrice) || 0);
+        case 'price-desc': return (Number(b.basePrice) || 0) - (Number(a.basePrice) || 0);
+        case 'stock-asc': return (Number(a.stockQuantity) || 0) - (Number(b.stockQuantity) || 0);
+        case 'stock-desc': return (Number(b.stockQuantity) || 0) - (Number(a.stockQuantity) || 0);
         case 'newest':
-        default:
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        default: return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       }
     });
 
@@ -72,7 +63,6 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        {/* Controls Module */}
         <div className="flex flex-col md:flex-row gap-6 mb-16 items-start md:items-center justify-between">
           <div className="relative w-full md:w-96 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80 group-focus-within:text-white transition-colors" />
@@ -122,7 +112,7 @@ export default function ProductsPage() {
             <div className="space-y-2">
               <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO MODULES LOGGED</p>
               <p className="text-[8px] tracking-[0.3em] uppercase max-w-xs mx-auto text-white/60">
-                {searchTerm ? 'NO RESULTS MATCH YOUR SEARCH COORDINATES.' : 'DATABASE DISCONNECTED OR EMPTY. USE COMMAND CENTER TO INITIALIZE CATALOGUE.'}
+                {searchTerm ? 'NO RESULTS MATCH YOUR SEARCH COORDINATES.' : 'DATABASE DISCONNECTED OR EMPTY.'}
               </p>
             </div>
           </div>
