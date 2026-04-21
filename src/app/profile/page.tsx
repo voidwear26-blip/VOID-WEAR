@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { submitReview } from '@/firebase/review-actions';
 
 export default function ProfilePage() {
@@ -93,11 +93,10 @@ export default function ProfilePage() {
       ...formData,
       email: user.email,
       uid: user.uid,
-      updatedAt: new Date().toISOString(),
-      createdAt: profile?.createdAt || new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
 
-    // Optimistic, non-blocking save sequence
+    // Non-blocking set sequence
     setDoc(userRef, updateData, { merge: true })
       .then(() => {
         toast({
@@ -110,7 +109,7 @@ export default function ProfilePage() {
           path: userRef.path,
           operation: 'update',
           requestResourceData: updateData,
-        });
+        } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
       })
       .finally(() => {
@@ -288,6 +287,7 @@ export default function ProfilePage() {
                     </div>
 
                     <Button 
+                      type="submit"
                       disabled={saving}
                       className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] uppercase"
                     >

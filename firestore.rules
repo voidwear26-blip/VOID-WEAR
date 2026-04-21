@@ -7,7 +7,7 @@ service cloud.firestore {
      * VOID WEAR SECURITY RULES
      * 
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 12.3 - REINFORCED ADMIN LISTING
+     * VERSION: 12.5 - ABSOLUTE ADMIN OVERRIDE
      */
 
     // --- Helper Functions ---
@@ -48,10 +48,14 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // CRITICAL: Ensure admin can list the collection
+      // Allow admin to list and read all users
       allow list: if isAdmin();
       allow get: if isOwner(userId) || isAdmin();
+      
+      // Allow any signed-in user to create their own record
       allow create: if isOwner(userId);
+      
+      // Allow updates by owner or admin
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
 
@@ -82,6 +86,10 @@ service cloud.firestore {
      * @description Collection Group rules for Global Mission Audits (Admin only).
      */
     match /{path=**}/orders/{orderId} {
+      allow read: if isAdmin();
+    }
+
+    match /{path=**}/items/{itemId} {
       allow read: if isAdmin();
     }
   }

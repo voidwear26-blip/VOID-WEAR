@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import Image from 'next/image';
 
 type StockMatrix = {
@@ -109,37 +111,40 @@ export default function NewProductPage() {
     }
 
     setLoading(true);
-    // Optimized: Start save sequence without blocking UI indefinitely
-    try {
-      const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
-      
-      const productData = {
-        name: formData.name.toUpperCase(),
-        category: formData.category.toUpperCase(),
-        basePrice: parseFloat(formData.basePrice) || 0,
-        description: formData.description,
-        imageUrls: [formData.imageUrl || `https://picsum.photos/seed/${Math.random()}/800/1000`],
-        stockMatrix: stockMatrix,
-        stockQuantity: totalStock,
-        sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
-        details: detailsArray,
-        slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+    const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
+    
+    const productData = {
+      name: formData.name.toUpperCase(),
+      category: formData.category.toUpperCase(),
+      basePrice: parseFloat(formData.basePrice) || 0,
+      description: formData.description,
+      imageUrls: [formData.imageUrl || `https://picsum.photos/seed/${Math.random()}/800/1000`],
+      stockMatrix: stockMatrix,
+      stockQuantity: totalStock,
+      sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
+      details: detailsArray,
+      slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-      // Non-blocking approach: Provide feedback and navigate quickly
-      addDoc(collection(db, 'products'), productData).then(() => {
+    const productsCol = collection(db, 'products');
+
+    // Non-blocking approach with explicit feedback reset
+    addDoc(productsCol, productData)
+      .then(() => {
         toast({ title: "MODULE INITIALIZED", description: "DATA PERSISTED TO THE VOID." });
-      }).catch(err => {
-        toast({ variant: "destructive", title: "SYNC ERROR", description: "UPLINK FAILED." });
+        router.push('/admin/products');
+      })
+      .catch(async (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: productsCol.path,
+          operation: 'create',
+          requestResourceData: productData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+        setLoading(false);
       });
-
-      router.push('/admin/products');
-    } catch (e: any) {
-      console.error('[PRODUCT_ADD_ERROR]', e);
-      setLoading(false);
-    }
   };
 
   if (!mounted || isUserLoading || !isAdmin) return null;
@@ -251,7 +256,7 @@ export default function NewProductPage() {
               <div className="relative group w-full md:w-48 aspect-[3/4] bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-all overflow-hidden">
                 {formData.imageUrl ? (
                   <>
-                    <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
+                    <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" unoptimized />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, imageUrl: '' }))} className="text-white">
                         <Trash2 className="w-5 h-5" />

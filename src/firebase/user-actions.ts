@@ -4,7 +4,7 @@
 import { doc, setDoc, Firestore } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { errorEmitter } from './error-emitter';
-import { FirestorePermissionError } from './errors';
+import { FirestorePermissionError, type SecurityRuleContext } from './errors';
 
 /**
  * VOID WEAR // DOSSIER SYNCHRONIZATION
@@ -28,15 +28,16 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
   };
 
   // Perform set with merge protocol. 
-  // Note: We return the promise to allow login/signup pages to wait for initialization if needed.
-  return setDoc(userRef, dossierData, { merge: true })
+  // Non-blocking catch to ensure we don't hang if there's a permission issue
+  setDoc(userRef, dossierData, { merge: true })
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: userRef.path,
         operation: 'write',
         requestResourceData: dossierData,
-      });
+      } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
-      throw serverError;
     });
+
+  return Promise.resolve(); // Allow the caller to continue immediately
 }
