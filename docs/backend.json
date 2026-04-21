@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -132,10 +131,18 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a confirmed transmission log.",
+      "description": "Represents a confirmed transmission log with logistical and financial identifiers.",
       "properties": {
         "id": {
           "type": "string"
+        },
+        "order_ID": {
+          "type": "string",
+          "description": "Logistical identifier for product tracking."
+        },
+        "transition_ID": {
+          "type": "string",
+          "description": "Financial identifier for amount verification."
         },
         "userId": {
           "type": "string"

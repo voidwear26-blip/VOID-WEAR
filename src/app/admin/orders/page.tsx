@@ -2,7 +2,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collectionGroup, query, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
-import { ShoppingBag, ChevronLeft, ShieldAlert, Clock, Hash, Info, Loader2, Zap } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,13 +17,14 @@ export default function AdminOrdersPage() {
   const isAdmin = !isUserLoading && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const allOrdersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
+    // CRITICAL: Ensure admin identity is stabilized before initiating transmission audit
+    if (!db || !user?.uid || !isAdmin) return null;
     return query(
       collectionGroup(db, 'orders'),
       orderBy('orderDate', 'desc'),
-      limit(50)
+      limit(100)
     );
-  }, [db, isAdmin]);
+  }, [db, user?.uid, isAdmin]);
 
   const { data: orders, isLoading } = useCollection(allOrdersQuery);
 
@@ -40,7 +41,7 @@ export default function AdminOrdersPage() {
         description: `ORDER STATUS SET TO ${newStatus.toUpperCase()}.`,
       });
     } catch (e) {
-      console.error(e);
+      console.error('[STATUS_UPDATE_FAILURE]', e);
     }
   };
 
@@ -83,7 +84,7 @@ export default function AdminOrdersPage() {
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_UID</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TRANSITION_ID (PAYMENT)</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TRANSITION_ID (VERIFY)</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ENTITY</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">FULFILLMENT</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
@@ -103,7 +104,7 @@ export default function AdminOrdersPage() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                              <Hash className="w-3 h-3 text-white/40" />
-                             <span className="text-[10px] font-mono tracking-widest text-white font-black">{order.id}</span>
+                             <span className="text-[10px] font-mono tracking-widest text-white font-black">{order.order_ID || order.id}</span>
                           </div>
                           <p className="text-[9px] text-white/60 uppercase tracking-[0.2em] font-bold">₹{order.totalAmount}</p>
                         </div>

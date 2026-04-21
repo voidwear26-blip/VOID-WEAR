@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('upi');
   const [finalOrderId, setFinalOrderId] = useState<string | null>(null);
+  const [finalTransitionId, setFinalTransitionId] = useState<string | null>(null);
   const [orderObject, setOrderObject] = useState<any>(null);
 
   const profileRef = useMemoFirebase(() => {
@@ -84,7 +85,7 @@ export default function CheckoutPage() {
     const newOrder = {
       id: orderId,
       order_ID: orderId, // LOGISTICAL IDENTIFIER
-      transition_ID: paymentId, // FINANCIAL IDENTIFIER
+      transition_ID: paymentId, // FINANCIAL IDENTIFIER (FOR VERIFICATION)
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
@@ -113,6 +114,7 @@ export default function CheckoutPage() {
     await batch.commit();
     setOrderObject(newOrder);
     setFinalOrderId(orderId);
+    setFinalTransitionId(paymentId);
     setStep('success');
   };
 
@@ -191,7 +193,7 @@ export default function CheckoutPage() {
           
           <div className="bg-black/40 border border-white/10 p-10 space-y-8 text-left">
              <div className="space-y-2">
-                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">ORDER_ID (PRODUCT)</p>
+                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">ORDER_ID (LOGISTICS)</p>
                 <div className="flex items-center gap-3">
                    <Hash className="w-4 h-4 text-white/20" />
                    <p className="text-lg font-mono text-white font-black">{finalOrderId}</p>
@@ -199,10 +201,10 @@ export default function CheckoutPage() {
              </div>
              <div className="h-px bg-white/5 w-full" />
              <div className="space-y-2">
-                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">TRANSITION_ID (AMOUNT VERIFICATION)</p>
+                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">TRANSITION_ID (VERIFICATION)</p>
                 <div className="flex items-center gap-3">
                    <Zap className="w-4 h-4 text-white/20" />
-                   <p className="text-sm font-mono text-white/80 uppercase break-all">{orderObject?.transition_ID || 'VERIFYING...'}</p>
+                   <p className="text-sm font-mono text-white/80 uppercase break-all">{finalTransitionId}</p>
                 </div>
              </div>
           </div>

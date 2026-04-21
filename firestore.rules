@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * VOID WEAR SECURITY RULES
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 14.0 - ABSOLUTE UPLINK ACTIVE
+     * VERSION: 15.0 - ABSOLUTE OVERRIDE ACTIVE
      */
 
     // --- Helper Functions ---
@@ -16,7 +16,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && 
-             request.auth.token.email.lower() == 'voidwear26@gmail.com';
+             (request.auth.token.email.lower() == 'voidwear26@gmail.com' || 
+              request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2');
     }
 
     function isOwner(userId) {
@@ -24,8 +25,7 @@ service cloud.firestore {
     }
 
     // --- Master Authority Override ---
-    // Grants the primary administrator absolute authority over the entire database architecture.
-    // Explicitly allowing all methods including 'list' for collection group queries.
+    // Grants absolute visibility and control over all document nodes and collection groups.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
@@ -71,7 +71,7 @@ service cloud.firestore {
 
     /**
      * @description Collection Group rules for Global Mission Audits.
-     * Hardened to ensure Master and Owners can audit transmissions across the void.
+     * Hardened to ensure Masters have unrestricted list/read capability.
      */
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
