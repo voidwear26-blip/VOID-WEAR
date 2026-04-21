@@ -27,6 +27,7 @@ export default function AdminDashboard() {
   }, [mounted, isUserLoading, isAdmin, router]);
 
   // Sync real-time data for stats - STRICT AUTH GUARD
+  // Queries wait until isAdmin is verified to prevent permission race conditions
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collection(db, 'products');
@@ -42,16 +43,16 @@ export default function AdminDashboard() {
     return collection(db, 'users');
   }, [db, isAdmin]);
 
-  const { data: products } = useCollection(productsQuery);
-  const { data: orders, error: ordersError } = useCollection(ordersQuery);
-  const { data: users } = useCollection(usersQuery);
+  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
+  // High-Precision Revenue Aggregation
   const totalRevenue = useMemo(() => {
     if (!orders) return 0;
     return orders.reduce((acc, order) => {
-      const amount = typeof order.totalAmount === 'number' 
-        ? order.totalAmount 
-        : parseFloat(order.totalAmount || '0');
+      const rawAmount = order.totalAmount;
+      const amount = typeof rawAmount === 'number' ? rawAmount : parseFloat(rawAmount || '0');
       return acc + (isNaN(amount) ? 0 : amount);
     }, 0);
   }, [orders]);
@@ -91,9 +92,14 @@ export default function AdminDashboard() {
         {ordersError && (
           <div className="mb-12 p-6 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-500">
             <AlertCircle className="w-5 h-5" />
-            <p className="text-[10px] tracking-widest font-black uppercase">
-              TRANSMISSION SYNC FAILURE: ENSURE SECURITY RULES ARE DEPLOYED.
-            </p>
+            <div className="space-y-1">
+              <p className="text-[10px] tracking-widest font-black uppercase">
+                TRANSMISSION SYNC FAILURE
+              </p>
+              <p className="text-[8px] tracking-widest uppercase opacity-60">
+                ENSURE MASTER SECURITY RULES (V17.0) ARE DEPLOYED IN FIREBASE CONSOLE.
+              </p>
+            </div>
           </div>
         )}
 
@@ -102,25 +108,25 @@ export default function AdminDashboard() {
             href="/admin/orders"
             icon={<DollarSign className="w-5 h-5" />} 
             label="TOTAL REVENUE" 
-            value={`₹${totalRevenue.toLocaleString()}`} 
+            value={ordersLoading ? "..." : `₹${totalRevenue.toLocaleString()}`} 
           />
           <StatCard 
             href="/admin/orders"
             icon={<ShoppingBag className="w-5 h-5" />} 
             label="TRANSMISSIONS" 
-            value={orders?.length.toString() || "0"} 
+            value={ordersLoading ? "..." : (orders?.length.toString() || "0")} 
           />
           <StatCard 
             href="/admin/users"
             icon={<Users className="w-5 h-5" />} 
             label="ENTITIES" 
-            value={users?.length.toString() || "0"} 
+            value={usersLoading ? "..." : (users?.length.toString() || "0")} 
           />
           <StatCard 
             href="/admin/products"
             icon={<Package className="w-5 h-5" />} 
             label="INVENTORY" 
-            value={totalInventoryUnits.toString()} 
+            value={productsLoading ? "..." : totalInventoryUnits.toString()} 
           />
         </div>
 

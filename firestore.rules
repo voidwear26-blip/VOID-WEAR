@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * VOID WEAR SECURITY RULES
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 16.0 - UNIVERSAL OVERRIDE ACTIVE
+     * VERSION: 17.0 - UNIVERSAL ROOT OVERRIDE ACTIVE
      */
 
     // --- Helper Functions ---
@@ -25,10 +25,21 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Master Authority Override ---
-    // Grants absolute, unhindered authority over all document nodes and collection groups.
-    // This is prioritized to ensure Command Center functionality (revenue audits, entity management).
+    // --- Universal Master Authority ---
+    // Grants absolute authority over every document and collection group in the architecture.
+    // Prioritized to ensure Command Center (Revenue Audits, System Archives) functionality.
     match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // --- Collection Group Audit Protocol ---
+    // Specifically enables global audits for nested collections required by the dashboard.
+    match /{path=**}/orders/{orderId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    match /{path=**}/carts/{cartId} {
       allow read, write: if isAdmin();
     }
 
@@ -53,30 +64,22 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get, create, update: if isOwner(userId);
+      allow get, create, update: if isOwner(userId) || isAdmin();
       
       match /carts/{cartId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
         match /items/{itemId} {
-          allow read, write: if isOwner(userId);
+          allow read, write: if isOwner(userId) || isAdmin();
         }
       }
 
       match /orders/{orderId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
 
       match /wishlist/{productId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
-    }
-
-    /**
-     * @description Collection Group rules for Global Mission Audits.
-     * Hardened to ensure Masters have unrestricted list/read capability for revenue calculation.
-     */
-    match /{path=**}/orders/{orderId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
   }
 }
