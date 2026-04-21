@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v27.0
+     * VOID WEAR SECURITY RULES v28.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
      * UNIVERSAL OVERRIDE FOR GLOBAL TRANSMISSION AUDITS
      */
@@ -26,15 +26,15 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // Priority check for administrative identity to allow broad collection group queries.
+    // Decoupled recursive match to ensure absolute oversight for Admin identities.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- Collection Group Rule for Orders ---
-    // Critical for the Command Center's global 'list' operations.
+    // Specifically targets 'collectionGroup' queries across the entire database.
     match /{path=**}/orders/{orderId} {
-      // Admin: Absolute oversight
+      // Admin: Absolute oversight (Handled by universal override but kept for specificity)
       allow list, get: if isAdmin();
       
       // Operator: Restricted to their own dossier

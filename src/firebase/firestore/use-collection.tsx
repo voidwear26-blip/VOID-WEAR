@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -48,6 +47,11 @@ export function useCollection<T = any>(
   const queryRef = useRef<string>('');
 
   useEffect(() => {
+    // DIAGNOSTIC_UPLINK: Verify the target reference or query path
+    if (process.env.NODE_ENV === 'development' || true) {
+      console.log('[useCollection] targetRefOrQuery:', targetRefOrQuery);
+    }
+
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
@@ -78,6 +82,8 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        console.error('[useCollection] SNAPSHOT_FAILURE:', error);
+        
         const path: string =
           targetRefOrQuery.type === 'collection'
             ? (targetRefOrQuery as CollectionReference).path

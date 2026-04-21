@@ -20,22 +20,29 @@ export default function AdminOrdersPage() {
   }, []);
 
   const isAdmin = useMemo(() => {
+    // STRICT_AUTH_GUARD: Ensure identity is fully linked before permitting Admin access
     if (isUserLoading || !user) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
   }, [user, isUserLoading]);
 
   const allOrdersQuery = useMemoFirebase(() => {
-    // Only initialize the query if we are certain the user is an admin
+    // Only initialize the query if we are certain the user is an admin and the component is mounted
     if (!db || !mounted || !isAdmin) return null;
-    return query(
-      collectionGroup(db, 'orders'),
-      orderBy('orderDate', 'desc'),
-      limit(100)
-    );
+    
+    try {
+      return query(
+        collectionGroup(db, 'orders'),
+        orderBy('orderDate', 'desc'),
+        limit(100)
+      );
+    } catch (e) {
+      console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
+      return null;
+    }
   }, [db, isAdmin, mounted]);
 
-  const { data: orders, isLoading } = useCollection(allOrdersQuery);
+  const { data: orders, isLoading, error: queryError } = useCollection(allOrdersQuery);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: string) => {
     if (!db || !userId) return;
@@ -92,6 +99,18 @@ export default function AdminOrdersPage() {
             <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">LOGISTICS MODULE ACTIVE</span>
           </div>
         </div>
+
+        {queryError && (
+          <div className="mb-12 p-10 border border-red-500/20 bg-red-500/5 backdrop-blur-xl">
+             <div className="flex items-center gap-4 text-red-500 mb-4">
+                <ShieldAlert className="w-5 h-5" />
+                <span className="text-[10px] font-black tracking-widest uppercase">UPLINK_PERMISSIONS_DENIED</span>
+             </div>
+             <p className="text-[9px] text-white/40 tracking-[0.2em] leading-relaxed uppercase max-w-2xl">
+                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND THE FIRESTORE SECURITY RULES (V28.0) ARE DEPLOYED.
+             </p>
+          </div>
+        )}
 
         <div className="bg-white/[0.02] border border-white/5 overflow-hidden backdrop-blur-xl">
           <div className="overflow-x-auto">
