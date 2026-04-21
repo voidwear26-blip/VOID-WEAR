@@ -1,16 +1,35 @@
+
 "use client"
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/app/lib/products-service';
-import { Plus, Heart } from 'lucide-react';
+import { Plus, Heart, Loader2 } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { toggleWishlist } from '@/firebase/wishlist-actions';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { doc } from 'firebase/firestore';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { user } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  const [toggling, setToggling] = useState(false);
+
+  const wishlistRef = useMemoFirebase(() => {
+    if (!db || !user || !product.id) return null;
+    return doc(db, 'users', user.uid, 'wishlist', product.id);
+  }, [db, user, product.id]);
+
+  const { data: wishlistEntry } = useDoc(wishlistRef);
+  const isInWishlist = !!wishlistEntry;
+
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -39,6 +58,29 @@ export function ProductCard({ product }: ProductCardProps) {
     y.set(0);
   };
 
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      toast({ title: "AUTHENTICATION REQUIRED", description: "PLEASE LINK YOUR IDENTITY." });
+      return;
+    }
+
+    setToggling(true);
+    try {
+      await toggleWishlist(db!, user.uid, product);
+      toast({ 
+        title: isInWishlist ? "MODULE REMOVED" : "MODULE SECURED", 
+        description: isInWishlist ? "STASIS LOG SEVERED." : "ASSEMBLAGE ADDED TO STASIS." 
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setToggling(false);
+    }
+  };
+
   const iconMotionProps = {
     whileHover: { scale: 1.25, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
     whileTap: { scale: 0.9 },
@@ -64,47 +106,45 @@ export function ProductCard({ product }: ProductCardProps) {
       }}
       className="group relative"
     >
-      <Link href={`/products/${product.id}`} className="block relative overflow-hidden bg-black border border-white/10 group-hover:border-white/30 transition-all duration-500 glow-border">
-        <div className="relative aspect-[3/4] overflow-hidden">
+      <div className="block relative overflow-hidden bg-black border border-white/10 group-hover:border-white/30 transition-all duration-500 glow-border">
+        <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden">
           <Image
             src={displayImage}
             alt={product.name || 'Assemblage Module'}
             fill
             className="object-cover grayscale-0 group-hover:grayscale group-hover:scale-105 transition-all duration-1000 ease-out"
             data-ai-hint="cyberpunk product"
+            unoptimized
           />
           
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
           
-          <div className="absolute top-6 right-6 z-20">
-            <motion.button 
-              {...iconMotionProps}
-              className="p-3 rounded-full backdrop-blur-md border border-white/20 transition-all duration-300 bg-black/40 text-white/60 hover:text-white"
-            >
-              <Heart className="w-3.5 h-3.5" />
-            </motion.button>
-          </div>
-
-          <motion.div 
-            whileHover={{ scale: 1.1, filter: "drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))" }}
-            className="absolute bottom-6 right-6 w-12 h-12 bg-white text-black rounded-none flex items-center justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 z-10"
-          >
-            <Plus className="w-6 h-6" />
-          </motion.div>
-
           <div className="absolute top-6 left-6 text-[8px] tracking-[0.5em] font-bold text-white/70 group-hover:text-white transition-colors uppercase">
             {product.category || 'UNCLASSIFIED'}
           </div>
+        </Link>
+
+        <div className="absolute top-6 right-6 z-20">
+          <motion.button 
+            {...iconMotionProps}
+            onClick={handleWishlistToggle}
+            disabled={toggling}
+            className={`p-3 rounded-full backdrop-blur-md border transition-all duration-300 ${
+              isInWishlist ? 'bg-white text-black border-white' : 'bg-black/40 border-white/20 text-white/60 hover:text-white'
+            }`}
+          >
+            {toggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Heart className={`w-3.5 h-3.5 ${isInWishlist ? 'fill-current' : ''}`} />}
+          </motion.button>
         </div>
 
-        <div className="p-8 space-y-4">
+        <Link href={`/products/${product.id}`} className="p-8 space-y-4 block">
           <div className="flex justify-between items-start">
             <h3 className="text-sm font-medium tracking-[0.3em] uppercase max-w-[70%] text-white">{product.name}</h3>
             <span className="text-[10px] font-bold text-white/70 tracking-widest">₹{product.basePrice}</span>
           </div>
           <div className="h-[1px] w-0 group-hover:w-full bg-white/20 transition-all duration-700"></div>
-        </div>
-      </Link>
+        </Link>
+      </div>
     </motion.div>
   );
 }

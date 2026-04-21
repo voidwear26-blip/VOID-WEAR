@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag, User, LogOut } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
@@ -25,8 +25,16 @@ export function Navbar() {
     return collection(db, 'users', user.uid, 'carts', 'active_cart', 'items');
   }, [db, user]);
 
+  const wishlistQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'wishlist');
+  }, [db, user]);
+
   const { data: cartItems } = useCollection(cartQuery);
+  const { data: wishlistItems } = useCollection(wishlistQuery);
+  
   const itemCount = cartItems?.reduce((acc, item) => acc + (item.quantity || 0), 0) || 0;
+  const wishlistCount = wishlistItems?.length || 0;
 
   useEffect(() => {
     setMounted(true);
@@ -81,6 +89,19 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Link href="/wishlist">
+              <Button variant="ghost" size="icon" className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none relative">
+                <motion.div {...iconMotionProps}>
+                  <Heart className="w-4 h-4" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute top-2 right-2 w-3 h-3 bg-white text-black text-[7px] font-black rounded-full flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </motion.div>
+              </Button>
+            </Link>
+
             {user ? (
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" asChild className="hover:bg-white/10 h-12 w-12 text-white/80 hover:text-white rounded-none">

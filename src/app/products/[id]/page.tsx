@@ -10,8 +10,10 @@ import { notFound } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { addToCart } from '@/firebase/cart-actions';
+import { toggleWishlist } from '@/firebase/wishlist-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -19,6 +21,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { user } = useUser();
   const { toast } = useToast();
   const [adding, setAdding] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
@@ -27,13 +30,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return doc(db, 'products', id);
   }, [db, id]);
 
+  const wishlistRef = useMemoFirebase(() => {
+    if (!db || !user || !id) return null;
+    return doc(db, 'users', user.uid, 'wishlist', id);
+  }, [db, user, id]);
+
   const { data: product, isLoading } = useDoc(productRef);
+  const { data: wishlistEntry } = useDoc(wishlistRef);
+  const isInWishlist = !!wishlistEntry;
 
   // Derive available sizes based on stock matrix
   const availableSizes = useMemo(() => {
     if (!product?.stockMatrix) return ['DEFAULT'];
     const keys = Object.keys(product.stockMatrix);
-    if (keys.length === 0) return ['DEFAULT']; // Legacy fallback
+    if (keys.length === 0) return ['DEFAULT'];
     
     return keys.filter(size => {
       const colors = product.stockMatrix[size];
@@ -86,13 +96,28 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       });
     } catch (e) {
       console.error('[ACQUISITION_FAILURE]', e);
-      toast({
-        variant: "destructive",
-        title: "TRANSMISSION FAILED",
-        description: "COULD NOT SYNC WITH BAG. TRIGGER NEURAL AUDIT."
-      });
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      toast({ title: "AUTHENTICATION REQUIRED", description: "PLEASE LINK YOUR IDENTITY." });
+      return;
+    }
+
+    setToggling(true);
+    try {
+      await toggleWishlist(db!, user.uid, product as any);
+      toast({ 
+        title: isInWishlist ? "MODULE REMOVED" : "MODULE SECURED", 
+        description: isInWishlist ? "STASIS LOG SEVERED." : "ASSEMBLAGE ADDED TO STASIS." 
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -131,10 +156,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 src={displayImage} 
                 alt={(product as any)?.name || 'Product module visualization'} 
                 fill 
-                className="object-cover grayscale-0 group-hover:grayscale transition-all duration-1000"
+                className="object-cover transition-all duration-1000"
                 unoptimized
                 priority
               />
+              <div className="absolute top-8 right-8 z-30">
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleWishlistToggle}
+                  disabled={toggling}
+                  className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
+                    isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
+                  }`}
+                >
+                  {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
+                </motion.button>
+              </div>
             </div>
           </div>
 

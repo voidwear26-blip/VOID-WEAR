@@ -154,6 +154,18 @@
           "type": "string"
         }
       }
+    },
+    "WishlistItem": {
+      "title": "WishlistItem",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "category": { "type": "string" },
+        "addedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -172,6 +184,16 @@
             "$ref": "#/backend/entities/User"
           },
           "description": "Stores individual operator dossiers."
+        }
+      },
+      {
+        "path": "/users/{userId}/wishlist/{productId}",
+        "definition": {
+          "entityName": "WishlistItem",
+          "schema": {
+            "$ref": "#/backend/entities/WishlistItem"
+          },
+          "description": "Operator module stasis log."
         }
       },
       {
