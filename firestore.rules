@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * VOID WEAR SECURITY RULES
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 17.0 - UNIVERSAL ROOT OVERRIDE ACTIVE
+     * VERSION: 18.0 - RESILIENT UID AUTHORIZATION ACTIVE
      */
 
     // --- Helper Functions ---
@@ -16,8 +16,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == 'voidwear26@gmail.com' || 
-        request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2'
+        request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'voidwear26@gmail.com')
       );
     }
 
@@ -26,21 +26,20 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // Grants absolute authority over every document and collection group in the architecture.
-    // Prioritized to ensure Command Center (Revenue Audits, System Archives) functionality.
+    // Grants absolute authority over every document in the architecture.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- Collection Group Audit Protocol ---
-    // Specifically enables global audits for nested collections required by the dashboard.
+    // Explicitly enables global audits for orders required by the dashboard and revenue modules.
     match /{path=**}/orders/{orderId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow write: if isAdmin();
     }
 
-    match /{path=**}/carts/{cartId} {
-      allow read, write: if isAdmin();
+    match /{path=**}/items/{itemId} {
+      allow read, write: if isAdmin() || (isSignedIn() && request.path.safe().contains(request.auth.uid));
     }
 
     // --- Collection Specific Rules (For Non-Admin Operators) ---

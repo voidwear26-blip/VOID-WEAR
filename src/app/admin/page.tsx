@@ -18,7 +18,10 @@ export default function AdminDashboard() {
     setMounted(true);
   }, []);
 
-  const isAdmin = !isUserLoading && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = !isUserLoading && (
+    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
+  );
 
   useEffect(() => {
     if (mounted && !isUserLoading && !isAdmin) {
@@ -27,7 +30,7 @@ export default function AdminDashboard() {
   }, [mounted, isUserLoading, isAdmin, router]);
 
   // Sync real-time data for stats - STRICT AUTH GUARD
-  // Queries wait until isAdmin is verified to prevent permission race conditions
+  // Queries remain null until isAdmin is verified to prevent permission race conditions
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collection(db, 'products');
@@ -97,7 +100,7 @@ export default function AdminDashboard() {
                 TRANSMISSION SYNC FAILURE
               </p>
               <p className="text-[8px] tracking-widest uppercase opacity-60">
-                ENSURE MASTER SECURITY RULES (V17.0) ARE DEPLOYED IN FIREBASE CONSOLE.
+                ENSURE MASTER SECURITY RULES (V18.0) ARE DEPLOYED IN FIREBASE CONSOLE.
               </p>
             </div>
           </div>

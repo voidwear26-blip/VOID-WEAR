@@ -14,7 +14,10 @@ export default function AdminOrdersPage() {
   const db = useFirestore();
   const { toast } = useToast();
 
-  const isAdmin = !isUserLoading && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = !isUserLoading && (
+    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
+  );
 
   const allOrdersQuery = useMemoFirebase(() => {
     // CRITICAL: Ensure admin identity is stabilized before initiating transmission audit
