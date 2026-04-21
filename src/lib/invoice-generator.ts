@@ -39,7 +39,7 @@ export async function generateInvoicePDF(order: any) {
     doc.setFontSize(6);
     doc.setFont('helvetica', 'normal');
     doc.text('SYSTEM MANIFESTO // TRANSMISSION LOG', 10, 17);
-    doc.text('EST. 2026 / NEO-TOKYO', 10, 20);
+    doc.text('EST. 2026 /  VELLORE - INDIA', 10, 20);
 
     // 2. Order Metadata
     doc.setTextColor(primaryColor);
