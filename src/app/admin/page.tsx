@@ -6,7 +6,7 @@ import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, L
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, collectionGroup, query } from 'firebase/firestore';
+import { collection, collectionGroup } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
     }
   }, [mounted, isUserLoading, isAdmin, router]);
 
-  // Sync real-time data for stats - Explicit dependency on isAdmin to prevent permission races
+  // Sync real-time data for stats - STRICT AUTH GUARD
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
     return collection(db, 'products');
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   const totalRevenue = orders?.reduce((acc, order) => acc + (order.totalAmount || 0), 0) || 0;
   const totalInventoryUnits = products?.reduce((acc, prod) => acc + (prod.stockQuantity || 0), 0) || 0;
 
-  if (!mounted || isUserLoading || !isAdmin) {
+  if (!mounted || isUserLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">
@@ -60,13 +60,15 @@ export default function AdminDashboard() {
     );
   }
 
+  if (!isAdmin) return null;
+
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <div className="space-y-4">
             <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">SYSTEM COMMAND // ONLINE</span>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Control Center</h1>
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none text-white">Control Center</h1>
           </div>
           <div className="bg-white/5 border border-white/10 px-6 py-4 flex items-center gap-4 backdrop-blur-md">
             <ShieldCheck className="w-4 h-4 text-white" />
@@ -147,7 +149,7 @@ function StatCard({ icon, label, value, href }: { icon: React.ReactNode, label: 
         </div>
         <div className="space-y-1">
           <p className="text-[10px] tracking-[0.3em] text-white/60 uppercase font-bold">{label}</p>
-          <p className="text-3xl font-bold tracking-widest glow-text">{value}</p>
+          <p className="text-3xl font-bold tracking-widest glow-text text-white">{value}</p>
         </div>
       </div>
     </Link>

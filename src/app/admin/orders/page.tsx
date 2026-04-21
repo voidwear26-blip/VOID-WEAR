@@ -2,7 +2,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collectionGroup, query, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
-import { ShoppingBag, ChevronLeft, ExternalLink, ShieldAlert, Clock, Info, Hash } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ShieldAlert, Clock, Hash, Info, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +22,7 @@ export default function AdminOrdersPage() {
     if (!db || !isAdmin) return null;
     return query(
       collectionGroup(db, 'orders'),
-      orderBy('createdAt', 'desc'),
+      orderBy('orderDate', 'desc'),
       limit(50)
     );
   }, [db, isAdmin]);
@@ -66,16 +66,18 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (isUserLoading || !isAdmin) {
+  if (isUserLoading) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold">
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white">
         Authenticating Protocol...
       </div>
     );
   }
 
+  if (!isAdmin) return null;
+
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
@@ -151,7 +153,7 @@ export default function AdminOrdersPage() {
                             placeholder="TRACKING #"
                             defaultValue={order.trackingId || ''}
                             onBlur={(e) => handleTrackingUpdate(order.id, order.userId, e.target.value)}
-                            className="bg-black/40 border-white/10 rounded-none h-10 w-48 text-[9px] font-mono tracking-widest uppercase focus:border-white/40"
+                            className="bg-black/40 border-white/10 rounded-none h-10 w-48 text-[9px] font-mono tracking-widest uppercase focus:border-white/40 text-white"
                           />
                           {updatingId === order.id && <Clock className="w-3 h-3 animate-spin text-white/40" />}
                         </div>

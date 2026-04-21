@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * VOID WEAR SECURITY RULES
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 12.8 - GLOBAL OVERRIDE ENABLED
+     * VERSION: 12.9 - UNIVERSAL OVERRIDE ACTIVE
      */
 
     // --- Helper Functions ---
@@ -15,8 +15,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      // Use .get() to safely handle cases where the email token might be buffering
       return isSignedIn() && 
-             request.auth.token.email.lower() == 'voidwear26@gmail.com';
+             request.auth.token.get('email', '').lower() == 'voidwear26@gmail.com';
     }
 
     function isOwner(userId) {
@@ -24,8 +25,8 @@ service cloud.firestore {
     }
 
     // --- Master Authority Override ---
-    // Grants the primary administrator absolute authority over the entire database.
-    // This recursive wildcard must be prioritized for collection group queries.
+    // Grants the primary administrator absolute authority over the entire database architecture.
+    // This recursive wildcard is prioritized for collection group queries and global audits.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
@@ -47,40 +48,36 @@ service cloud.firestore {
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid);
     }
 
     match /users/{userId} {
       // Allow any signed-in user to manage their own dossier
-      allow get, create, update: if isOwner(userId) || isAdmin();
+      allow get, create, update: if isOwner(userId);
       
       match /carts/{cartId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId);
 
         match /items/{itemId} {
-          allow read, write: if isOwner(userId) || isAdmin();
+          allow read, write: if isOwner(userId);
         }
       }
 
       match /orders/{orderId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId);
       }
 
       match /wishlist/{productId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId);
       }
     }
 
     /**
      * @description Collection Group rules for Global Mission Audits.
-     * Note: isAdmin() override above also covers these, but explicit matches help.
+     * Note: isAdmin() override above also covers these.
      */
     match /{path=**}/orders/{orderId} {
-      allow read, write: if isAdmin() || isOwner(resource.data.userId);
-    }
-
-    match /{path=**}/items/{itemId} {
-      allow read, write: if isAdmin() || isOwner(resource.data.userId);
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid);
     }
   }
 }

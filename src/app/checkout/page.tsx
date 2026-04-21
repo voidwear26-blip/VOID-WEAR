@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, CreditCard, ArrowRight, ArrowLeft, Loader2, CheckCircle2, Zap, Wallet, ExternalLink, Download } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -53,7 +53,7 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
-  // Automated synchronization from profile data with high reactivity
+  // Automated synchronization from saved operator profile
   useEffect(() => {
     if (user && profile) {
       setFormData({
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
   };
 
   if (isUserLoading || (step !== 'success' && isCartLoading) || isProfileLoading) {
-    return <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase">Syncing Protocols...</div>;
+    return <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase text-white font-bold">Syncing Protocols...</div>;
   }
 
   if (step === 'success') {

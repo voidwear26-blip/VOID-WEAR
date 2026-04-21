@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, FileText, Settings, Star, MessageSquare, User as UserIcon, Save, Loader2, ExternalLink, Calendar, Zap, Bell, MapPin, CreditCard, ChevronRight, Info, Download } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { ProductCard } from '@/components/product-card';
 import { saveUserToFirestore } from '@/firebase/user-actions';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -39,7 +37,7 @@ export default function ProfilePage() {
     if (!db || !user) return null;
     return query(
       collection(db, 'users', user.uid, 'orders'),
-      orderBy('createdAt', 'desc')
+      orderBy('orderDate', 'desc')
     );
   }, [db, user]);
 
@@ -61,7 +59,7 @@ export default function ProfilePage() {
     landmark: ''
   });
 
-  // Robust initialization from profile data
+  // Automated population from saved profile data
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -76,7 +74,7 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  // Ensure record existence without blocking UI
+  // Ensure record existence for new operators
   useEffect(() => {
     if (user && db && !isProfileLoading && !profile) {
       saveUserToFirestore(db, user);
@@ -96,7 +94,7 @@ export default function ProfilePage() {
       updatedAt: new Date().toISOString()
     };
 
-    // Non-blocking set sequence
+    // Non-blocking write with immediate feedback
     setDoc(userRef, updateData, { merge: true })
       .then(() => {
         toast({
@@ -268,7 +266,7 @@ export default function ProfilePage() {
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
                         <Input 
                           value={formData.addressLine1}
                           onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })}
@@ -515,7 +513,7 @@ function OrderDossierDialog({ order, userId, userName, db }: { order: any, userI
                <div className="space-y-2">
                   <p className="text-[8px] text-white/30 tracking-widest uppercase font-bold">METHOD</p>
                   <div className="flex items-center gap-3 text-white/80">
-                     <CreditCard className="w-4 h-4 text-white/30" />
+                     <Zap className="w-4 h-4 text-white/30" />
                      <span className="text-xs font-bold tracking-widest uppercase">{order.paymentMethod || 'RAZORPAY_HYBRID'}</span>
                   </div>
                </div>
