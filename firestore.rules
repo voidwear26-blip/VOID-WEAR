@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v26.0
+     * VOID WEAR SECURITY RULES v27.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
      * UNIVERSAL OVERRIDE FOR GLOBAL TRANSMISSION AUDITS
      */

@@ -7,12 +7,17 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 export default function AdminOrdersPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
@@ -21,13 +26,14 @@ export default function AdminOrdersPage() {
   }, [user, isUserLoading]);
 
   const allOrdersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
+    // Only initialize the query if we are certain the user is an admin
+    if (!db || !mounted || !isAdmin) return null;
     return query(
       collectionGroup(db, 'orders'),
       orderBy('orderDate', 'desc'),
       limit(100)
     );
-  }, [db, isAdmin]);
+  }, [db, isAdmin, mounted]);
 
   const { data: orders, isLoading } = useCollection(allOrdersQuery);
 
@@ -53,9 +59,9 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || !mounted) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white">
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white bg-black">
         Authenticating Protocol...
       </div>
     );
@@ -63,7 +69,7 @@ export default function AdminOrdersPage() {
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-6 text-white">
+      <div className="h-screen flex flex-col items-center justify-center gap-6 text-white bg-black">
         <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-bold">ACCESS DENIED // MASTER ONLY</p>
         <Link href="/" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO SURFACE</Link>
       </div>
