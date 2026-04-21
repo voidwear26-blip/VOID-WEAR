@@ -2,7 +2,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collectionGroup, query, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
-import { ShoppingBag, ChevronLeft, ShieldAlert, Clock, Hash, Info, Loader2 } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ShieldAlert, Clock, Hash, Info, Loader2, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -98,10 +98,10 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_IDENTIFIER</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_UID</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TRANSITION_ID (PAYMENT)</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ENTITY</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">FULFILLMENT</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TRACKING_ID</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
                 </tr>
               </thead>
@@ -122,8 +122,13 @@ export default function AdminOrdersPage() {
                              <span className="text-[10px] font-mono tracking-widest text-white font-black">{order.id}</span>
                           </div>
                           <p className="text-[9px] text-white/60 uppercase tracking-[0.2em] font-bold">₹{order.totalAmount}</p>
-                          <p className="text-[8px] text-white/40 uppercase tracking-[0.1em]">{new Date(order.orderDate).toLocaleDateString()}</p>
                         </div>
+                      </td>
+                      <td className="px-10 py-8">
+                         <div className="flex items-center gap-2 text-[9px] font-mono text-white/40 uppercase truncate max-w-[200px]">
+                            <Zap className="w-3 h-3 text-white/20" />
+                            {order.transition_ID || order.paymentProviderId || 'INTERNAL'}
+                         </div>
                       </td>
                       <td className="px-10 py-8">
                         <div className="space-y-1">
@@ -146,17 +151,6 @@ export default function AdminOrdersPage() {
                             <SelectItem value="cancelled" className="text-[9px] tracking-widest uppercase text-red-500">CANCELLED</SelectItem>
                           </SelectContent>
                         </Select>
-                      </td>
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-3">
-                          <Input 
-                            placeholder="TRACKING #"
-                            defaultValue={order.trackingId || ''}
-                            onBlur={(e) => handleTrackingUpdate(order.id, order.userId, e.target.value)}
-                            className="bg-black/40 border-white/10 rounded-none h-10 w-48 text-[9px] font-mono tracking-widest uppercase focus:border-white/40 text-white"
-                          />
-                          {updatingId === order.id && <Clock className="w-3 h-3 animate-spin text-white/40" />}
-                        </div>
                       </td>
                       <td className="px-10 py-8 text-right">
                         <Link href={`/admin/orders/${order.id}?user=${order.userId}`}>

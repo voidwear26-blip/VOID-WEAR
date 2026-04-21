@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info, Hash } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -42,7 +42,6 @@ export default function OrderDetailsPage() {
     setNotifying(true);
 
     try {
-      // 1. Generate AI Content
       const notification = await generateNotificationContent({
         productName: order.items?.[0]?.name || 'ASSEMBLAGE MODULE',
         status: newStatus,
@@ -50,7 +49,6 @@ export default function OrderDetailsPage() {
         operatorName: entity.displayName || 'OPERATOR'
       });
 
-      // 2. Update Order & Log Transmission
       await updateDoc(orderRef!, {
         shippingStatus: newStatus,
         updatedAt: new Date().toISOString(),
@@ -110,7 +108,10 @@ export default function OrderDetailsPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
               <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none">Transmission Detail</h1>
-              <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">ORDER_UID: {orderId}</p>
+              <div className="flex flex-col gap-1">
+                 <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">ORDER_UID: {orderId}</p>
+                 <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest">TRANSITION_UID: {order.transition_ID || order.paymentProviderId || 'INTERNAL'}</p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <Select defaultValue={order.shippingStatus || 'processing'} onValueChange={handleStatusChange} disabled={notifying}>
@@ -163,32 +164,19 @@ export default function OrderDetailsPage() {
               </div>
             </div>
 
-            {/* NEURAL TRANSMISSIONS LOG */}
             <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">NEURAL TRANSMISSIONS (AI NOTIFICATIONS)</h3>
-                <Zap className="w-3.5 h-3.5 text-white/40" />
+                <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">TRANS_ID VERIFICATION</h3>
+                <ShieldAlert className="w-3.5 h-3.5 text-white/40" />
               </div>
-              <div className="space-y-8">
-                {order.transmissions?.length > 0 ? (
-                  order.transmissions.slice().reverse().map((t: any, i: number) => (
-                    <div key={i} className="space-y-4 p-6 border border-white/5 bg-white/[0.01]">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[8px] font-bold tracking-widest uppercase text-white/40">TRANS_STATUS: {t.status}</span>
-                        <span className="text-[8px] font-mono text-white/20">{new Date(t.timestamp).toLocaleString()}</span>
-                      </div>
-                      <div className="space-y-3">
-                        <p className="text-[10px] text-white/80 leading-relaxed tracking-wide uppercase italic">"{t.content?.smsContent}"</p>
-                        <div className="h-px w-8 bg-white/10" />
-                        <p className="text-[9px] text-white/40 leading-relaxed tracking-widest uppercase whitespace-pre-line">
-                          {t.content?.emailContent}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-[10px] text-white/20 text-center py-4 tracking-widest uppercase">NO NEURAL LOGS RECORDED</p>
-                )}
+              <div className="p-8 border border-white/5 bg-black/40 space-y-4">
+                 <div className="flex flex-col gap-2">
+                    <span className="text-[8px] font-bold tracking-widest uppercase text-white/30">RAZORPAY_TRANSITION_ID</span>
+                    <span className="text-sm font-mono text-white tracking-widest uppercase">{order.transition_ID || order.paymentProviderId || 'INTERNAL_SYNC'}</span>
+                 </div>
+                 <p className="text-[9px] text-white/40 italic leading-relaxed uppercase">
+                    USE THIS IDENTIFIER IN THE GATEWAY CONSOLE TO VERIFY AMOUNT TRANSMISSION AND INTEGRITY.
+                 </p>
               </div>
             </div>
           </div>
@@ -238,10 +226,6 @@ export default function OrderDetailsPage() {
                   <p className="text-[10px] text-white/60 tracking-widest uppercase font-bold">
                     {entity?.city || 'UNKNOWN'}, {entity?.stateProvince || 'N/A'} {entity?.postalCode || ''}
                   </p>
-                  <div className="pt-4 flex items-center gap-3 text-[9px] text-white/40 tracking-widest uppercase font-black">
-                    <Truck className="w-3.5 h-3.5" />
-                    DELIVERY PROTOCOL: STANDARD ORBITAL
-                  </div>
                </div>
             </div>
           </div>

@@ -59,7 +59,6 @@ export default function ProfilePage() {
     landmark: ''
   });
 
-  // Automated population from saved profile data
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -74,7 +73,6 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  // Ensure record existence for new operators
   useEffect(() => {
     if (user && db && !isProfileLoading && !profile) {
       saveUserToFirestore(db, user);
@@ -94,7 +92,6 @@ export default function ProfilePage() {
       updatedAt: new Date().toISOString()
     };
 
-    // Non-blocking write with immediate feedback
     setDoc(userRef, updateData, { merge: true })
       .then(() => {
         toast({
@@ -441,7 +438,7 @@ function OrderDossierDialog({ order, userId, userName, db }: { order: any, userI
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-bold tracking-[0.5em] uppercase glow-text">Mission Dossier</DialogTitle>
-              <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">UID: {order.id}</DialogDescription>
+              <DialogDescription className="text-[9px] tracking-[0.3em] uppercase text-white/40 font-mono">ORDER_ID: {order.id}</DialogDescription>
             </div>
             <Button onClick={() => { generateInvoicePDF(order); toast({ title: "LOG DOWNLOADED" }); }} size="sm" variant="outline" className="border-white/20 text-white text-[8px] tracking-[0.3em] font-black hover:bg-white hover:text-black rounded-none h-10 px-6 bg-transparent">
                BILL (PDF) <Download className="ml-2 w-3 h-3" />
@@ -522,8 +519,8 @@ function OrderDossierDialog({ order, userId, userName, db }: { order: any, userI
                   <p className="text-2xl font-black tracking-tight glow-text">₹{order.totalAmount}</p>
                </div>
                <div className="space-y-2">
-                  <p className="text-[8px] text-white/30 tracking-widest uppercase font-bold">PROVIDER_ID</p>
-                  <p className="text-[10px] font-mono tracking-widest text-white/40 truncate uppercase">{order.paymentProviderId || 'INTERNAL_SYNC'}</p>
+                  <p className="text-[8px] text-white/30 tracking-widest uppercase font-bold">TRANSITION_ID</p>
+                  <p className="text-[10px] font-mono tracking-widest text-white/40 truncate uppercase">{order.transition_ID || order.paymentProviderId || 'INTERNAL_SYNC'}</p>
                </div>
             </div>
           </div>

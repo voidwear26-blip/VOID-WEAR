@@ -5,7 +5,7 @@ service cloud.firestore {
     /**
      * VOID WEAR SECURITY RULES
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 12.9 - UNIVERSAL OVERRIDE ACTIVE
+     * VERSION: 13.0 - COLLECTION GROUP UPLINK ACTIVE
      */
 
     // --- Helper Functions ---
@@ -15,7 +15,6 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Use .get() to safely handle cases where the email token might be buffering
       return isSignedIn() && 
              request.auth.token.get('email', '').lower() == 'voidwear26@gmail.com';
     }
@@ -26,7 +25,6 @@ service cloud.firestore {
 
     // --- Master Authority Override ---
     // Grants the primary administrator absolute authority over the entire database architecture.
-    // This recursive wildcard is prioritized for collection group queries and global audits.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
@@ -52,12 +50,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Allow any signed-in user to manage their own dossier
       allow get, create, update: if isOwner(userId);
       
       match /carts/{cartId} {
         allow read, write: if isOwner(userId);
-
         match /items/{itemId} {
           allow read, write: if isOwner(userId);
         }
@@ -74,10 +70,10 @@ service cloud.firestore {
 
     /**
      * @description Collection Group rules for Global Mission Audits.
-     * Note: isAdmin() override above also covers these.
+     * Hardened to ensure Admin can list all orders across the root.
      */
     match /{path=**}/orders/{orderId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
   }
 }

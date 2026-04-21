@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -53,7 +53,6 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
-  // Automated synchronization from saved operator profile
   useEffect(() => {
     if (user && profile) {
       setFormData({
@@ -79,12 +78,13 @@ export default function CheckoutPage() {
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
     
-    // Auto-update logistical profile data if it changed during checkout
     const userRef = doc(db, 'users', user.uid);
     batch.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
     const newOrder = {
       id: orderId,
+      order_ID: orderId, // For product logistics
+      transition_ID: paymentId, // For amount verification
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
@@ -107,7 +107,6 @@ export default function CheckoutPage() {
 
     batch.set(orderRef, newOrder);
 
-    // Synchronously purge cart logs
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
@@ -189,10 +188,19 @@ export default function CheckoutPage() {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-white/[0.02] border border-white/10 p-16 space-y-12 text-center backdrop-blur-3xl">
           <CheckCircle2 className="w-16 h-16 text-white mx-auto" />
           <h1 className="text-4xl font-black tracking-tight glow-text uppercase">TRANSMISSION SECURED</h1>
-          <div className="bg-black/40 border border-white/10 p-8 space-y-3">
-             <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase">TRANSMISSION_UID</p>
-             <p className="text-xl font-mono text-white font-black">{finalOrderId}</p>
+          
+          <div className="bg-black/40 border border-white/10 p-10 space-y-8 text-left">
+             <div className="space-y-2">
+                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">ORDER_ID (PRODUCT)</p>
+                <p className="text-lg font-mono text-white font-black">{finalOrderId}</p>
+             </div>
+             <div className="h-px bg-white/5 w-full" />
+             <div className="space-y-2">
+                <p className="text-[9px] tracking-[0.4em] text-white/40 uppercase font-bold">TRANSITION_ID (PAYMENT_VERIFICATION)</p>
+                <p className="text-xs font-mono text-white/80 uppercase break-all">{orderObject?.transition_ID || 'VERIFYING...'}</p>
+             </div>
           </div>
+
           <div className="flex flex-col gap-4">
              <Button onClick={() => orderObject && generateInvoicePDF(orderObject)} className="h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
                 DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
