@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v21.0
+     * VOID WEAR SECURITY RULES v22.0
      * MASTER AUTHORITY: voidwear26@gmail.com
      * BULLETPROOF UID-FIRST AUTHORIZATION
      */
