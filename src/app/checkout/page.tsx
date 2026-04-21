@@ -85,8 +85,8 @@ export default function CheckoutPage() {
 
     const newOrder = {
       id: orderId,
-      order_ID: orderId, // Logistical Identifier
-      transition_ID: paymentId, // Financial Identifier
+      order_ID: orderId, // Logistical Identifier for tracking
+      transition_ID: paymentId, // Financial Identifier for amount verification
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
@@ -128,7 +128,7 @@ export default function CheckoutPage() {
     // Auto-return to profile after success
     setTimeout(() => {
       router.push('/profile');
-    }, 4000);
+    }, 5000);
   };
 
   const handlePaymentUplink = async () => {

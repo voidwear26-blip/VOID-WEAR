@@ -19,7 +19,6 @@ import Image from 'next/image';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
-import { submitReview } from '@/firebase/review-actions';
 import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
@@ -270,26 +269,35 @@ export default function ProfilePage() {
   );
 }
 
-function OrderCard({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+function OrderCard({ order }: { order: any, userId: string, userName: string, db: any }) {
   const { toast } = useToast();
   return (
-    <div className="border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] p-8 md:p-10 space-y-8">
+    <div className="border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] p-8 md:p-10 space-y-8 transition-all group">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="space-y-4 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <Package className="w-4 h-4 text-white/30" />
-            <span className="text-[10px] font-bold tracking-widest uppercase font-mono text-white/60">UID: {order.order_ID || order.id}</span>
-            <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' : 'border-white/10 text-white/60'}`}>{order.shippingStatus}</span>
+            <div className="flex flex-col gap-1">
+               <div className="flex items-center gap-2">
+                  <Hash className="w-3 h-3 text-white/20" />
+                  <span className="text-[10px] font-black tracking-widest uppercase font-mono text-white">ORDER_ID: {order.order_ID || order.id}</span>
+               </div>
+               <div className="flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-white/20" />
+                  <span className="text-[8px] font-bold tracking-widest uppercase text-white/40">TRANSITION_ID: {order.transition_ID || 'INTERNAL_TX'}</span>
+               </div>
+            </div>
+            <span className={`text-[8px] px-3 py-1 border tracking-[0.2em] uppercase font-black ${order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' : 'border-white/10 text-white/60'}`}>{order.shippingStatus || 'PROCESSING'}</span>
           </div>
-          <div className="flex items-center gap-2 text-[8px] text-white/40 tracking-widest uppercase font-bold">
-            <Zap className="w-3 h-3 opacity-30" />
-            <span>TRANS_ID: {order.transition_ID || 'INTERNAL'}</span>
-          </div>
-          <p className="text-[8px] text-white/40 tracking-widest uppercase font-bold">DATE: {new Date(order.orderDate).toLocaleDateString()}</p>
+          <p className="text-[8px] text-white/20 tracking-widest uppercase font-bold">TRANSMITTED: {new Date(order.orderDate).toLocaleDateString()}</p>
         </div>
         <div className="flex items-center gap-8">
-          <div className="text-right"><div className="text-[11px] font-bold text-white">₹{order.totalAmount}</div></div>
-          <Button variant="ghost" size="icon" onClick={() => { generateInvoicePDF(order); toast({ title: "LOG DOWNLOADED" }); }} className="text-white/30 hover:text-white"><Download className="w-4 h-4" /></Button>
+          <div className="text-right">
+             <p className="text-[12px] font-black glow-text text-white">₹{order.totalAmount}</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => { generateInvoicePDF(order); toast({ title: "LOG DOWNLOADED" }); }} className="text-white/20 hover:text-white hover:bg-white/5 rounded-none">
+            <Download className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>

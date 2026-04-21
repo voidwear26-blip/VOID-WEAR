@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v22.0
+     * VOID WEAR SECURITY RULES v23.0
      * MASTER AUTHORITY: voidwear26@gmail.com
      * BULLETPROOF UID-FIRST AUTHORIZATION
      */
@@ -33,7 +33,7 @@ service cloud.firestore {
     }
 
     // --- Explicit Collection Group Audit Rule ---
-    // Required for the Revenue Dashboard and Transmission Archives.
+    // Critical for global order tracking and revenue aggregation in Command Center.
     match /{path=**}/orders/{orderId} {
       allow list, read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;

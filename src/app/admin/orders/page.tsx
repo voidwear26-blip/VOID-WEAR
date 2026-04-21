@@ -22,6 +22,7 @@ export default function AdminOrdersPage() {
 
   const allOrdersQuery = useMemoFirebase(() => {
     // CRITICAL: Ensure admin identity is stabilized before initiating transmission audit
+    // Using collectionGroup requires specific security rule matching version 23.0
     if (!db || !user?.uid || !isAdmin) return null;
     return query(
       collectionGroup(db, 'orders'),
@@ -87,8 +88,8 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_UID</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TRANSITION_ID (VERIFY)</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_UID (LOGISTICS)</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TRANSITION_ID (PAYMENT)</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ENTITY</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">FULFILLMENT</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
