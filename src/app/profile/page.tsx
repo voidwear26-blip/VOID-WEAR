@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
@@ -279,6 +280,10 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
             <Package className="w-4 h-4 text-white/30" />
             <span className="text-[10px] font-bold tracking-widest uppercase font-mono text-white/60">UID: {order.order_ID || order.id}</span>
             <span className={`text-[8px] px-2 py-0.5 border tracking-[0.2em] uppercase font-bold ${order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' : 'border-white/10 text-white/60'}`}>{order.shippingStatus}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[8px] text-white/40 tracking-widest uppercase font-bold">
+            <Zap className="w-3 h-3 opacity-30" />
+            <span>TRANS_ID: {order.transition_ID || 'INTERNAL'}</span>
           </div>
           <p className="text-[8px] text-white/40 tracking-widest uppercase font-bold">DATE: {new Date(order.orderDate).toLocaleDateString()}</p>
         </div>

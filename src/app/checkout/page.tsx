@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -84,8 +85,8 @@ export default function CheckoutPage() {
 
     const newOrder = {
       id: orderId,
-      order_ID: orderId, 
-      transition_ID: paymentId, 
+      order_ID: orderId, // Logistical Identifier
+      transition_ID: paymentId, // Financial Identifier
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
@@ -124,10 +125,10 @@ export default function CheckoutPage() {
     setFinalTransitionId(paymentId);
     setStep('success');
     
-    // Smooth transition to profile
+    // Auto-return to profile after success
     setTimeout(() => {
       router.push('/profile');
-    }, 3000);
+    }, 4000);
   };
 
   const handlePaymentUplink = async () => {
@@ -167,7 +168,7 @@ export default function CheckoutPage() {
 
             if (verifyRes.ok) {
               await finalizeOrderInFirestore(response.razorpay_payment_id);
-              toast({ title: "TRANSMISSION SECURED", description: "UPLINK VERIFIED SUCCESSFULLY. REDIRECTING..." });
+              toast({ title: "TRANSMISSION SECURED", description: "UPLINK VERIFIED SUCCESSFULLY." });
             } else {
               toast({ variant: "destructive", title: "VERIFICATION_FAILURE" });
             }

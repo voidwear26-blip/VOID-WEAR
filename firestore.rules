@@ -1,11 +1,12 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES
+     * VOID WEAR SECURITY RULES v21.0
      * MASTER AUTHORITY: voidwear26@gmail.com
-     * VERSION: 20.0 - BULLETPROOF UID AUTHORIZATION
+     * BULLETPROOF UID-FIRST AUTHORIZATION
      */
 
     // --- Helper Functions ---
@@ -26,23 +27,20 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // This rule is prioritized and grants absolute authority to the Master Administrator.
+    // Grants absolute authority to the Master Administrator for all documents.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- Collection Group Audit Protocol ---
-    // Specifically enables global audits for orders required by the revenue dashboard.
+    // --- Explicit Collection Group Audit Rule ---
+    // Required for the Revenue Dashboard and Transmission Archives.
     match /{path=**}/orders/{orderId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow write: if isAdmin();
+      allow list, read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
-    match /{path=**}/items/{itemId} {
-      allow read, write: if isAdmin() || (isSignedIn() && request.path.safe().contains(request.auth.uid));
-    }
-
-    // --- Collection Specific Rules (For Non-Admin Operators) ---
+    // --- Standard Collection Access for Operators ---
 
     match /app_config/{configId} {
       allow read: if true;
@@ -74,7 +72,9 @@ service cloud.firestore {
       }
 
       match /orders/{orderId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update, delete: if isAdmin();
       }
 
       match /wishlist/{productId} {

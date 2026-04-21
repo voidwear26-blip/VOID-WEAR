@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -138,11 +139,11 @@
         },
         "order_ID": {
           "type": "string",
-          "description": "Logistical identifier for product tracking."
+          "description": "Logistical identifier for product tracking (VOID-prefix)."
         },
         "transition_ID": {
           "type": "string",
-          "description": "Financial identifier for amount verification."
+          "description": "Financial identifier for amount verification (Razorpay ID)."
         },
         "userId": {
           "type": "string"
@@ -159,6 +160,9 @@
         },
         "paymentStatus": {
           "type": "string"
+        },
+        "items": {
+          "type": "array"
         }
       }
     },
@@ -201,6 +205,16 @@
             "$ref": "#/backend/entities/WishlistItem"
           },
           "description": "Operator module stasis log."
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Individual operator transmission history."
         }
       },
       {

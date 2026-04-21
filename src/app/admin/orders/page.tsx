@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -120,7 +121,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-10 py-8">
                         <div className="space-y-1">
-                           <span className="text-[10px] text-white/80 tracking-widest font-bold uppercase">{order.displayName || order.userId.slice(0, 12)}</span>
+                           <span className="text-[10px] text-white/80 tracking-widest font-bold uppercase">{order.displayName || order.userId?.slice(0, 12)}</span>
                            <p className="text-[8px] text-white/40 uppercase tracking-widest font-mono">{order.email}</p>
                         </div>
                       </td>
