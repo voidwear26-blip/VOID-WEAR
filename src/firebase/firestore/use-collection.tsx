@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Query,
   onSnapshot,
@@ -31,6 +32,7 @@ export interface InternalQuery extends Query<DocumentData> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
+ * Optimized with reference checking to prevent redundant updates.
  */
 export function useCollection<T = any>(
     targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
@@ -41,14 +43,25 @@ export function useCollection<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
+  
+  // Track query string to prevent redundant listener re-registration
+  const queryRef = useRef<string>('');
 
   useEffect(() => {
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
       setError(null);
+      queryRef.current = '';
       return;
     }
+
+    const currentQueryKey = targetRefOrQuery.type === 'collection' 
+      ? (targetRefOrQuery as CollectionReference).path 
+      : (targetRefOrQuery as any)._query?.path?.toString() || 'query';
+
+    if (queryRef.current === currentQueryKey) return;
+    queryRef.current = currentQueryKey;
 
     setIsLoading(true);
     setError(null);
@@ -57,9 +70,9 @@ export function useCollection<T = any>(
       targetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const results: ResultItemType[] = [];
-        for (const doc of snapshot.docs) {
+        snapshot.docs.forEach(doc => {
           results.push({ ...(doc.data() as T), id: doc.id });
-        }
+        });
         setData(results);
         setError(null);
         setIsLoading(false);
@@ -82,7 +95,10 @@ export function useCollection<T = any>(
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      queryRef.current = '';
+    };
   }, [targetRefOrQuery]);
 
   return { data, isLoading, error };

@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 
 type StockMatrix = {
@@ -93,7 +92,7 @@ export default function NewProductPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
-        toast({ title: "VISUAL BUFFERED", description: "LOCAL ASSET CONVERTED TO DATA LINK." });
+        toast({ title: "VISUAL BUFFERED", description: "LOCAL ASSET CONVERTED." });
       };
       reader.readAsDataURL(file);
     }
@@ -110,6 +109,7 @@ export default function NewProductPage() {
     }
 
     setLoading(true);
+    // Optimized: Start save sequence without blocking UI indefinitely
     try {
       const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
       
@@ -121,7 +121,6 @@ export default function NewProductPage() {
         imageUrls: [formData.imageUrl || `https://picsum.photos/seed/${Math.random()}/800/1000`],
         stockMatrix: stockMatrix,
         stockQuantity: totalStock,
-        // Simplified sizes and colors for filtering
         sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
         details: detailsArray,
         slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
@@ -129,21 +128,16 @@ export default function NewProductPage() {
         updatedAt: new Date().toISOString()
       };
 
-      await addDoc(collection(db, 'products'), productData);
-
-      toast({
-        title: "MODULE INITIALIZED",
-        description: "ASSEMBLAGE SUCCESSFULLY LOGGED IN CATALOGUE.",
+      // Non-blocking approach: Provide feedback and navigate quickly
+      addDoc(collection(db, 'products'), productData).then(() => {
+        toast({ title: "MODULE INITIALIZED", description: "DATA PERSISTED TO THE VOID." });
+      }).catch(err => {
+        toast({ variant: "destructive", title: "SYNC ERROR", description: "UPLINK FAILED." });
       });
+
       router.push('/admin/products');
     } catch (e: any) {
       console.error('[PRODUCT_ADD_ERROR]', e);
-      toast({
-        variant: "destructive",
-        title: "TRANSMISSION FAILED",
-        description: e.message || "COULD NOT SYNC WITH DATABASE.",
-      });
-    } finally {
       setLoading(false);
     }
   };
@@ -204,7 +198,6 @@ export default function NewProductPage() {
             </div>
           </div>
 
-          {/* STOCK MATRIX EDITOR */}
           <div className="space-y-8">
             <div className="border-b border-white/10 pb-4">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">INVENTORY MATRIX (SIZE // COLOR // QTY)</label>
@@ -246,9 +239,6 @@ export default function NewProductPage() {
                         </button>
                       </div>
                     ))}
-                    {Object.keys(stockMatrix[size]).length === 0 && (
-                      <p className="text-[8px] text-white/20 uppercase tracking-widest py-2">NO COLORS DEFINED FOR THIS SIZE</p>
-                    )}
                   </div>
                 </div>
               ))}
@@ -261,7 +251,7 @@ export default function NewProductPage() {
               <div className="relative group w-full md:w-48 aspect-[3/4] bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-all overflow-hidden">
                 {formData.imageUrl ? (
                   <>
-                    <Image src={formData.imageUrl} alt="Preview" fill className="object-cover grayscale" />
+                    <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, imageUrl: '' }))} className="text-white">
                         <Trash2 className="w-5 h-5" />
@@ -317,7 +307,7 @@ export default function NewProductPage() {
           <Button 
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500"
+            className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
               <>

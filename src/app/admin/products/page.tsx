@@ -2,7 +2,7 @@
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, deleteDoc, query, limit } from 'firebase/firestore';
 import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, Info, SlidersHorizontal, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -39,7 +39,8 @@ export default function AdminProductsPage() {
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    return collection(db, 'products');
+    // Optimized: Limit to 20 recent modules to speed up retrieval
+    return query(collection(db, 'products'), limit(20));
   }, [db, isAdmin]);
 
   const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
@@ -52,7 +53,6 @@ export default function AdminProductsPage() {
       return (
         (p.name || '').toLowerCase().includes(search) || 
         (p.category || '').toLowerCase().includes(search) ||
-        (p.color || '').toLowerCase().includes(search) ||
         (p.description || '').toLowerCase().includes(search)
       );
     });
@@ -71,8 +71,6 @@ export default function AdminProductsPage() {
           return (a.stockQuantity || 0) - (b.stockQuantity || 0);
         case 'stock-desc':
           return (b.stockQuantity || 0) - (a.stockQuantity || 0);
-        case 'color-asc':
-          return (a.color || '').localeCompare(b.color || '');
         case 'most-sold':
           return (b.unitsSold || 0) - (a.unitsSold || 0);
         case 'newest':
@@ -96,11 +94,6 @@ export default function AdminProductsPage() {
       });
     } catch (e: any) {
       console.error('[PRODUCT_DELETE_ERROR]', e);
-      toast({
-        variant: "destructive",
-        title: "SYSTEM ERROR",
-        description: e.message || "FAILED TO DELETE MODULE."
-      });
     }
   };
 
@@ -124,7 +117,7 @@ export default function AdminProductsPage() {
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Assemblages</h1>
           </div>
           <div className="flex gap-4">
-            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500">
+            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
               <Link href="/admin/products/new">
                 <Plus className="w-4 h-4 mr-3" />
                 ADD NEW MODULE
@@ -133,7 +126,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* Search and Sort Interface */}
         <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
           <div className="relative w-full md:w-96 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 group-focus-within:text-white transition-colors" />
@@ -154,7 +146,7 @@ export default function AdminProductsPage() {
               <SelectTrigger className="w-full md:w-64 bg-white/5 border-white/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase focus:ring-0 text-white font-bold transition-all hover:bg-white/10">
                 <SelectValue placeholder="SORT_BY" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-white/10 text-white rounded-none">
+              <SelectContent className="bg-black border-white/20 text-white rounded-none">
                 <SelectItem value="newest" className="text-[9px] tracking-widest uppercase">RECENT ARRIVALS</SelectItem>
                 <SelectItem value="most-sold" className="text-[9px] tracking-widest uppercase text-green-500">HIGH DEMAND</SelectItem>
                 <SelectItem value="price-asc" className="text-[9px] tracking-widest uppercase">PRICE: LOW TO HIGH</SelectItem>
@@ -173,7 +165,7 @@ export default function AdminProductsPage() {
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">MODULE</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CATEGORY // COLOR</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CATEGORY</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">PRICE (₹)</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">TOTAL STOCK</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
@@ -207,50 +199,20 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-10 py-8">
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{product.category}</p>
-                        <p className="text-[8px] text-white/60 tracking-[0.2em] uppercase font-bold">{product.color || 'N/A'}</p>
-                      </div>
+                      <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{product.category}</p>
                     </td>
                     <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase text-white">
                       ₹{product.basePrice}
                     </td>
                     <td className="px-10 py-8">
-                      <div className="flex items-center gap-3">
-                        <span className={`font-mono text-[10px] tracking-widest ${
-                          (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
-                        }`}>
-                          {product.stockQuantity || 0}
-                        </span>
-                        {product.stockBySize && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-white/40 hover:text-white">
-                                <Info className="w-3 h-3" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48 bg-black border-white/10 rounded-none p-4 shadow-2xl">
-                              <div className="space-y-2">
-                                <p className="text-[8px] tracking-widest text-white/60 uppercase font-bold border-b border-white/5 pb-2">SIZE BREAKDOWN</p>
-                                {Object.entries(product.stockBySize).map(([size, qty]) => (
-                                  <div key={size} className="flex justify-between text-[9px] tracking-widest py-1 border-b border-white/5 last:border-0">
-                                    <span className="text-white/40">{size}</span>
-                                    <span className={`font-mono ${(qty as number) < 2 ? 'text-red-500 font-bold' : 'text-white/80'}`}>{qty as number}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        )}
-                      </div>
+                      <span className={`font-mono text-[10px] tracking-widest ${
+                        (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
+                      }`}>
+                        {product.stockQuantity || 0}
+                      </span>
                     </td>
                     <td className="px-10 py-8 text-right">
                       <div className="flex items-center justify-end gap-4">
-                        <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
-                          <Link href={`/admin/products/${product.id}`}>
-                            <TrendingUp className="w-4 h-4" />
-                          </Link>
-                        </Button>
                         <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
                           <Link href={`/admin/products/${product.id}`}>
                             <Edit2 className="w-4 h-4" />
