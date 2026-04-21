@@ -8,49 +8,36 @@
       "description": "Represents an operator identity with logistical coordinates for module transmission.",
       "properties": {
         "uid": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
+          "type": "string"
         },
         "email": {
           "type": "string",
-          "description": "The user's unique email address.",
           "format": "email"
         },
         "displayName": {
-          "type": "string",
-          "description": "The operator's public identifier."
+          "type": "string"
         },
         "mobileNumber": {
-          "type": "string",
-          "description": "Primary mobile uplink for logistical coordination."
+          "type": "string"
         },
         "addressLine1": {
-          "type": "string",
-          "description": "Primary physical coordinates."
-        },
-        "landmark": {
-          "type": "string",
-          "description": "Reference node for logistical proximity."
+          "type": "string"
         },
         "city": {
-          "type": "string",
-          "description": "Urban district."
+          "type": "string"
         },
         "stateProvince": {
-          "type": "string",
-          "description": "Regional territory."
+          "type": "string"
         },
         "postalCode": {
-          "type": "string",
-          "description": "Logistical sector code."
+          "type": "string"
         },
         "role": {
           "type": "string",
           "enum": ["OPERATOR", "ADMIN", "COURIER"]
         },
         "isBlocked": {
-          "type": "boolean",
-          "description": "Whether the uplink access has been severed."
+          "type": "boolean"
         },
         "createdAt": {
           "type": "string",
@@ -72,42 +59,32 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
       "type": "object",
-      "description": "Represents an individual product available for sale in the 'VOID WEAR' app.",
+      "description": "Represents an individual product available for sale.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the Product entity."
+          "type": "string"
         },
         "name": {
-          "type": "string",
-          "description": "The name of the product."
+          "type": "string"
         },
         "description": {
-          "type": "string",
-          "description": "A detailed description of the product, including features and materials."
+          "type": "string"
         },
         "basePrice": {
-          "type": "number",
-          "description": "The current selling price of the product."
+          "type": "number"
         },
         "imageUrls": {
           "type": "array",
-          "description": "An array of URLs to product images.",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
         "category": {
-          "type": "string",
-          "description": "The primary category of the product."
+          "type": "string"
         },
         "stockQuantity": {
-          "type": "number",
-          "description": "Total available units."
+          "type": "number"
         },
         "stockMatrix": {
-          "type": "object",
-          "description": "Multi-dimensional inventory state (Size > Color > Quantity)."
+          "type": "object"
         },
         "createdAt": {
           "type": "string",
@@ -117,66 +94,31 @@
           "type": "string",
           "format": "date-time"
         }
-      },
-      "required": [
-        "id",
-        "name",
-        "basePrice",
-        "imageUrls",
-        "category",
-        "createdAt",
-        "updatedAt"
-      ]
+      }
     },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a confirmed transmission log with logistical and financial identifiers.",
+      "description": "A confirmed transmission log with dual identifiers for logistics and verification.",
       "properties": {
-        "id": {
-          "type": "string"
+        "id": { "type": "string" },
+        "order_ID": { 
+          "type": "string", 
+          "description": "Logistical identifier for tracking (VOID-prefix)." 
         },
-        "order_ID": {
-          "type": "string",
-          "description": "Logistical identifier for product tracking (VOID-prefix)."
+        "transition_ID": { 
+          "type": "string", 
+          "description": "Financial identifier for amount verification (Razorpay ID)." 
         },
-        "transition_ID": {
-          "type": "string",
-          "description": "Financial identifier for amount verification (Razorpay ID)."
-        },
-        "userId": {
-          "type": "string"
-        },
-        "orderDate": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number"
-        },
-        "shippingStatus": {
-          "type": "string"
-        },
-        "paymentStatus": {
-          "type": "string"
-        },
-        "items": {
-          "type": "array"
-        }
-      }
-    },
-    "WishlistItem": {
-      "title": "WishlistItem",
-      "type": "object",
-      "properties": {
-        "productId": { "type": "string" },
-        "name": { "type": "string" },
-        "price": { "type": "number" },
-        "image": { "type": "string" },
-        "category": { "type": "string" },
-        "addedAt": { "type": "string", "format": "date-time" }
-      }
+        "userId": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "shippingStatus": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "orderDate": { "type": "string", "format": "date-time" },
+        "items": { "type": "array" }
+      },
+      "required": ["order_ID", "transition_ID", "userId", "totalAmount"]
     }
   },
   "auth": {
@@ -191,40 +133,24 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores individual operator dossiers."
-        }
-      },
-      {
-        "path": "/users/{userId}/wishlist/{productId}",
-        "definition": {
-          "entityName": "WishlistItem",
-          "schema": {
-            "$ref": "#/backend/entities/WishlistItem"
-          },
-          "description": "Operator module stasis log."
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "Operator dossiers."
         }
       },
       {
         "path": "/users/{userId}/orders/{orderId}",
         "definition": {
           "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Individual operator transmission history."
+          "schema": { "$ref": "#/backend/entities/Order" },
+          "description": "Customer specific order history."
         }
       },
       {
         "path": "/products/{productId}",
         "definition": {
           "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Master assemblage catalogue."
+          "schema": { "$ref": "#/backend/entities/Product" },
+          "description": "Master catalogue."
         }
       }
     ]

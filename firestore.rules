@@ -4,9 +4,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v24.0
+     * VOID WEAR SECURITY RULES v25.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
-     * BULLETPROOF AUTHORIZATION FOR GLOBAL AUDITS
+     * PRIORITY AUTHORIZATION FOR GLOBAL AUDITS & DUAL-ID VERIFICATION
      */
 
     // --- Helper Functions ---
@@ -27,27 +27,25 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // Grants absolute authority to the Master Administrator for all documents.
+    // This rule is the primary override for all administrative actions.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // --- Explicit Collection Group Audit Rule ---
-    // Critical for global order tracking and revenue aggregation in Command Center.
-    // We split the rules to ensure that broad 'list' operations (like collectionGroup) 
-    // are authorized statically for admins without triggering document-relative checks.
+    // --- Specific Collection Group Rule for Orders ---
+    // Critical for the Command Center's global 'list' operations.
     match /{path=**}/orders/{orderId} {
-      // Admin access: Absolute oversight
-      allow list, read, update, delete: if isAdmin();
+      // Admin: Absolute oversight without document-level constraints
+      allow list, get, update, delete: if isAdmin();
       
-      // Operator access: Restricted to own dossier
-      // Requires filter by userId in queries for 'list' to pass for non-admins
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn() && request.query.limit <= 100 && (resource == null || resource.data.userId == request.auth.uid);
+      // Operator: Restricted to their own dossier. 
+      // Query MUST include filter: .where('userId', '==', user.uid)
+      allow list: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
-    // --- Standard Collection Access for Operators ---
+    // --- Standard Collection Access ---
 
     match /app_config/{configId} {
       allow read: if true;
@@ -68,7 +66,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Granting full access to owners for dossier management
+      // Granting full access to owners for profile management
       allow get, list, create, update: if isOwner(userId) || isAdmin();
       
       match /carts/{cartId} {
@@ -79,7 +77,8 @@ service cloud.firestore {
       }
 
       match /orders/{orderId} {
-        allow read: if isOwner(userId) || isAdmin();
+        // Standard user access to their subcollection
+        allow list, get: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
         allow update, delete: if isAdmin();
       }

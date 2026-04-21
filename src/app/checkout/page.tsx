@@ -3,9 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Info, Hash } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -85,8 +85,8 @@ export default function CheckoutPage() {
 
     const newOrder = {
       id: orderId,
-      order_ID: orderId, // Logistical Identifier for tracking
-      transition_ID: paymentId, // Financial Identifier for amount verification
+      order_ID: orderId, 
+      transition_ID: paymentId, 
       userId: user.uid,
       displayName: formData.displayName,
       email: formData.email,
@@ -109,11 +109,9 @@ export default function CheckoutPage() {
 
     batch.set(orderRef, newOrder);
 
-    // Cleanup Cart
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
-    // Cleanup Wishlist for purchased items
     for (const item of cartItems) {
       const wishlistRef = doc(db, 'users', user.uid, 'wishlist', item.productId);
       batch.delete(wishlistRef);
@@ -124,17 +122,10 @@ export default function CheckoutPage() {
     setFinalOrderId(orderId);
     setFinalTransitionId(paymentId);
     setStep('success');
-    
-    // Auto-return to profile after success
-    setTimeout(() => {
-      router.push('/profile');
-    }, 5000);
   };
 
   const handlePaymentUplink = async () => {
-    if (!user || !db || !cartItems) return;
-    if (cartItems.length === 0) return;
-    
+    if (!user || !db || !cartItems || cartItems.length === 0) return;
     setLoading(true);
 
     try {
