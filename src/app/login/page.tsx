@@ -73,14 +73,13 @@ export default function LoginPage() {
       let errorTitle = "ACCESS_DENIED";
       let errorMsg = err.message || "INVALID IDENTITY CREDENTIALS.";
 
-      // Handle specific provider configuration or missing user error
       if (err.code === 'auth/configuration-not-found') {
         errorTitle = "PROVIDER_OFFLINE";
         errorMsg = "EMAIL/PASSWORD AUTH IS NOT ENABLED IN FIREBASE CONSOLE.";
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
         if (email.toLowerCase() === 'voidwear26@gmail.com') {
           errorTitle = "MASTER_INITIALIZATION_REQUIRED";
-          errorMsg = "ADMIN RECORD NOT FOUND. USE 'SIGN UP' WITH PASSWORD 'admin2026' TO INITIALIZE MASTER STATUS.";
+          errorMsg = "ADMIN RECORD NOT FOUND. USE 'SIGN UP' MODE TO INITIALIZE MASTER STATUS IN THE NEW DATABASE.";
         } else {
           errorTitle = "IDENTITY_NOT_FOUND";
           errorMsg = "CHECK YOUR KEY OR USE 'SIGN UP' TO INITIALIZE A NEW ENTITY.";

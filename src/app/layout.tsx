@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'VOID WEAR | Premium Techwear & Futuristic Apparel',
+    default: 'VOID WEAR | Embrace The Unknown',
     template: '%s | VOID WEAR'
   },
   description: 'VOID WEAR provides high-performance futuristic technical assemblages. Minimalist architecture and cinematic aesthetics for the digital migration.',
