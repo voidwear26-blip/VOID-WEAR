@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -73,14 +74,16 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
     if (!db || !userId) return;
     setSaving(true);
     try {
-      await setDoc(doc(db, 'users', userId), {
+      // Optimistic non-blocking save
+      setDoc(doc(db, 'users', userId), {
         ...formData,
         updatedAt: new Date().toISOString()
       }, { merge: true });
+      
       toast({ title: "ENTITY RECONFIGURED", description: "SYSTEM LOGS SYNCHRONIZED SUCCESSFULLY." });
     } catch (e) {
       console.error(e);
-      toast({ variant: "destructive", title: "UPLINK FAILURE", description: "COULD NOT SYNC CHANGES TO DATABASE." });
+      toast({ variant: "destructive", title: "UPLINK FAILURE", description: "COULD NOT SYNC CHANGES." });
     } finally {
       setSaving(false);
     }
@@ -91,7 +94,7 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
     if (!confirm('INITIATE TOTAL DATA PURGE FOR THIS ENTITY?')) return;
     try {
       await deleteDoc(doc(db, 'users', userId));
-      toast({ title: "ENTITY PURGED", description: "ALL LOGS SEVERED FROM THE VOID." });
+      toast({ title: "ENTITY PURGED", description: "ALL LOGS SEVERED." });
       router.push('/admin/users');
     } catch (e) {
       console.error(e);
@@ -138,7 +141,6 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
 
         <form onSubmit={handleUpdate} className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
-            {/* CORE IDENTITY MODULE */}
             <div className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-6">
                  <h3 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">CORE IDENTITY MODULE</h3>
@@ -189,7 +191,6 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
-            {/* LOGISTICAL NODE MODULE */}
             <div className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-6">
                  <h3 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">LOGISTICAL NODE MODULE</h3>
@@ -246,7 +247,6 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <div className="space-y-12">
-            {/* SECURITY MODULE (PASSWORDS) */}
             <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                  <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">SECURITY MODULE</h3>
@@ -259,9 +259,6 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <p className="text-[9px] text-white/40 tracking-widest leading-relaxed uppercase font-bold italic">
                    FIREBASE SECURITY PROTOCOLS PREVENT PLAIN-TEXT PASSWORD RETRIEVAL. ACCESS KEYS ARE SALTED AND HASHED AT THE ARCHITECTURAL LEVEL. 
-                </p>
-                <p className="text-[9px] text-white/60 tracking-widest leading-relaxed uppercase font-black">
-                   TO RESET ACCESS, INITIALIZE A TRANSMISSION VIA THE FIREBASE AUTH CONSOLE.
                 </p>
               </div>
               <div className="space-y-4">
@@ -280,7 +277,6 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
-            {/* MISSION LOGS SUMMARY */}
             <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
                <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">MISSION SUMMARY</h3>

@@ -54,10 +54,10 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
+  // Automated synchronization from profile data
   useEffect(() => {
     if (user && profile) {
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
         displayName: profile.displayName || user.displayName || '',
         email: profile.email || user.email || '',
         mobileNumber: profile.mobileNumber || '',
@@ -66,7 +66,8 @@ export default function CheckoutPage() {
         stateProvince: profile.stateProvince || '',
         postalCode: profile.postalCode || '',
         landmark: profile.landmark || '',
-      }));
+        additionalInfo: ''
+      });
     }
   }, [user, profile]);
 
@@ -79,7 +80,7 @@ export default function CheckoutPage() {
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
     
-    // Update profile
+    // Auto-update logistical profile data if it changed during checkout
     const userRef = doc(db, 'users', user.uid);
     batch.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
@@ -96,13 +97,18 @@ export default function CheckoutPage() {
       paymentStatus: 'paid',
       paymentProviderId: paymentId,
       paymentMethod: selectedMethod.toUpperCase(),
+      addressLine1: formData.addressLine1,
+      city: formData.city,
+      stateProvince: formData.stateProvince,
+      postalCode: formData.postalCode,
+      landmark: formData.landmark,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     batch.set(orderRef, newOrder);
 
-    // Clear cart items
+    // Synchronously purge cart logs
     const cartSnap = await getDocs(cartItemsRef!);
     cartSnap.docs.forEach(d => batch.delete(d.ref));
 
@@ -117,7 +123,6 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // 1. Create order on backend securely
       const res = await fetch('/api/checkout/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,7 +135,6 @@ export default function CheckoutPage() {
       const orderData = await res.json();
       if (!res.ok) throw new Error(orderData.message || 'UPLINK_FAILURE');
 
-      // 2. Initialize Modal
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
@@ -138,22 +142,9 @@ export default function CheckoutPage() {
         name: 'VOID WEAR',
         description: 'TECHNICAL ASSEMBLAGE UPLINK',
         order_id: orderData.id,
-        config: {
-          display: {
-            blocks: {
-              preferred: {
-                name: `Pay with ${selectedMethod.toUpperCase()}`,
-                instruments: [{ method: selectedMethod }]
-              }
-            },
-            sequence: ["block.preferred", "block.other"],
-            preferences: { show_default_blocks: true }
-          }
-        },
         handler: async function (response: any) {
           setLoading(true);
           try {
-            // 3. Verify on backend
             const verifyRes = await fetch('/api/checkout/verify-payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

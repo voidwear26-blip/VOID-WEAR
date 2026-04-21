@@ -61,7 +61,7 @@ export default function ProfilePage() {
     landmark: ''
   });
 
-  // Initialize form data when profile arrives
+  // Robust initialization from profile data
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -76,14 +76,14 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  // Handle missing dossier in new database
+  // Ensure record existence without blocking UI
   useEffect(() => {
     if (user && db && !isProfileLoading && !profile) {
       saveUserToFirestore(db, user);
     }
   }, [user, db, isProfileLoading, profile]);
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !user) return;
 
@@ -97,6 +97,7 @@ export default function ProfilePage() {
       createdAt: profile?.createdAt || new Date().toISOString()
     };
 
+    // Optimistic, non-blocking save sequence
     setDoc(userRef, updateData, { merge: true })
       .then(() => {
         toast({

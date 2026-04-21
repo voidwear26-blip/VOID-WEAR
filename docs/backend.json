@@ -5,41 +5,65 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user account with basic profile information within the VOID WEAR application. Does not store authentication credentials.",
+      "description": "Represents an operator identity with logistical coordinates for module transmission.",
       "properties": {
-        "id": {
+        "uid": {
           "type": "string",
           "description": "Unique identifier for the User entity."
         },
         "email": {
           "type": "string",
-          "description": "The user's unique email address, used for communication.",
+          "description": "The user's unique email address.",
           "format": "email"
         },
-        "firstName": {
+        "displayName": {
           "type": "string",
-          "description": "The user's first name."
+          "description": "The operator's public identifier."
         },
-        "lastName": {
+        "mobileNumber": {
           "type": "string",
-          "description": "The user's last name."
+          "description": "Primary mobile uplink for logistical coordination."
+        },
+        "addressLine1": {
+          "type": "string",
+          "description": "Primary physical coordinates."
+        },
+        "landmark": {
+          "type": "string",
+          "description": "Reference node for logistical proximity."
+        },
+        "city": {
+          "type": "string",
+          "description": "Urban district."
+        },
+        "stateProvince": {
+          "type": "string",
+          "description": "Regional territory."
+        },
+        "postalCode": {
+          "type": "string",
+          "description": "Logistical sector code."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["OPERATOR", "ADMIN", "COURIER"]
+        },
+        "isBlocked": {
+          "type": "boolean",
+          "description": "Whether the uplink access has been severed."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user account was created.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp indicating when the user account information was last updated.",
           "format": "date-time"
         }
       },
       "required": [
-        "id",
+        "uid",
         "email",
-        "firstName",
-        "lastName",
         "createdAt",
         "updatedAt"
       ]
@@ -62,229 +86,80 @@
           "type": "string",
           "description": "A detailed description of the product, including features and materials."
         },
-        "price": {
+        "basePrice": {
           "type": "number",
           "description": "The current selling price of the product."
         },
-        "currency": {
-          "type": "string",
-          "description": "The currency of the product price (e.g., 'USD', 'EUR')."
-        },
         "imageUrls": {
           "type": "array",
-          "description": "An array of URLs to product images, showcasing different views or details.",
+          "description": "An array of URLs to product images.",
           "items": {
             "type": "string"
           }
         },
         "category": {
           "type": "string",
-          "description": "The primary category of the product (e.g., 'Tops', 'Bottoms', 'Accessories')."
+          "description": "The primary category of the product."
         },
         "stockQuantity": {
           "type": "number",
-          "description": "The number of units of this product currently available in stock."
+          "description": "Total available units."
+        },
+        "stockMatrix": {
+          "type": "object",
+          "description": "Multi-dimensional inventory state (Size > Color > Quantity)."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp indicating when the product was first added to the catalog.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp indicating when the product information was last updated.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
         "name",
-        "description",
-        "price",
-        "currency",
+        "basePrice",
         "imageUrls",
         "category",
-        "stockQuantity",
         "createdAt",
         "updatedAt"
-      ]
-    },
-    "Cart": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Cart",
-      "type": "object",
-      "description": "Represents a user's active shopping cart, containing selected products before checkout.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Cart entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User who owns this cart. (Relationship: User 1:N Cart)"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the shopping cart was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the cart was last updated (e.g., items added, removed, or quantities adjusted).",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "CartItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "CartItem",
-      "type": "object",
-      "description": "Represents a single product entry within a user's shopping cart, specifying the product and its quantity.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the CartItem entity."
-        },
-        "cartId": {
-          "type": "string",
-          "description": "Reference to the Cart this item belongs to. (Relationship: Cart 1:N CartItem)"
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product included in this cart item. (Relationship: Product 1:N CartItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The quantity of the product in this specific cart item."
-        },
-        "addedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when this item was added to the cart.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "cartId",
-        "productId",
-        "quantity",
-        "addedAt"
       ]
     },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a confirmed customer purchase, containing overall transaction details and references to ordered items.",
+      "description": "Represents a confirmed transmission log.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the Order entity."
+          "type": "string"
         },
         "userId": {
-          "type": "string",
-          "description": "Reference to the User who placed this order. (Relationship: User 1:N Order)"
+          "type": "string"
         },
         "orderDate": {
           "type": "string",
-          "description": "The date and time when the order was placed and confirmed.",
           "format": "date-time"
         },
         "totalAmount": {
-          "type": "number",
-          "description": "The total monetary amount of the order, including taxes and shipping."
+          "type": "number"
         },
-        "currency": {
-          "type": "string",
-          "description": "The currency of the total order amount (e.g., 'USD', 'EUR')."
+        "shippingStatus": {
+          "type": "string"
         },
-        "status": {
-          "type": "string",
-          "description": "The current fulfillment status of the order (e.g., 'pending', 'processed', 'shipped', 'delivered', 'cancelled')."
-        },
-        "shippingAddress": {
-          "type": "string",
-          "description": "The full shipping address where the order will be delivered."
-        },
-        "billingAddress": {
-          "type": "string",
-          "description": "The full billing address associated with the payment method for the order."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the order record was initially created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the order record was last updated (e.g., status change).",
-          "format": "date-time"
+        "paymentStatus": {
+          "type": "string"
         }
-      },
-      "required": [
-        "id",
-        "userId",
-        "orderDate",
-        "totalAmount",
-        "currency",
-        "status",
-        "shippingAddress",
-        "billingAddress",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents a single product within a confirmed order, capturing its state (price, quantity) at the time of purchase.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the OrderItem entity."
-        },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product that was purchased as part of this order item. (Relationship: Product 1:N OrderItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The quantity of the product included in this order item."
-        },
-        "priceAtOrder": {
-          "type": "number",
-          "description": "The unit price of the product at the exact moment the order was placed."
-        },
-        "currency": {
-          "type": "string",
-          "description": "The currency of the price at order (e.g., 'USD', 'EUR')."
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "productId",
-        "quantity",
-        "priceAtOrder",
-        "currency"
-      ]
+      }
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "google"
     ]
   },
   "firestore": {
@@ -296,13 +171,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores individual user profiles. Access is restricted to the owner matching `request.auth.uid` or the Master Admin.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, typically matching Firebase Authentication's `uid`."
-            }
-          ]
+          "description": "Stores individual operator dossiers."
         }
       },
       {
@@ -312,104 +181,9 @@
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores details of all products available in the store. This collection is publicly readable, while write access is restricted to administrators.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for a product."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/app_config/{configId}",
-        "definition": {
-          "entityName": "AppConfig",
-          "schema": {
-            "type": "object"
-          },
-          "description": "Global application configuration for dynamic branding and settings. Publicly readable, admin writable.",
-          "params": [
-            {
-              "name": "configId",
-              "description": "The configuration document ID (e.g., 'global')."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/stories/{storyId}",
-        "definition": {
-          "entityName": "Story",
-          "schema": {
-            "type": "object"
-          },
-          "description": "Brand narrative updates and announcements. Publicly readable, admin writable.",
-          "params": [
-            {
-              "name": "storyId",
-              "description": "Unique identifier for a story transmission."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/reviews/{reviewId}",
-        "definition": {
-          "entityName": "Review",
-          "schema": {
-            "type": "object"
-          },
-          "description": "Customer feedback for products. Publicly readable, authenticated user writable.",
-          "params": [
-            {
-              "name": "reviewId",
-              "description": "Unique identifier for a review."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/carts/{cartId}",
-        "definition": {
-          "entityName": "Cart",
-          "schema": {
-            "$ref": "#/backend/entities/Cart"
-          },
-          "description": "Represents a user's active shopping cart. Nested under the user's document to enforce ownership.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who owns this cart."
-            },
-            {
-              "name": "cartId",
-              "description": "The unique identifier for a specific shopping cart."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Represents a user's confirmed purchase order. Restricted to owner or Admin.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who placed this order."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for a specific order."
-            }
-          ]
+          "description": "Master assemblage catalogue."
         }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to be secure and scalable. Hierarchical paths ensure authorization is tied to the document location. Top-level collections like products and app_config use public read permissions for fast, unauthenticated access on the landing page, while the Master Admin role handles global database maintenance."
+    ]
   }
 }
