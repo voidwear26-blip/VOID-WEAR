@@ -15,7 +15,7 @@ export default function AboutPage() {
 
           <div className="relative aspect-video bg-white/5 overflow-hidden">
             <Image 
-              src="https://picsum.photos/seed/voidabout/1920/1080" 
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Vellore_Fort.png/960px-Vellore_Fort.png?_=20220903153718" 
               alt="VOID WEAR Concept" 
               fill 
               className="object-cover grayscale opacity-50"
@@ -23,7 +23,7 @@ export default function AboutPage() {
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-[10px] tracking-[1em] font-bold border border-white/20 px-8 py-4 backdrop-blur-md">
-                EST. 2024 / NEO-TOKYO
+                EST. 2026 / VELLORE - INDIA
               </div>
             </div>
           </div>

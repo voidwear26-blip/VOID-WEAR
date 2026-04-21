@@ -12,7 +12,7 @@ export default function ShippingPage() {
             <section className="space-y-4">
               <h2 className="text-xl font-bold tracking-widest uppercase">Pan-India Expedition</h2>
               <p className="text-sm text-white/80 tracking-widest leading-relaxed uppercase">
-                We facilitate high-speed delivery across the Indian sub-continent. Our logistics network utilizes secure surface and aerial couriers to ensure your assembly reaches you within 2-7 standard cycles.
+                We facilitate high-speed delivery across the Indian sub-continent. Our logistics network utilizes secure surface and aerial couriers to ensure your assembly reaches your coordinates within the specified transit windows.
               </p>
             </section>
 
@@ -24,19 +24,30 @@ export default function ShippingPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-xl font-bold tracking-widest uppercase">Return Protocol</h2>
+              <h2 className="text-xl font-bold tracking-widest uppercase">Integration Finality (Returns)</h2>
               <p className="text-sm text-white/80 tracking-widest leading-relaxed uppercase">
-                If an item does not integrate with your form, you have 14 cycles from the delivery timestamp to initiate a return sequence. All items must be in their original vacuum-sealed packaging.
+                VOID WEAR assemblages are final transmissions. Once a module integrates with your form, the bond is permanent. We maintain a <span className="text-white font-bold">NO RETURN POLICY</span>. For critical anomalies or to initiate the "Sympathy Protocol," please contact our primary uplink nodes.
               </p>
             </section>
 
             <div className="p-10 border border-white/10 bg-white/[0.02] backdrop-blur-md">
               <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white/90">Current Transit Times</h3>
-              <ul className="space-y-4 text-[10px] text-white/70 tracking-widest uppercase">
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>Metro Clusters (Delhi, Mumbai, Bengaluru)</span><span>1-2 Cycles</span></li>
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>Tier 1 Strategic Zones</span><span>2-3 Cycles</span></li>
-                <li className="flex justify-between border-b border-white/5 pb-2"><span>Regional Outposts</span><span>3-5 Cycles</span></li>
-                <li className="flex justify-between"><span>Remote Frontier Nodes (NE, J&K)</span><span>5-7 Cycles</span></li>
+              <ul className="space-y-4 text-[10px] text-white/70 tracking-widest uppercase font-bold">
+                <li className="flex justify-between border-b border-white/5 pb-2">
+                  <span>Within State (Tamil Nadu)</span>
+                  <span className="text-white">3-5 Cycles</span>
+                </li>
+                <li className="flex justify-between border-b border-white/5 pb-2">
+                  <span>Other States (Regional Clusters)</span>
+                  <span className="text-white">5-7 Cycles</span>
+                </li>
+                <li className="flex justify-between border-b border-white/5 pb-2">
+                  <span>Remote Frontier Nodes (North India)</span>
+                  <span className="text-white">8-10 Cycles</span>
+                </li>
+                <li className="flex justify-between pt-4 opacity-50">
+                  <span className="text-[8px] italic">Cycles represent standard business days.</span>
+                </li>
               </ul>
             </div>
           </div>
