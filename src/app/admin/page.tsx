@@ -2,9 +2,9 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, collectionGroup } from 'firebase/firestore';
 
@@ -43,11 +43,23 @@ export default function AdminDashboard() {
   }, [db, isAdmin]);
 
   const { data: products } = useCollection(productsQuery);
-  const { data: orders } = useCollection(ordersQuery);
+  const { data: orders, error: ordersError } = useCollection(ordersQuery);
   const { data: users } = useCollection(usersQuery);
 
-  const totalRevenue = orders?.reduce((acc, order) => acc + (order.totalAmount || 0), 0) || 0;
-  const totalInventoryUnits = products?.reduce((acc, prod) => acc + (prod.stockQuantity || 0), 0) || 0;
+  const totalRevenue = useMemo(() => {
+    if (!orders) return 0;
+    return orders.reduce((acc, order) => {
+      const amount = typeof order.totalAmount === 'number' 
+        ? order.totalAmount 
+        : parseFloat(order.totalAmount || '0');
+      return acc + (isNaN(amount) ? 0 : amount);
+    }, 0);
+  }, [orders]);
+
+  const totalInventoryUnits = useMemo(() => {
+    if (!products) return 0;
+    return products.reduce((acc, prod) => acc + (Number(prod.stockQuantity) || 0), 0);
+  }, [products]);
 
   if (!mounted || isUserLoading) {
     return (
@@ -75,6 +87,15 @@ export default function AdminDashboard() {
             <span className="text-[10px] tracking-[0.3em] font-bold text-white uppercase">NEURAL UPLINK SECURE</span>
           </div>
         </div>
+
+        {ordersError && (
+          <div className="mb-12 p-6 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-500">
+            <AlertCircle className="w-5 h-5" />
+            <p className="text-[10px] tracking-widest font-black uppercase">
+              TRANSMISSION SYNC FAILURE: ENSURE SECURITY RULES ARE DEPLOYED.
+            </p>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           <StatCard 
