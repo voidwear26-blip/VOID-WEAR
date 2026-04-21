@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -19,7 +18,7 @@ export default function AdminDashboard() {
     setMounted(true);
   }, []);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = !isUserLoading && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   useEffect(() => {
     if (mounted && !isUserLoading && !isAdmin) {
@@ -27,21 +26,21 @@ export default function AdminDashboard() {
     }
   }, [mounted, isUserLoading, isAdmin, router]);
 
-  // Sync real-time data for stats - Dependency on user.uid ensures listeners re-trigger after auth
+  // Sync real-time data for stats - Explicit dependency on isAdmin to prevent permission races
   const productsQuery = useMemoFirebase(() => {
-    if (!db || !user?.uid || !isAdmin) return null;
+    if (!db || !isAdmin) return null;
     return collection(db, 'products');
-  }, [db, user?.uid, isAdmin]);
+  }, [db, isAdmin]);
 
   const ordersQuery = useMemoFirebase(() => {
-    if (!db || !user?.uid || !isAdmin) return null;
+    if (!db || !isAdmin) return null;
     return collectionGroup(db, 'orders');
-  }, [db, user?.uid, isAdmin]);
+  }, [db, isAdmin]);
 
   const usersQuery = useMemoFirebase(() => {
-    if (!db || !user?.uid || !isAdmin) return null;
+    if (!db || !isAdmin) return null;
     return collection(db, 'users');
-  }, [db, user?.uid, isAdmin]);
+  }, [db, isAdmin]);
 
   const { data: products } = useCollection(productsQuery);
   const { data: orders } = useCollection(ordersQuery);

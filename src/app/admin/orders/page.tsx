@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -12,12 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
 export default function AdminOrdersPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isAdmin = !isUserLoading && user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -67,7 +66,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (!isAdmin) {
+  if (isUserLoading || !isAdmin) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold">
         Authenticating Protocol...

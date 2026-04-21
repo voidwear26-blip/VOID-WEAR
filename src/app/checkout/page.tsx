@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,7 +53,7 @@ export default function CheckoutPage() {
     additionalInfo: ''
   });
 
-  // Automated synchronization from profile data
+  // Automated synchronization from profile data with high reactivity
   useEffect(() => {
     if (user && profile) {
       setFormData({
