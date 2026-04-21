@@ -402,7 +402,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                 </div>
                 <div className="space-y-1">
                    <p className="text-[10px] tracking-[0.4em] text-white/60 uppercase font-bold">UNIQUE OPERATORS</p>
-                   <p className="text-3xl font-bold tracking-tighter glow-text uppercase">{sales?.length || 0}</p>
+                   <p className="text-3xl font-bold tracking-tighter uppercase">{sales?.length || 0}</p>
                 </div>
               </div>
             </div>
