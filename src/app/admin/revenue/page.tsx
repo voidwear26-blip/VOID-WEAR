@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, orderBy } from 'firebase/firestore';
-import { ChevronLeft, TrendingUp, Loader2, Package, Hash, DollarSign, ArrowDownWideArrow } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Loader2, Package, Hash, DollarSign, ArrowDownWideNarrow } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -164,7 +164,7 @@ export default function RevenueDetailsPage() {
 
         <div className="mt-12 p-8 border border-white/5 bg-white/[0.01] flex items-center justify-between">
            <div className="flex items-center gap-4 text-white/40">
-              <ArrowDownWideArrow className="w-4 h-4" />
+              <ArrowDownWideNarrow className="w-4 h-4" />
               <span className="text-[9px] tracking-[0.4em] uppercase font-bold">SORTED BY VALUATION DESCENDING</span>
            </div>
            <p className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-black italic">
