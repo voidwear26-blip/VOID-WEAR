@@ -129,10 +129,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const shareUrl = window.location.href;
     const shareData = {
       title: product.name,
-      text: product.description,
+      text: `CHECK OUT THIS VOID WEAR MODULE: ${product.name}\n${product.description}`,
       url: shareUrl,
     };
 
+    // Prioritize Native App Selection (WhatsApp, Instagram, etc.)
     if (navigator.share && navigator.canShare?.(shareData)) {
       try {
         await navigator.share(shareData);
@@ -140,6 +141,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         // Silent fail
       }
     } else {
+      // Fallback: Clipboard Link Extraction
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });

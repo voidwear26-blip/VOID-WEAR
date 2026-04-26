@@ -88,17 +88,19 @@ export function ProductCard({ product }: ProductCardProps) {
     const shareUrl = `${window.location.origin}/products/${product.id}`;
     const shareData = {
       title: product.name,
-      text: product.description,
+      text: `CHECK OUT THIS VOID WEAR MODULE: ${product.name}\n${product.description}`,
       url: shareUrl,
     };
 
+    // Prioritize Native App Forwarding (WhatsApp, Instagram, FB, etc.)
     if (navigator.share && navigator.canShare?.(shareData)) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        // Silent fail for cancel
+        // Silent fail for user cancellation
       }
     } else {
+      // High-performance fallback: Clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });
