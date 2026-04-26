@@ -6,16 +6,17 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
-import { Package } from 'lucide-react';
-import { motion, useAnimationControls } from 'framer-motion';
+import { Package, ArrowRight } from 'lucide-react';
+import { motion, useAnimationControls, useMotionValue } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
   const db = useFirestore();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [constraints, setConstraints] = useState({ left: 0, right: 0 });
-  const controls = useAnimationControls();
-  const [isDragging, setIsDragging] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const [isPaused, setIsPaused] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -30,26 +31,33 @@ export default function Home() {
   const { data: latestProducts, isLoading: latestLoading } = useCollection(latestProductsQuery);
   const { data: topProducts, isLoading: topLoading } = useCollection(topProductsQuery);
 
+  // Duplicate items for seamless looping
+  const displayProducts = latestProducts ? [...latestProducts, ...latestProducts] : [];
+
   useEffect(() => {
-    if (containerRef.current && latestProducts) {
-      const scrollWidth = containerRef.current.scrollWidth;
-      const offsetWidth = containerRef.current.offsetWidth;
-      setConstraints({ left: -(scrollWidth - offsetWidth), right: 0 });
+    if (scrollRef.current) {
+      setContainerWidth(scrollRef.current.scrollWidth / 2);
     }
   }, [latestProducts]);
 
+  const controls = useAnimationControls();
+  const x = useMotionValue(0);
+
   useEffect(() => {
-    if (!latestLoading && latestProducts && !isDragging) {
+    if (!latestLoading && containerWidth > 0 && !isPaused) {
       controls.start({
-        x: [0, -200, 0],
+        x: [0, -containerWidth],
         transition: {
           duration: 30,
           repeat: Infinity,
-          ease: "linear"
+          ease: "linear",
+          repeatType: "loop"
         }
       });
+    } else {
+      controls.stop();
     }
-  }, [latestLoading, latestProducts, controls, isDragging]);
+  }, [latestLoading, containerWidth, isPaused, controls]);
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -74,7 +82,7 @@ export default function Home() {
       
       <Hero />
       
-      {/* Interactive Gallery Section */}
+      {/* Seamless Loop Gallery Section */}
       <section className="py-24 md:py-48 bg-transparent relative overflow-hidden" aria-label="Latest Arrivals">
         <div className="container mx-auto px-6 mb-20 md:mb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -84,35 +92,35 @@ export default function Home() {
                 LATEST <br /> ASSEMBLAGES
               </h2>
             </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/70 hover:text-white transition-all duration-500 border-b border-white/20 hover:border-white pb-4 w-fit uppercase">
+            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/70 hover:text-white transition-all duration-500 border-b border-white/20 hover:border-white pb-4 w-fit uppercase flex items-center gap-4">
               VIEW FULL COLLECTION
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
 
-        <div className="relative cursor-grab active:cursor-grabbing px-6 md:px-0">
+        <div 
+          className="relative cursor-grab active:cursor-grabbing overflow-hidden"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           <motion.div 
-            ref={containerRef}
+            ref={scrollRef}
             drag="x"
-            dragConstraints={constraints}
+            dragConstraints={{ left: -containerWidth * 1.5, right: 0 }}
             animate={controls}
-            onDragStart={() => {
-              setIsDragging(true);
-              controls.stop();
-            }}
-            onDragEnd={() => {
-              setIsDragging(false);
-            }}
-            className="flex gap-8 md:gap-16 whitespace-nowrap overflow-visible"
-            style={{ touchAction: 'none' }}
+            style={{ x }}
+            className="flex gap-8 md:gap-16 whitespace-nowrap px-6 md:px-0"
+            onDragStart={() => setIsPaused(true)}
+            onDragEnd={() => setIsPaused(false)}
           >
             {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-[300px] md:w-[450px] aspect-[3/4] bg-white/10 animate-pulse" />
+                <div key={i} className="w-[300px] md:w-[450px] aspect-[3/4] bg-white/5 animate-pulse border border-white/10" />
               ))
-            ) : latestProducts && latestProducts.length > 0 ? (
-              latestProducts.map((product) => (
-                <div key={product.id} className="w-[300px] md:w-[450px] shrink-0">
+            ) : displayProducts.length > 0 ? (
+              displayProducts.map((product, idx) => (
+                <div key={`${product.id}-${idx}`} className="w-[300px] md:w-[450px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
@@ -125,7 +133,7 @@ export default function Home() {
           </motion.div>
           
           <div className="mt-16 container mx-auto px-6 flex items-center gap-4 text-white/20">
-            <div className="text-[8px] tracking-[0.5em] uppercase font-bold">DRAG OR OBSERVE TO EXPLORE</div>
+            <div className="text-[8px] tracking-[0.5em] uppercase font-bold">INTERACTIVE TRANSMISSION // DRAG TO CONTROL</div>
             <div className="flex-1 h-[1px] bg-white/10"></div>
           </div>
         </div>
@@ -142,7 +150,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-12 md:gap-24">
             {topLoading ? (
               [1, 2, 3].map(i => (
-                <div key={i} className="aspect-[3/4] bg-white/10 animate-pulse" />
+                <div key={i} className="aspect-[3/4] bg-white/10 animate-pulse border border-white/10" />
               ))
             ) : topProducts && topProducts.length > 0 ? (
               topProducts.map((product, idx) => (
@@ -186,3 +194,4 @@ export default function Home() {
     </div>
   );
 }
+
