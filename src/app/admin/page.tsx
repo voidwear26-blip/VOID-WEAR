@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, Hash, TrendingUp } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -49,31 +49,10 @@ export default function AdminDashboard() {
   const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
 
-  const revenueBreakdown = useMemo(() => {
-    if (!orders) return [];
-    const salesMap = new Map<string, { name: string; quantity: number; totalPrice: number }>();
-    
-    orders.forEach(order => {
-      order.items?.forEach((item: any) => {
-        const key = item.name || 'UNIDENTIFIED_MODULE';
-        const current = salesMap.get(key) || { name: key, quantity: 0, totalPrice: 0 };
-        const qty = Number(item.quantity) || 1;
-        const price = Number(item.price) || 0;
-        
-        salesMap.set(key, {
-          name: key,
-          quantity: current.quantity + qty,
-          totalPrice: current.totalPrice + (price * qty)
-        });
-      });
-    });
-    
-    return Array.from(salesMap.values()).sort((a, b) => b.totalPrice - a.totalPrice);
-  }, [orders]);
-
   const totalRevenue = useMemo(() => {
-    return revenueBreakdown.reduce((acc, curr) => acc + curr.totalPrice, 0);
-  }, [revenueBreakdown]);
+    if (!orders) return 0;
+    return orders.reduce((acc, order) => acc + (Number(order.totalAmount) || 0), 0);
+  }, [orders]);
 
   const totalInventoryUnits = useMemo(() => {
     if (!products) return 0;
@@ -121,61 +100,31 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-4 gap-6 mb-16">
-          {/* Detailed Revenue Breakdown Card */}
-          <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 p-8 space-y-8 backdrop-blur-xl relative overflow-hidden min-h-[300px]">
-            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-               <div className="flex items-center gap-3">
-                  <TrendingUp className="w-4 h-4 text-white/60" />
-                  <p className="text-[10px] tracking-[0.3em] text-white/60 uppercase font-bold">REVENUE AUDIT LOG</p>
-               </div>
-               <p className="text-xl font-black glow-text text-white tracking-widest">₹{totalRevenue.toLocaleString()}</p>
-            </div>
-            
-            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
-              {ordersLoading ? (
-                <div className="flex items-center justify-center py-10 opacity-20">
-                   <Loader2 className="w-6 h-6 animate-spin" />
-                </div>
-              ) : revenueBreakdown.length > 0 ? (
-                revenueBreakdown.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 group hover:border-white/20 transition-all">
-                    <div className="space-y-1">
-                      <p className="text-[11px] font-bold tracking-widest uppercase text-white/80">{item.name}</p>
-                      <p className="text-[9px] text-white/40 tracking-[0.2em] uppercase font-bold">UNITS_SOLD: {item.quantity}</p>
-                    </div>
-                    <p className="text-[11px] font-black tracking-widest text-white">₹{item.totalPrice.toLocaleString()}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="py-10 text-center opacity-20 text-[10px] tracking-widest uppercase font-bold">NO SALES LOGGED</div>
-              )}
-            </div>
-            <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 w-full lg:col-span-2">
-            <div className="grid sm:grid-cols-3 gap-6 h-full">
-              <StatCard 
-                href="/admin/orders"
-                icon={<ShoppingBag className="w-5 h-5" />} 
-                label="TRANSMISSIONS" 
-                value={ordersLoading ? "..." : (orders?.length.toString() || "0")} 
-              />
-              <StatCard 
-                href="/admin/users"
-                icon={<Users className="w-5 h-5" />} 
-                label="ENTITIES" 
-                value={usersLoading ? "..." : (users?.length.toString() || "0")} 
-              />
-              <StatCard 
-                href="/admin/products"
-                icon={<Package className="w-5 h-5" />} 
-                label="INVENTORY" 
-                value={productsLoading ? "..." : totalInventoryUnits.toString()} 
-              />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <StatCard 
+            href="/admin/revenue"
+            icon={<TrendingUp className="w-5 h-5" />} 
+            label="REVENUE AUDIT" 
+            value={ordersLoading ? "..." : `₹${totalRevenue.toLocaleString()}`} 
+          />
+          <StatCard 
+            href="/admin/orders"
+            icon={<ShoppingBag className="w-5 h-5" />} 
+            label="TRANSMISSIONS" 
+            value={ordersLoading ? "..." : (orders?.length.toString() || "0")} 
+          />
+          <StatCard 
+            href="/admin/users"
+            icon={<Users className="w-5 h-5" />} 
+            label="ENTITIES" 
+            value={usersLoading ? "..." : (users?.length.toString() || "0")} 
+          />
+          <StatCard 
+            href="/admin/products"
+            icon={<Package className="w-5 h-5" />} 
+            label="INVENTORY" 
+            value={productsLoading ? "..." : totalInventoryUnits.toString()} 
+          />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
