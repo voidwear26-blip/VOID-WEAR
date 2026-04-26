@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-type AdminSortOption = 'newest' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc' | 'most-sold';
+type AdminSortOption = 'newest' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc';
 
 export default function AdminProductsPage() {
   const { user, isUserLoading } = useUser();
@@ -41,7 +41,7 @@ export default function AdminProductsPage() {
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    return query(collection(db, 'products'), limit(50));
+    return query(collection(db, 'products'), limit(100));
   }, [db, isAdmin]);
 
   const { data: products, isLoading: isCollectionLoading } = useCollection(productsQuery);
@@ -182,60 +182,66 @@ export default function AdminProductsPage() {
                   </tr>
                 ))
               ) : filteredAndSortedProducts && filteredAndSortedProducts.length > 0 ? (
-                filteredAndSortedProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-10 py-8">
-                      <div className="flex items-center gap-6">
-                        <div className="relative w-12 h-16 bg-white/5 border border-white/5 overflow-hidden">
-                          <Image 
-                            src={product.imageUrls?.[0] || 'https://picsum.photos/seed/placeholder/200/300'} 
-                            alt={product.name} 
-                            fill 
-                            unoptimized
-                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                          />
+                filteredAndSortedProducts.map((product) => {
+                  const displayImage = product.imageUrls && product.imageUrls.length > 0 
+                    ? product.imageUrls[0] 
+                    : 'https://picsum.photos/seed/void-placeholder/200/300';
+                    
+                  return (
+                    <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-6">
+                          <div className="relative w-12 h-16 bg-white/5 border border-white/5 overflow-hidden">
+                            <Image 
+                              src={displayImage} 
+                              alt={product.name} 
+                              fill 
+                              unoptimized
+                              className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold tracking-widest uppercase text-white">{product.name}</p>
+                            <p className="text-[8px] text-white/40 font-mono font-bold uppercase">UID: {product.id.slice(0, 8)}</p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold tracking-widest uppercase text-white">{product.name}</p>
-                          <p className="text-[8px] text-white/40 font-mono font-bold uppercase">UID: {product.id.slice(0, 8)}</p>
+                      </td>
+                      <td className="px-10 py-8">
+                        <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{product.category}</p>
+                      </td>
+                      <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase text-white">
+                        ₹{product.basePrice}
+                      </td>
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-3">
+                           <span className={`font-mono text-[10px] tracking-widest ${
+                             (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
+                           }`}>
+                             {product.stockQuantity || 0}
+                           </span>
+                           {(product.stockQuantity || 0) < 5 && <ShieldAlert className="w-3 h-3 text-red-500/60" />}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-10 py-8">
-                      <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{product.category}</p>
-                    </td>
-                    <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase text-white">
-                      ₹{product.basePrice}
-                    </td>
-                    <td className="px-10 py-8">
-                      <div className="flex items-center gap-3">
-                         <span className={`font-mono text-[10px] tracking-widest ${
-                           (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
-                         }`}>
-                           {product.stockQuantity || 0}
-                         </span>
-                         {(product.stockQuantity || 0) < 5 && <ShieldAlert className="w-3 h-3 text-red-500/60" />}
-                      </div>
-                    </td>
-                    <td className="px-10 py-8 text-right">
-                      <div className="flex items-center justify-end gap-4">
-                        <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
-                          <Link href={`/admin/products/${product.id}`}>
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDelete(product.id)}
-                          className="text-white/40 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-10 py-8 text-right">
+                        <div className="flex items-center justify-end gap-4">
+                          <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
+                            <Link href={`/admin/products/${product.id}`}>
+                              <Edit2 className="w-4 h-4" />
+                            </Link>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDelete(product.id)}
+                            className="text-white/40 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
               ) : (
                 <tr>
                   <td colSpan={5} className="px-10 py-32 text-center opacity-40">

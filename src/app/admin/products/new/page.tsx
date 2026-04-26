@@ -43,9 +43,11 @@ export default function NewProductPage() {
     category: '',
     basePrice: '',
     description: '',
-    imageUrl: '',
+    imageUrls: [] as string[],
     details: ''
   });
+
+  const [currentInputUrl, setCurrentInputUrl] = useState('');
 
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
     'XS': {}, 'S': {}, 'M': {}, 'L': {}, 'XL': {}, 'XXL': {}
@@ -93,11 +95,21 @@ export default function NewProductPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+        setFormData(prev => ({ ...prev, imageUrls: [reader.result as string, ...prev.imageUrls] }));
         toast({ title: "VISUAL BUFFERED", description: "LOCAL ASSET CONVERTED." });
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const addRemoteImageUrl = () => {
+    if (!currentInputUrl.trim()) return;
+    setFormData(prev => ({ ...prev, imageUrls: [currentInputUrl.trim(), ...prev.imageUrls] }));
+    setCurrentInputUrl('');
+  };
+
+  const removeImageUrl = (idx: number) => {
+    setFormData(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, i) => i !== idx) }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,6 +122,11 @@ export default function NewProductPage() {
       return;
     }
 
+    if (formData.imageUrls.length === 0) {
+      toast({ variant: "destructive", title: "VISUALS MISSING", description: "ADD AT LEAST ONE PRODUCT IMAGE." });
+      return;
+    }
+
     setLoading(true);
     const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
     
@@ -118,7 +135,7 @@ export default function NewProductPage() {
       category: formData.category.toUpperCase(),
       basePrice: parseFloat(formData.basePrice) || 0,
       description: formData.description,
-      imageUrls: [formData.imageUrl || `https://picsum.photos/seed/${Math.random()}/800/1000`],
+      imageUrls: formData.imageUrls,
       stockMatrix: stockMatrix,
       stockQuantity: totalStock,
       sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
@@ -130,7 +147,6 @@ export default function NewProductPage() {
 
     const productsCol = collection(db, 'products');
 
-    // Non-blocking approach with explicit feedback reset
     addDoc(productsCol, productData)
       .then(() => {
         toast({ title: "MODULE INITIALIZED", description: "DATA PERSISTED TO THE VOID." });
@@ -250,41 +266,42 @@ export default function NewProductPage() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (IMAGE)</label>
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="relative group w-full md:w-48 aspect-[3/4] bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-all overflow-hidden">
-                {formData.imageUrl ? (
-                  <>
-                    <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" unoptimized />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, imageUrl: '' }))} className="text-white">
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-white/20 mb-2" />
-                    <span className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-bold text-center px-4">LOCAL STORAGE UPLOAD</span>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleImageUpload} 
-                      className="absolute inset-0 opacity-0 cursor-pointer" 
-                    />
-                  </>
-                )}
-              </div>
-              <div className="flex-1 space-y-4 w-full">
-                <label className="text-[9px] font-bold tracking-[0.2em] text-white/20 uppercase">OR REMOTE LINK</label>
-                <Input 
-                  value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
-                  onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  placeholder="HTTPS://..."
+          <div className="space-y-8">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINKS (IMAGES)</label>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {formData.imageUrls.map((url, i) => (
+                <div key={i} className="relative aspect-[3/4] bg-white/[0.02] border border-white/10 group overflow-hidden">
+                   <Image src={url} alt={`Module visual ${i}`} fill className="object-cover" unoptimized />
+                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button type="button" onClick={() => removeImageUrl(i)} className="p-3 bg-red-500/80 text-white">
+                         <Trash2 className="w-4 h-4" />
+                      </button>
+                   </div>
+                </div>
+              ))}
+              <div className="relative aspect-[3/4] bg-white/[0.02] border border-white/10 border-dashed flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-all">
+                 <Upload className="w-8 h-8 text-white/20 mb-2" />
+                 <span className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-bold text-center px-4">UPLOAD ASSET</span>
+                 <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
                 />
               </div>
+            </div>
+
+            <div className="flex gap-4">
+                <Input 
+                  value={currentInputUrl}
+                  onChange={e => setCurrentInputUrl(e.target.value)}
+                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                  placeholder="HTTPS://REMOTE-UPLINK.COM/IMAGE.JPG"
+                />
+                <Button type="button" onClick={addRemoteImageUrl} className="h-14 rounded-none bg-white/10 hover:bg-white/20 border border-white/10 px-8 text-[10px] font-bold tracking-widest">
+                   LINK ASSET
+                </Button>
             </div>
           </div>
 
