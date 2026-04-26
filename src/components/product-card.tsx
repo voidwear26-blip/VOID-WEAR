@@ -131,10 +131,10 @@ export function ProductCard({ product }: ProductCardProps) {
         rotateX,
         transformStyle: "preserve-3d",
       }}
-      className="group relative"
+      className="group relative h-full"
     >
-      <div className="block relative overflow-hidden bg-black border border-white/10 group-hover:border-white/30 transition-all duration-500 glow-border">
-        <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden">
+      <div className="flex flex-col h-full bg-black border border-white/10 group-hover:border-white/30 transition-all duration-500 glow-border overflow-hidden">
+        <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden shrink-0">
           <Image
             src={displayImage}
             alt={product.name || 'Assemblage Module'}
@@ -158,7 +158,7 @@ export function ProductCard({ product }: ProductCardProps) {
             onClick={handleWishlistToggle}
             disabled={toggling}
             className={`p-3 rounded-full backdrop-blur-md border transition-all duration-300 ${
-              isInWishlist ? 'bg-white text-black border-white' : 'bg-black/40 border-white/20 text-white/60 hover:text-white'
+              isInWishlist ? 'bg-white text-black border-white' : 'bg-black/60 text-white border-white/20 text-white/60 hover:text-white'
             }`}
             title="STASIS LOG"
           >
@@ -175,12 +175,12 @@ export function ProductCard({ product }: ProductCardProps) {
           </motion.button>
         </div>
 
-        <Link href={`/products/${product.id}`} className="p-8 space-y-4 block">
-          <div className="flex justify-between items-start">
-            <h3 className="text-sm font-medium tracking-[0.3em] uppercase max-w-[70%] text-white">{product.name}</h3>
-            <span className="text-[10px] font-bold text-white/70 tracking-widest">₹{product.basePrice}</span>
+        <Link href={`/products/${product.id}`} className="p-8 space-y-4 flex-1 flex flex-col justify-between">
+          <div className="flex justify-between items-start gap-4">
+            <h3 className="text-sm font-medium tracking-[0.3em] uppercase text-white truncate flex-1" title={product.name}>{product.name}</h3>
+            <span className="text-[10px] font-bold text-white/70 tracking-widest shrink-0">₹{product.basePrice}</span>
           </div>
-          <div className="h-[1px] w-0 group-hover:w-full bg-white/20 transition-all duration-700"></div>
+          <div className="h-[1px] w-0 group-hover:w-full bg-white/20 transition-all duration-700 shrink-0"></div>
         </Link>
       </div>
     </motion.div>
