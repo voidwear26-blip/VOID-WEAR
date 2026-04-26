@@ -1,9 +1,10 @@
+
 'use client';
 
 import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
@@ -123,6 +124,31 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
   };
 
+  const handleShare = async () => {
+    if (!product) return;
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: product.name,
+      text: product.description,
+      url: shareUrl,
+    };
+
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // Silent fail
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });
+      } catch (err) {
+        toast({ variant: "destructive", title: "SHARE_FAILURE" });
+      }
+    }
+  };
+
   if (isLoading) {
     return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-10 h-10 animate-spin text-white/20" /></div>;
   }
@@ -149,7 +175,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <div key={idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
                   <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
                   {idx === 0 && (
-                    <div className="absolute top-8 right-8 z-30">
+                    <div className="absolute top-8 right-8 z-30 flex flex-col gap-4">
                       <motion.button 
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
@@ -158,8 +184,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
                           isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
                         }`}
+                        title="STASIS LOG"
                       >
                         {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
+                      </motion.button>
+
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={handleShare}
+                        className="p-5 rounded-full border border-white/20 bg-black/60 text-white hover:border-white backdrop-blur-xl transition-all"
+                        title="SHARE TRANSMISSION"
+                      >
+                        <Share2 className="w-6 h-6" />
                       </motion.button>
                     </div>
                   )}
