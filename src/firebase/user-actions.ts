@@ -10,22 +10,33 @@ import { FirestorePermissionError, type SecurityRuleContext } from './errors';
  * VOID WEAR // DOSSIER SYNCHRONIZATION
  * Persists user identity metadata to the Firestore database.
  * Optimized for reliability and preventing silent write failures.
+ * Uses a pure merge strategy to avoid overwriting existing fields with defaults.
  */
 export async function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
   if (!user) return;
 
   const userRef = doc(db, 'users', user.uid);
   
-  const dossierData = {
+  const dossierData: any = {
     uid: user.uid,
     email: user.email,
-    displayName: user.displayName || extraData.displayName || user.email?.split('@')[0].toUpperCase(),
-    mobileNumber: extraData.mobileNumber || '',
-    role: user.email?.toLowerCase() === 'voidwear26@gmail.com' ? 'ADMIN' : 'OPERATOR',
     updatedAt: new Date().toISOString(),
-    createdAt: extraData.createdAt || new Date().toISOString(),
     ...extraData
   };
+
+  // Only set role and basic info if they don't exist or if explicit master authority
+  if (user.email?.toLowerCase() === 'voidwear26@gmail.com') {
+    dossierData.role = 'ADMIN';
+  }
+
+  // Ensure mandatory fields have values only if they are not already set in extraData
+  if (!dossierData.displayName && user.displayName) dossierData.displayName = user.displayName;
+  if (!dossierData.displayName && !user.displayName && !extraData.displayName) {
+    dossierData.displayName = user.email?.split('@')[0].toUpperCase() || 'OPERATOR';
+  }
+  
+  // Set creation timestamp only if explicitly provided or handled by client
+  if (extraData.createdAt) dossierData.createdAt = extraData.createdAt;
 
   // Perform set with merge protocol. 
   // Non-blocking catch to ensure we don't hang if there's a permission issue

@@ -224,9 +224,15 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
-                      <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" />
+                    <div className="grid md:grid-cols-2 gap-10">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
+                        <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">LANDMARK</label>
+                        <Input value={formData.landmark} onChange={e => setFormData({ ...formData, landmark: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" placeholder="E.G. NEAR ORBITAL TOWER" />
+                      </div>
                     </div>
 
                     <Button type="submit" disabled={saving} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">

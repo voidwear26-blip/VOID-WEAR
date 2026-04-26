@@ -9,7 +9,7 @@ In an era where identities are increasingly fluid and virtual, VOID WEAR serves 
 
 ## 🛠️ TECHNICAL ARCHITECTURE
 
-The platform is built on a high-performance "Neo-Tokyo" stack:
+The platform is built on a high-performance "Vellore-India" stack:
 
 - **Framework**: [Next.js 15 (App Router)](https://nextjs.org/) - Optimized for high-speed neural rendering and server-side performance.
 - **Database**: [Firebase Firestore](https://firebase.google.com/products/firestore) - Real-time synchronization of inventory and transmissions.

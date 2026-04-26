@@ -23,6 +23,9 @@
         "addressLine1": {
           "type": "string"
         },
+        "landmark": {
+          "type": "string"
+        },
         "city": {
           "type": "string"
         },

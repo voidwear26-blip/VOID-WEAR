@@ -197,13 +197,23 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
                  <MapPin className="w-4 h-4 text-white/20" />
               </div>
               
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
-                <Input 
-                  value={formData.addressLine1} 
-                  onChange={e => setFormData({...formData, addressLine1: e.target.value.toUpperCase()})}
-                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                />
+              <div className="grid md:grid-cols-2 gap-10">
+                <div className="space-y-3">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
+                  <Input 
+                    value={formData.addressLine1} 
+                    onChange={e => setFormData({...formData, addressLine1: e.target.value.toUpperCase()})}
+                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">LANDMARK</label>
+                  <Input 
+                    value={formData.landmark} 
+                    onChange={e => setFormData({...formData, landmark: e.target.value.toUpperCase()})}
+                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+                  />
+                </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-10">

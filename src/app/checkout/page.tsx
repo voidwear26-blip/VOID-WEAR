@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -98,10 +99,10 @@ export default function CheckoutPage() {
       paymentProviderId: paymentId,
       paymentMethod: selectedMethod.toUpperCase(),
       addressLine1: formData.addressLine1,
+      landmark: formData.landmark,
       city: formData.city,
       stateProvince: formData.stateProvince,
       postalCode: formData.postalCode,
-      landmark: formData.landmark,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -248,8 +249,9 @@ export default function CheckoutPage() {
                      <Field label="CITY" value={formData.city} onChange={v => setFormData({...formData, city: v})} />
                      <Field label="STATE" value={formData.stateProvince} onChange={v => setFormData({...formData, stateProvince: v})} />
                      <Field label="PIN CODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} />
-                     <div className="md:col-span-2">
+                     <div className="md:col-span-2 grid md:grid-cols-2 gap-8">
                         <Field label="ADDRESS NODE" value={formData.addressLine1} onChange={v => setFormData({...formData, addressLine1: v})} />
+                        <Field label="LANDMARK" value={formData.landmark} onChange={v => setFormData({...formData, landmark: v})} placeholder="NEAR ..." />
                      </div>
                   </div>
                   <Button onClick={() => setStep('review')} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
@@ -264,7 +266,7 @@ export default function CheckoutPage() {
                    <div className="bg-white/5 border border-white/10 p-10 space-y-6">
                       <p className="text-[10px] tracking-widest text-white/40 uppercase">RECIPIENT: <span className="text-white font-bold">{formData.displayName}</span></p>
                       <p className="text-[10px] tracking-widest text-white/40 uppercase leading-relaxed">
-                         DESTINATION: <span className="text-white font-bold">{formData.addressLine1}, {formData.city}, {formData.stateProvince} - {formData.postalCode}</span>
+                         DESTINATION: <span className="text-white font-bold">{formData.addressLine1}, {formData.landmark ? `${formData.landmark}, ` : ''}{formData.city}, {formData.stateProvince} - {formData.postalCode}</span>
                       </p>
                    </div>
                    <Button onClick={() => setStep('payment')} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
@@ -317,11 +319,11 @@ export default function CheckoutPage() {
   );
 }
 
-function Field({ label, value, onChange }: { label: string, value: string, onChange: (v: string) => void }) {
+function Field({ label, value, onChange, placeholder }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
   return (
     <div className="space-y-2">
       <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">{label}</label>
-      <Input value={value} onChange={e => onChange(e.target.value)} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase" />
+      <Input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="bg-white/5 border-white/10 rounded-none h-12 text-[10px] tracking-widest focus:border-white/60 text-white uppercase" />
     </div>
   );
 }
