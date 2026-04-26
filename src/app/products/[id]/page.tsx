@@ -133,7 +133,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       url: shareUrl,
     };
 
-    // Prioritize Native App Selection (WhatsApp, Instagram, etc.)
     if (navigator.share && navigator.canShare?.(shareData)) {
       try {
         await navigator.share(shareData);
@@ -141,7 +140,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         // Silent fail
       }
     } else {
-      // Fallback: Clipboard Link Extraction
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });
@@ -176,8 +174,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               {displayImages.map((url: string, idx: number) => (
                 <div key={idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
                   <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
+                  
+                  {/* Hover-Revealed Icons on Detail Page Image */}
                   {idx === 0 && (
-                    <div className="absolute top-8 right-8 z-30 flex flex-col gap-4">
+                    <div className="absolute top-8 right-8 z-30 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
                       <motion.button 
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}

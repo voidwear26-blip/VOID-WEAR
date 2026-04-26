@@ -92,15 +92,13 @@ export function ProductCard({ product }: ProductCardProps) {
       url: shareUrl,
     };
 
-    // Prioritize Native App Forwarding (WhatsApp, Instagram, FB, etc.)
     if (navigator.share && navigator.canShare?.(shareData)) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        // Silent fail for user cancellation
+        // Silent fail
       }
     } else {
-      // High-performance fallback: Clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });
@@ -153,7 +151,8 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </Link>
 
-        <div className="absolute top-6 right-6 z-20 flex flex-col gap-4">
+        {/* Hover-Revealed Interaction Icons */}
+        <div className="absolute top-6 right-6 z-20 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
           <motion.button 
             {...iconMotionProps}
             onClick={handleWishlistToggle}
