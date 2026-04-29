@@ -1,10 +1,10 @@
 
 'use client';
 
-import { use, useState, useMemo, useEffect } from 'react';
+import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap, Share2, Package, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -37,12 +37,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return doc(db, 'products', id);
   }, [db, id]);
 
+  const { data: product, isLoading: isProductLoading } = useDoc(productRef);
+
   const wishlistRef = useMemoFirebase(() => {
     if (!db || !user || !id) return null;
     return doc(db, 'users', user.uid, 'wishlist', id);
   }, [db, user, id]);
 
-  const { data: product, isLoading: isProductLoading } = useDoc(productRef);
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
 
@@ -146,7 +147,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const handleShare = async () => {
     if (!product) return;
-    const shareUrl = window.location.href;
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareData = {
       title: product.name,
       text: `CHECK OUT THIS VOID WEAR MODULE: ${product.name}\n${product.description}`,
