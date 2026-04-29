@@ -143,7 +143,21 @@ export default function LoginPage() {
                   <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY</label>
                   {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-white/20 hover:text-white transition-colors font-black">FORGOT?</button>}
                 </div>
-                <Input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white font-mono" />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? 'text' : 'password'} 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white font-mono pr-12" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             )}
 
