@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useFirestore, useUser } from '@/firebase';
-import { collection, getDocs, collectionGroup, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, collectionGroup, query, limit } from 'firebase/firestore';
 import { ChevronLeft, Database, Download, Loader2, ShieldAlert, FileText, BarChart3, Package, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -34,12 +33,17 @@ export default function SystemArchivePage() {
     setLoading(true);
 
     try {
-      // 1. Fetch System Data
+      // 1. Fetch System Data with simplified queries
       const productsSnap = await getDocs(collection(db, 'products'));
       const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      const ordersSnap = await getDocs(query(collectionGroup(db, 'orders'), orderBy('orderDate', 'desc')));
+      const ordersSnap = await getDocs(query(collectionGroup(db, 'orders'), limit(500)));
       const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Sort client-side
+      const sortedOrders = orders.sort((a: any, b: any) => 
+        new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+      );
 
       // 2. Calculate Analytics
       const totalRevenue = orders.reduce((acc, o: any) => acc + (Number(o.totalAmount) || 0), 0);
@@ -111,7 +115,7 @@ export default function SystemArchivePage() {
       doc.setFontSize(12);
       doc.text('03. TRANSMISSION ARCHIVE (ORDERS)', 15, 13);
 
-      const orderRows = orders.map((o: any) => [
+      const orderRows = sortedOrders.map((o: any) => [
         o.order_ID || o.id?.slice(0, 12),
         new Date(o.orderDate).toLocaleDateString(),
         (o.displayName || 'OPERATOR').toUpperCase(),

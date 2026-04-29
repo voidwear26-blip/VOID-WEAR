@@ -1,7 +1,7 @@
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collectionGroup, query, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
+import { collectionGroup, query, limit, updateDoc, doc } from 'firebase/firestore';
 import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -26,25 +26,25 @@ export default function AdminOrdersPage() {
   }, [user, isUserLoading]);
 
   const allOrdersQuery = useMemoFirebase(() => {
-    // Only initialize the query if we are certain the user is an admin and the component is mounted
     if (!db || !mounted || !isAdmin) return null;
-    
     try {
-      // SYNCED_WITH_INDEX_ID: CICAgJiUpoMK
-      // FIELDS: orderDate (DESC), order_ID (ASC)
-      return query(
-        collectionGroup(db, 'orders'),
-        orderBy('orderDate', 'desc'),
-        orderBy('order_ID', 'asc'),
-        limit(100)
-      );
+      // Simplified query to avoid COLLECTION_GROUP index requirements
+      return query(collectionGroup(db, 'orders'), limit(100));
     } catch (e) {
       console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
       return null;
     }
   }, [db, isAdmin, mounted]);
 
-  const { data: orders, isLoading, error: queryError } = useCollection(allOrdersQuery);
+  const { data: rawOrders, isLoading, error: queryError } = useCollection(allOrdersQuery);
+
+  // Perform sorting client-side to avoid Index requirement
+  const orders = useMemo(() => {
+    if (!rawOrders) return [];
+    return [...rawOrders].sort((a, b) => 
+      new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime()
+    );
+  }, [rawOrders]);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: string) => {
     if (!db || !userId) return;
@@ -109,7 +109,7 @@ export default function AdminOrdersPage() {
                 <span className="text-[10px] font-black tracking-widest uppercase">UPLINK_PERMISSIONS_DENIED</span>
              </div>
              <p className="text-[9px] text-white/40 tracking-[0.2em] leading-relaxed uppercase max-w-2xl">
-                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND FIRESTORE SECURITY RULES (V30.0) ARE DEPLOYED.
+                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED.
              </p>
           </div>
         )}

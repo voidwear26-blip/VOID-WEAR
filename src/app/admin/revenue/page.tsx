@@ -1,7 +1,7 @@
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collectionGroup, query, orderBy } from 'firebase/firestore';
+import { collectionGroup, query, limit } from 'firebase/firestore';
 import { ChevronLeft, TrendingUp, Loader2, Info, ArrowDownWideNarrow } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
@@ -39,7 +39,8 @@ export default function RevenueDetailsPage() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    return collectionGroup(db, 'orders');
+    // Simple query to bypass composite index requirement
+    return query(collectionGroup(db, 'orders'), limit(1000));
   }, [db, isAdmin]);
 
   const { data: orders, isLoading } = useCollection(ordersQuery);
