@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { sendContactEmail } from '@/app/actions/contact';
 
 export default function ContactPage() {
   const { toast } = useToast();
@@ -19,7 +19,8 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const subject = formData.get('subject') as string;
@@ -36,7 +37,7 @@ export default function ContactPage() {
 
     setIsPending(true);
     try {
-      // TRANSMISSION PROTOCOL: Direct Firestore Log
+      // 1. LOG TO DATABASE (Backup & Audit)
       await addDoc(collection(db, 'contacts'), {
         name,
         email,
@@ -45,10 +46,19 @@ export default function ContactPage() {
         createdAt: new Date().toISOString()
       });
 
+      // 2. TRIGGER NEURAL RELAY (Email Transmission)
+      // Note: This relies on GMAIL_APP_PASSWORD being correctly configured in the environment.
+      const emailResult = await sendContactEmail({}, formData);
+      
+      if (!emailResult.success) {
+        console.warn('[UPLINK_WARNING] DATABASE_LOG_SECURED_BUT_EMAIL_RELAY_FAILED:', emailResult.message);
+        // We still show success because the message is saved in the database admin panel.
+      }
+
       setSubmitted(true);
       toast({
         title: "TRANSMISSION SECURED",
-        description: "YOUR MESSAGE HAS REACHED THE PRIMARY NODE.",
+        description: "YOUR MESSAGE HAS REACHED THE SYSTEM ARCHIVE.",
       });
     } catch (error) {
       console.error('[UPLINK_FAILURE]', error);
