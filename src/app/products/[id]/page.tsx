@@ -1,19 +1,21 @@
+
 'use client';
 
 import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap, Share2 } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap, Share2, Package, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
-import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
+import { doc, collection, query, where, limit } from 'firebase/firestore';
 import { addToCart } from '@/firebase/cart-actions';
 import { toggleWishlist } from '@/firebase/wishlist-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { FieldReports } from '@/components/field-reports';
+import { ProductCard } from '@/components/product-card';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -40,6 +42,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { data: product, isLoading } = useDoc(productRef);
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
+
+  // Similar Products Intelligence
+  const similarProductsQuery = useMemoFirebase(() => {
+    if (!db || !product?.category) return null;
+    return query(
+      collection(db, 'products'),
+      where('category', '==', product.category),
+      limit(4)
+    );
+  }, [db, product?.category]);
+
+  const { data: rawSimilar } = useCollection(similarProductsQuery);
+  const similarProducts = useMemo(() => {
+    return rawSimilar?.filter(p => p.id !== id).slice(0, 3) || [];
+  }, [rawSimilar, id]);
 
   const availableSizes = useMemo(() => {
     if (!product?.stockMatrix) return ['DEFAULT'];
@@ -172,7 +189,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="space-y-8">
             <div className="grid grid-cols-1 gap-6">
               {displayImages.map((url: string, idx: number) => (
-                <div key={idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
+                <div key={url + idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
                   <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
                   
                   {idx === 0 && (
@@ -299,6 +316,27 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         </div>
+
+        {/* Similar Assemblages Section */}
+        {similarProducts.length > 0 && (
+          <div className="border-t border-white/10 pt-32 pb-32">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+              <div className="space-y-6">
+                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">CONTEXTUAL // RECOMMENDATIONS</span>
+                <h2 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Similar <br /> Assemblages</h2>
+              </div>
+              <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-white/40 hover:text-white transition-all uppercase border-b border-white/10 pb-4">
+                EXPLORE ALL MODULES
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {similarProducts.map((p) => (
+                <ProductCard key={p.id} product={p as any} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Field Reports Section */}
         <div className="border-t border-white/10 pt-32">
