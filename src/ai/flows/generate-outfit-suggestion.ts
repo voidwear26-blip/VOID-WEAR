@@ -30,6 +30,7 @@ export type StylistOutput = z.infer<typeof StylistOutputSchema>;
 
 const stylistPrompt = ai.definePrompt({
   name: 'stylistPrompt',
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: StylistInputSchema },
   output: { schema: StylistOutputSchema },
   prompt: `You are the VOID WEAR Neural Stylist, an advanced AI designed for high-density urban fashion curation.

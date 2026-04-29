@@ -25,6 +25,7 @@ export type NotificationOutput = z.infer<typeof NotificationOutputSchema>;
 
 const notificationPrompt = ai.definePrompt({
   name: 'notificationPrompt',
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: NotificationInputSchema },
   output: { schema: NotificationOutputSchema },
   prompt: `You are the VOID WEAR System Intelligence. Your tone is futuristic, professional, cinematic, and minimalist.
