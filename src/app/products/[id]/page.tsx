@@ -1,7 +1,7 @@
 
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight } from 'lucide-react';
@@ -171,7 +171,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   if (isProductLoading) {
-    return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-10 h-10 animate-spin text-white/20" /></div>;
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+          <span className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">Syncing Module...</span>
+        </div>
+      </div>
+    );
   }
 
   if (!product) return notFound();
@@ -334,7 +341,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
               {similarProducts.map((p) => (
                 <ProductCard key={p.id} product={p as any} />
               ))}
