@@ -1,10 +1,9 @@
-
 "use client"
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/app/lib/products-service';
-import { Plus, Heart, Loader2, Share2 } from 'lucide-react';
+import { Heart, Loader2, Share2 } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { toggleWishlist } from '@/firebase/wishlist-actions';
@@ -103,7 +102,7 @@ export function ProductCard({ product }: ProductCardProps) {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });
       } catch (err) {
-        toast({ variant: "destructive", title: "SHARE_FAILURE", description: "COULD NOT GENERATE TRANSMISSION LINK." });
+        toast({ variant: "destructive", title: "SHARE_FAILURE" });
       }
     }
   };
@@ -140,7 +139,6 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.name || 'Assemblage Module'}
             fill
             className="object-cover grayscale-0 group-hover:grayscale group-hover:scale-105 transition-all duration-1000 ease-out"
-            data-ai-hint="cyberpunk product"
             unoptimized
           />
           
@@ -151,16 +149,14 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </Link>
 
-        {/* Hover-Revealed Interaction Icons */}
         <div className="absolute top-6 right-6 z-20 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
           <motion.button 
             {...iconMotionProps}
             onClick={handleWishlistToggle}
             disabled={toggling}
             className={`p-3 rounded-full backdrop-blur-md border transition-all duration-300 ${
-              isInWishlist ? 'bg-white text-black border-white' : 'bg-black/60 text-white border-white/20 text-white/60 hover:text-white'
+              isInWishlist ? 'bg-white text-black border-white' : 'bg-black/60 text-white border-white/20 hover:text-white'
             }`}
-            title="STASIS LOG"
           >
             {toggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Heart className={`w-3.5 h-3.5 ${isInWishlist ? 'fill-current' : ''}`} />}
           </motion.button>
@@ -168,8 +164,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <motion.button 
             {...iconMotionProps}
             onClick={handleShare}
-            className="p-3 rounded-full backdrop-blur-md border border-white/20 bg-black/40 text-white/60 hover:text-white transition-all duration-300"
-            title="SHARE TRANSMISSION"
+            className="p-3 rounded-full backdrop-blur-md border border-white/20 bg-black/40 text-white hover:text-white transition-all duration-300"
           >
             <Share2 className="w-3.5 h-3.5" />
           </motion.button>

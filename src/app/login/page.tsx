@@ -1,15 +1,13 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, initiateGoogleSignIn, initiatePasswordReset } from '@/firebase/non-blocking-login';
+import { initiateEmailSignIn, initiateEmailSignUp, initiateGoogleSignIn, initiatePasswordReset } from '@/firebase/non-blocking-login';
 import { saveUserToFirestore } from '@/firebase/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader2, Chrome, Sparkles, User as UserIcon, Phone, Eye, EyeOff, ShieldAlert, KeyRound, Mail, ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Loader2, Chrome, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -70,26 +68,10 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
-      let errorTitle = "ACCESS_DENIED";
-      let errorMsg = err.message || "INVALID IDENTITY CREDENTIALS.";
-
-      if (err.code === 'auth/configuration-not-found') {
-        errorTitle = "PROVIDER_OFFLINE";
-        errorMsg = "EMAIL/PASSWORD AUTH IS NOT ENABLED IN FIREBASE CONSOLE.";
-      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
-        if (email.toLowerCase() === 'voidwear26@gmail.com') {
-          errorTitle = "MASTER_INITIALIZATION_REQUIRED";
-          errorMsg = "ADMIN RECORD NOT FOUND. USE 'SIGN UP' MODE TO INITIALIZE MASTER STATUS IN THE NEW DATABASE.";
-        } else {
-          errorTitle = "IDENTITY_NOT_FOUND";
-          errorMsg = "CHECK YOUR KEY OR USE 'SIGN UP' TO INITIALIZE A NEW ENTITY.";
-        }
-      }
-
       toast({
         variant: "destructive",
-        title: errorTitle,
-        description: errorMsg.toUpperCase(),
+        title: "ACCESS_DENIED",
+        description: err.message || "INVALID IDENTITY CREDENTIALS.",
       });
     } finally {
       setLoading(false);
@@ -104,11 +86,7 @@ export default function LoginPage() {
       toast({ title: "GOOGLE UPLINK SECURED" });
     } catch (err: any) {
       console.error('[GOOGLE_AUTH_FAILURE]', err);
-      let msg = "UPLINK FAILED";
-      if (err.code === 'auth/configuration-not-found') {
-        msg = "GOOGLE PROVIDER NOT ENABLED IN FIREBASE CONSOLE.";
-      }
-      toast({ variant: "destructive", title: msg });
+      toast({ variant: "destructive", title: "UPLINK FAILED" });
     } finally {
       setLoading(false);
     }

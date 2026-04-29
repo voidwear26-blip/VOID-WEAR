@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, orderBy } from 'firebase/firestore';
-import { ChevronLeft, TrendingUp, Loader2, Package, Hash, DollarSign, ArrowDownWideNarrow, Calendar, SlidersHorizontal, Filter, Info } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Loader2, Info, ArrowDownWideNarrow } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -50,7 +49,6 @@ export default function RevenueDetailsPage() {
     
     let filteredOrders = [...orders];
 
-    // 1. Date Filtering
     if (startDate) {
       filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) >= new Date(startDate));
     }
@@ -78,14 +76,13 @@ export default function RevenueDetailsPage() {
             quantity: 0, 
             totalRevenue: 0, 
             price: Number(item.price) || 0,
-            image: item.image || item.imageUrls?.[0] || 'https://picsum.photos/seed/void/200/300',
+            image: item.image || (item.imageUrls && item.imageUrls[0]) || 'https://picsum.photos/seed/void/200/300',
             lastSold: order.orderDate
           };
           
           const qty = Number(item.quantity) || 1;
           const price = Number(item.price) || 0;
 
-          // Track latest sale date for the module
           const currentLastSold = new Date(existing.lastSold).getTime();
           const orderDate = new Date(order.orderDate).getTime();
           const latestSold = orderDate > currentLastSold ? order.orderDate : existing.lastSold;
@@ -104,7 +101,6 @@ export default function RevenueDetailsPage() {
 
     const result = Array.from(productMap.values());
 
-    // 2. Sorting
     result.sort((a, b) => {
       switch (sortBy) {
         case 'valuation-asc': return a.totalRevenue - b.totalRevenue;
@@ -158,7 +154,6 @@ export default function RevenueDetailsPage() {
           </div>
         </div>
 
-        {/* Intelligence Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
            <div className="space-y-2">
               <label className="text-[8px] font-bold tracking-[0.3em] text-white/40 uppercase pl-1">START_CYCLE</label>
@@ -256,7 +251,6 @@ export default function RevenueDetailsPage() {
                   </tr>
                 )}
               </tbody>
-              {/* Aggregated Totals Footer */}
               {!isLoading && revenueBreakdown.length > 0 && (
                 <tfoot className="border-t-2 border-white/10 bg-white/[0.03]">
                    <tr>
