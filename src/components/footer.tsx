@@ -84,9 +84,10 @@ export function Footer() {
             </div>
             <div className="flex flex-col gap-5 text-[9px] text-white/80 tracking-[0.3em] uppercase font-bold">
               <Link href="/shipping" className="hover:text-white transition-colors">SHIPPING & RETURNS</Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">PRIVACY POLICY</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">TERMS OF SERVICE</Link>
               <Link href="/contact" className="hover:text-white transition-colors">CONTACT SUPPORT</Link>
               <Link href="/about" className="hover:text-white transition-colors">OUR STORY</Link>
-              <Link href="/story" className="hover:text-white transition-colors">TRENDS</Link>
             </div>
           </div>
 
@@ -103,7 +104,7 @@ export function Footer() {
         </div>
         
         <div className="pt-16 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8">
-          <p className="text-[9px] text-white/70 tracking-[1em] uppercase font-bold">© 2026 VOID WEAR INC. LICENSED TRANSMISSION.</p>
+          <p className="text-[9px] text-white/70 tracking-widest uppercase font-bold">© 2026 VOID WEAR INC. LICENSED TRANSMISSION.</p>
           <div className="flex items-center gap-6">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-[8px] tracking-[0.5em] text-white/70 uppercase font-black">SYSTEM_STATUS: STABLE</span>
