@@ -6,7 +6,7 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
-import { Package, ArrowRight } from 'lucide-react';
+import { Package, ArrowRight, ShieldCheck, Zap, Globe, FileText } from 'lucide-react';
 import { motion, useAnimationControls, useMotionValue } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
@@ -81,6 +81,63 @@ export default function Home() {
       />
       
       <Hero />
+
+      {/* System Definition Section (Branding Verification) */}
+      <section className="py-32 md:py-48 bg-white/[0.01] border-y border-white/5 relative overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-10"
+            >
+              <div className="space-y-4">
+                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">SYSTEM // DEFINITION</span>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">
+                  HIGH-PERFORMANCE <br /> APPAREL UPLINK
+                </h2>
+              </div>
+              <p className="text-sm md:text-lg text-white/60 tracking-widest leading-relaxed uppercase font-light max-w-xl">
+                VOID WEAR is a specialized futuristic e-commerce platform providing high-performance technical apparel. 
+                Our assemblages are precision-engineered for the digital migration, utilizing advanced materials to create 
+                protective shells for the high-density urban environment.
+              </p>
+              <div className="pt-4">
+                <Link href="/products" className="group flex items-center gap-6 text-[10px] font-bold tracking-[0.5em] text-white uppercase border-b border-white/20 pb-4 w-fit hover:border-white transition-all">
+                  INITIALIZE ACQUISITION
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                </Link>
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <FeatureNode 
+                icon={<Package className="w-5 h-5" />} 
+                title="MODULAR ASSEMBLAGE" 
+                desc="Technical shells, thermal bases, and modular accessories." 
+              />
+              <FeatureNode 
+                icon={<FileText className="w-5 h-5" />} 
+                title="NEURAL SPECS" 
+                desc="Detailed fabric engineering and performance data." 
+              />
+              <FeatureNode 
+                icon={<Globe className="w-5 h-5" />} 
+                title="GLOBAL EXPEDITION" 
+                desc="Secure logistics and Pan-India transit protocols." 
+              />
+              <FeatureNode 
+                icon={<ShieldCheck className="w-5 h-5" />} 
+                title="ENCRYPTED SECURE" 
+                desc="Quantum-resistant data and financial integrity." 
+              />
+            </div>
+          </div>
+        </div>
+        {/* Subtle background element */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
+      </section>
       
       {/* Seamless Loop Gallery Section */}
       <section className="py-24 md:py-48 bg-transparent relative overflow-hidden" aria-label="Latest Arrivals">
@@ -185,7 +242,7 @@ export default function Home() {
             <span className="text-[10px] tracking-[1em] text-white/60 uppercase font-bold">MANIFESTO</span>
             <h3 className="text-2xl md:text-5xl font-light tracking-[0.2em] leading-relaxed uppercase">
               WE ARE THE SHELL <br /> FOR YOUR <span className="text-white font-bold glow-text">DIGITAL MIGRATION</span>. 
-              MINIMAL ARCHITECTURE FOR COMPLEX IDENTITIES.
+              TECHNICAL APPAREL FOR COMPLEX IDENTITIES.
             </h3>
             <div className="w-[1px] h-32 bg-gradient-to-b from-white/60 to-transparent mx-auto"></div>
           </div>
@@ -195,3 +252,19 @@ export default function Home() {
   );
 }
 
+function FeatureNode({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <motion.div 
+      whileHover={{ y: -5 }}
+      className="p-10 border border-white/10 bg-white/[0.01] space-y-6 backdrop-blur-sm group hover:border-white/30 transition-all"
+    >
+      <div className="text-white/40 group-hover:text-white transition-colors">
+        {icon}
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">{title}</h3>
+        <p className="text-[9px] text-white/40 tracking-widest uppercase font-bold leading-relaxed">{desc}</p>
+      </div>
+    </motion.div>
+  );
+}
