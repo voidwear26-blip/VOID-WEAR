@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useActionState } from 'react';
+import { useState, useActionState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,20 +15,22 @@ export default function ContactPage() {
   const [state, formAction, isPending] = useActionState(sendContactEmail, null);
   const [submitted, setSubmitted] = useState(false);
 
-  // Trigger toast on response
-  if (state?.success && !submitted) {
-    setSubmitted(true);
-    toast({
-      title: "TRANSMISSION SECURED",
-      description: "YOUR MESSAGE HAS REACHED THE PRIMARY NODE.",
-    });
-  } else if (state?.success === false) {
-    toast({
-      variant: "destructive",
-      title: "UPLINK FAILURE",
-      description: state.message || "COULD NOT ESTABLISH CONNECTION.",
-    });
-  }
+  // Handle side effects (toasts) when the form action state updates
+  useEffect(() => {
+    if (state?.success && !submitted) {
+      setSubmitted(true);
+      toast({
+        title: "TRANSMISSION SECURED",
+        description: "YOUR MESSAGE HAS REACHED THE PRIMARY NODE.",
+      });
+    } else if (state?.success === false) {
+      toast({
+        variant: "destructive",
+        title: "UPLINK FAILURE",
+        description: state.message || "COULD NOT ESTABLISH CONNECTION.",
+      });
+    }
+  }, [state, submitted, toast]);
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
