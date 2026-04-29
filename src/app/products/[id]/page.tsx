@@ -1,7 +1,7 @@
 
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, ChevronRight, Heart, Loader2, Info, Zap, Share2, Package, ArrowRight } from 'lucide-react';
@@ -42,7 +42,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return doc(db, 'users', user.uid, 'wishlist', id);
   }, [db, user, id]);
 
-  const { data: product, isLoading } = useDoc(productRef);
+  const { data: product, isLoading: isProductLoading } = useDoc(productRef);
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
 
@@ -169,7 +169,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
   };
 
-  if (isLoading) {
+  if (isProductLoading) {
     return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-10 h-10 animate-spin text-white/20" /></div>;
   }
 

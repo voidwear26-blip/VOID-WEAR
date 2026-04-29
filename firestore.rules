@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v33.0
+     * VOID WEAR SECURITY RULES v34.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
      */
 
@@ -25,19 +25,14 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Universal Master Authority ---
-    match /{document=**} {
-      allow read, write: if isAdmin();
-    }
-
-    // --- Public Collection Access ---
+    // --- Public Collection Access (GLOBAL) ---
 
     match /products/{productId} {
-      allow get, list: if true;
+      allow read: if true;
     }
 
     match /reviews/{reviewId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isSignedIn();
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
@@ -76,6 +71,11 @@ service cloud.firestore {
         allow create: if isOwner(userId);
         allow list: if isOwner(userId) || isAdmin();
       }
+    }
+
+    // --- Universal Master Authority (CATCH-ALL) ---
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
 
     // --- Global Collection Group Audits ---
