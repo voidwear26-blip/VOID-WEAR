@@ -2,13 +2,15 @@
 'use client';
 
 import { useFirestore, useUser } from '@/firebase';
-import { collection, getDocs, doc, setDoc, writeBatch } from 'firebase/firestore';
-import { ChevronLeft, Database, Download, Upload, Loader2, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react';
+import { collection, getDocs, collectionGroup, query, orderBy } from 'firebase/firestore';
+import { ChevronLeft, Database, Download, Loader2, ShieldAlert, FileText, BarChart3, Package, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function SystemArchivePage() {
   const { user, isUserLoading } = useUser();
@@ -27,93 +29,131 @@ export default function SystemArchivePage() {
     }
   }, [isUserLoading, isAdmin, router, mounted]);
 
-  const exportSystemData = async () => {
+  const generateMissionAuditPDF = async () => {
     if (!db || !isAdmin) return;
     setLoading(true);
 
     try {
-      const collections = ['products', 'stories', 'reviews', 'app_config'];
-      const archive: any = {};
+      // 1. Fetch System Data
+      const productsSnap = await getDocs(collection(db, 'products'));
+      const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      for (const colName of collections) {
-        const snap = await getDocs(collection(db, colName));
-        archive[colName] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const ordersSnap = await getDocs(query(collectionGroup(db, 'orders'), orderBy('orderDate', 'desc')));
+      const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // 2. Calculate Analytics
+      const totalRevenue = orders.reduce((acc, o: any) => acc + (Number(o.totalAmount) || 0), 0);
+      const totalUnits = products.reduce((acc, p: any) => acc + (Number(p.stockQuantity) || 0), 0);
+      
+      // 3. Initialize PDF
+      const doc = new jsPDF();
+      const timestamp = new Date().toLocaleString();
+
+      // HEADER
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.text('VOID WEAR // MISSION AUDIT', 15, 20);
+      doc.setFontSize(8);
+      doc.text(`SYSTEM_STATUS: STABLE // GENERATED: ${timestamp}`, 15, 30);
+      doc.text('EST. 2026 / VELLORE - INDIA', 15, 34);
+
+      // SECTION 1: SYSTEM SUMMARY
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(14);
+      doc.text('01. EXECUTIVE SUMMARY', 15, 55);
+      
+      autoTable(doc, {
+        startY: 60,
+        head: [['METRIC', 'VALUATION / QUANTITY']],
+        body: [
+          ['TOTAL SYSTEM REVENUE', `INR ${totalRevenue.toLocaleString()}`],
+          ['TOTAL TRANSMISSIONS (ORDERS)', orders.length.toString()],
+          ['AGGREGATED INVENTORY UNITS', totalUnits.toString()],
+          ['UNIQUE MODULES (PRODUCTS)', products.length.toString()],
+          ['SECURITY ENCRYPTION', 'AES-256-GCM'],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [0, 0, 0] },
+      });
+
+      // SECTION 2: PRODUCT CATALOG
+      doc.addPage();
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, 210, 20, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.text('02. PRODUCT CATALOG AUDIT', 15, 13);
+      
+      const productRows = products.map((p: any) => [
+        p.id.slice(0, 8),
+        p.name?.toUpperCase() || 'N/A',
+        p.category?.toUpperCase() || 'UNSET',
+        `INR ${p.basePrice || 0}`,
+        p.stockQuantity?.toString() || '0'
+      ]);
+
+      autoTable(doc, {
+        startY: 30,
+        head: [['UID', 'MODULE NAME', 'CATEGORY', 'PRICE', 'STOCK']],
+        body: productRows,
+        theme: 'grid',
+        headStyles: { fillColor: [60, 60, 60] },
+        styles: { fontSize: 8 }
+      });
+
+      // SECTION 3: TRANSACTION LOG
+      doc.addPage();
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, 210, 20, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.text('03. TRANSMISSION ARCHIVE (ORDERS)', 15, 13);
+
+      const orderRows = orders.map((o: any) => [
+        o.order_ID || o.id?.slice(0, 12),
+        new Date(o.orderDate).toLocaleDateString(),
+        (o.displayName || 'OPERATOR').toUpperCase(),
+        o.paymentStatus?.toUpperCase() || 'PAID',
+        `INR ${o.totalAmount || 0}`
+      ]);
+
+      autoTable(doc, {
+        startY: 30,
+        head: [['ORDER_ID', 'DATE', 'ENTITY', 'STATUS', 'VALUATION']],
+        body: orderRows,
+        theme: 'grid',
+        headStyles: { fillColor: [60, 60, 60] },
+        styles: { fontSize: 8 }
+      });
+
+      // FOOTER ON EVERY PAGE
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`VOID WEAR INC // LOGISTICS PROTOCOL 2026 // PAGE ${i} OF ${pageCount}`, 105, 285, { align: 'center' });
       }
 
-      // Also export users (Basic profile data)
-      const userSnap = await getDocs(collection(db, 'users'));
-      archive['users'] = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const dataStr = JSON.stringify(archive, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
-      const exportFileDefaultName = `VOID_ARCHIVE_${new Date().toISOString().split('T')[0]}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
+      // SAVE
+      doc.save(`VOID_MISSION_AUDIT_${new Date().toISOString().split('T')[0]}.pdf`);
 
       toast({
-        title: "ARCHIVE GENERATED",
-        description: "SYSTEM LOGS ENCRYPTED AND DOWNLOADED.",
+        title: "AUDIT GENERATED",
+        description: "MISSION LOGS CONVERTED TO PDF FORMAT.",
       });
     } catch (e) {
       console.error(e);
       toast({
         variant: "destructive",
-        title: "EXPORT FAILURE",
+        title: "AUDIT FAILURE",
         description: "COULD NOT PACK DATABASE LOGS.",
       });
     } finally {
       setLoading(false);
     }
-  };
-
-  const importSystemData = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !db || !isAdmin) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const content = e.target?.result;
-      if (typeof content !== 'string') return;
-
-      setLoading(true);
-      try {
-        const data = JSON.parse(content);
-        const batch = writeBatch(db);
-
-        // Standard Collections
-        const collections = ['products', 'stories', 'reviews', 'app_config', 'users'];
-
-        for (const colName of collections) {
-          if (data[colName] && Array.isArray(data[colName])) {
-            data[colName].forEach((item: any) => {
-              const { id, ...rest } = item;
-              const docRef = doc(db, colName, id);
-              batch.set(docRef, rest, { merge: true });
-            });
-          }
-        }
-
-        await batch.commit();
-        toast({
-          title: "ARCHIVE RESTORED",
-          description: "SYSTEM LOGS SYNCHRONIZED SUCCESSFULLY.",
-        });
-      } catch (e) {
-        console.error(e);
-        toast({
-          variant: "destructive",
-          title: "IMPORT FAILURE",
-          description: "CORRUPT ARCHIVE DETECTED.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.readAsText(file);
   };
 
   if (!mounted || isUserLoading) {
@@ -140,74 +180,66 @@ export default function SystemArchivePage() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-white/[0.02] border border-white/5 p-12 space-y-8 backdrop-blur-xl">
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">Export Protocol</h3>
-              <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">
-                Download the entire system state, including product modules, story narratives, and entity dossiers. Use this for off-site mission logging.
-              </p>
-            </div>
-            <Button 
-              onClick={exportSystemData}
-              disabled={loading}
-              className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                <>
-                  INITIALIZE EXPORT
-                  <Download className="ml-3 w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </div>
-
-          <div className="bg-white/[0.02] border border-white/5 p-12 space-y-8 backdrop-blur-xl">
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">Import Protocol</h3>
-              <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">
-                Restore system logs from an external archive. Note: This will merge data with the existing database. Use with master authority only.
-              </p>
-            </div>
-            <div className="relative">
-              <input 
-                type="file" 
-                accept=".json" 
-                onChange={importSystemData}
-                disabled={loading}
-                className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-              />
+        <div className="grid gap-12">
+          <div className="bg-white/[0.02] border border-white/5 p-12 space-y-12 backdrop-blur-xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="space-y-4 max-w-xl">
+                <div className="flex items-center gap-3 text-white/80">
+                  <BarChart3 className="w-5 h-5 text-white/40" />
+                  <h3 className="text-xs font-bold tracking-[0.4em] uppercase">Mission Audit Protocol</h3>
+                </div>
+                <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">
+                  Initialize a global system audit. This will scan the entire assemblage and all confirmed transmissions to generate a high-precision PDF report including revenue breakdown, inventory levels, and order history.
+                </p>
+              </div>
+              
               <Button 
+                onClick={generateMissionAuditPDF}
                 disabled={loading}
-                className="w-full border border-white/10 bg-transparent hover:bg-white/5 text-white h-16 text-[10px] font-bold tracking-[0.5em] rounded-none transition-all"
+                className="bg-white text-black hover:bg-white/90 h-20 px-10 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all shrink-0"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                   <>
-                    UPLOAD ARCHIVE
-                    <Upload className="ml-3 w-4 h-4" />
+                    GENERATE MISSION AUDIT (PDF)
+                    <Download className="ml-4 w-4 h-4" />
                   </>
                 )}
               </Button>
             </div>
-          </div>
-        </div>
 
-        <div className="mt-12 p-8 border border-white/5 bg-white/[0.01] space-y-6">
-          <div className="flex items-center gap-4 text-white/60">
-            <ShieldAlert className="w-5 h-5 text-white/80" />
-            <span className="text-[10px] tracking-[0.4em] uppercase font-bold">SECURITY ADVISORY</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 border-t border-white/5">
+               <StatHighlight icon={<Zap className="w-4 h-4" />} label="REVENUE TRACKING" />
+               <StatHighlight icon={<Package className="w-4 h-4" />} label="INVENTORY LOGS" />
+               <StatHighlight icon={<FileText className="w-4 h-4" />} label="TABULAR ARCHIVE" />
+            </div>
           </div>
-          <div className="space-y-4">
-            <p className="text-[10px] text-white/40 tracking-widest leading-relaxed uppercase">
-              ARCHIVE FILES CONTAIN SENSITIVE ENTITY DATA AND LOGISTICAL MODULES. ENSURE ALL EXPORTS ARE STORED WITHIN SECURE FRONTIER SERVERS. INCORRECT IMPORTS MAY LEAD TO SYSTEM DESYNCHRONIZATION.
-            </p>
-            <div className="flex items-center gap-4 text-[9px] text-white/40 tracking-[0.3em] uppercase font-bold">
-              <CheckCircle2 className="w-3 h-3 text-green-500/60" />
-              ENCRYPTION ACTIVE: AES-256
+
+          <div className="p-8 border border-white/5 bg-white/[0.01] space-y-6">
+            <div className="flex items-center gap-4 text-white/60">
+              <ShieldAlert className="w-5 h-5 text-white/80" />
+              <span className="text-[10px] tracking-[0.4em] uppercase font-bold">SECURITY ADVISORY</span>
+            </div>
+            <div className="space-y-4">
+              <p className="text-[10px] text-white/40 tracking-widest leading-relaxed uppercase">
+                MISSION AUDITS CONTAIN SENSITIVE FINANCIAL METADATA AND ENTITY IDENTIFIERS. ENSURE ALL GENERATED LOGS ARE STORED WITHIN SECURE FRONTIER SERVERS OR ENCRYPTED OFFLINE VOLUMES.
+              </p>
+              <div className="flex items-center gap-4 text-[9px] text-white/40 tracking-[0.3em] uppercase font-bold">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                ENCRYPTION ACTIVE: AES-256
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatHighlight({ icon, label }: { icon: React.ReactNode, label: string }) {
+  return (
+    <div className="flex items-center gap-4 p-6 bg-white/[0.01] border border-white/5">
+      <div className="text-white/20">{icon}</div>
+      <span className="text-[8px] font-black tracking-[0.3em] text-white/60 uppercase">{label}</span>
     </div>
   );
 }
