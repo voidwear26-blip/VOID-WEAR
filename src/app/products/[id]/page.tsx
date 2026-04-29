@@ -18,11 +18,14 @@ import { FieldReports } from '@/components/field-reports';
 import { ProductCard } from '@/components/product-card';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+  const unwrappedParams = use(params);
+  const id = unwrappedParams.id;
+  
   const db = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
   const router = useRouter();
+  
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
   const [toggling, setToggling] = useState(false);
