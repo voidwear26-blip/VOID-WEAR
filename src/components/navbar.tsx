@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag, User, LogOut, Heart, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Heart, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
@@ -65,6 +65,10 @@ export function Navbar() {
             </Link>
             <div className="hidden xl:flex items-center gap-12 text-[9px] font-bold tracking-[0.5em]">
               <Link href="/products" className="text-white/80 hover:text-white transition-all duration-500 uppercase">COLLECTION</Link>
+              <Link href="/assistant" className="text-white/80 hover:text-white transition-all duration-500 uppercase flex items-center gap-2">
+                <Sparkles className="w-3 h-3" />
+                STYLIST
+              </Link>
               <Link href="/story" className="text-white/80 hover:text-white transition-all duration-500 uppercase">TRENDS</Link>
               <Link href="/contact" className="text-white/80 hover:text-white transition-all duration-500 uppercase">CONTACT</Link>
             </div>
