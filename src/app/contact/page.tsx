@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState, useActionState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, MessageSquare, Globe, Zap, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, MessageSquare, Globe, Zap, Loader2, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { sendContactEmail } from '@/app/actions/contact';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,22 +14,28 @@ export default function ContactPage() {
   const [state, formAction, isPending] = useActionState(sendContactEmail, null);
   const [submitted, setSubmitted] = useState(false);
 
-  // Handle side effects (toasts) when the form action state updates
   useEffect(() => {
-    if (state?.success && !submitted) {
+    if (state?.success) {
       setSubmitted(true);
       toast({
         title: "TRANSMISSION SECURED",
         description: "YOUR MESSAGE HAS REACHED THE PRIMARY NODE.",
       });
     } else if (state?.success === false) {
+      let description = "COULD NOT ESTABLISH CONNECTION.";
+      if (state.message === 'SYSTEM_CONFIG_ERROR') {
+        description = "UPLINK CONFIGURATION INCOMPLETE (ADMIN KEY MISSING).";
+      } else if (state.message === 'MISSING_DATA_NODES') {
+        description = "PLEASE ENSURE ALL TRANSMISSION NODES ARE POPULATED.";
+      }
+
       toast({
         variant: "destructive",
         title: "UPLINK FAILURE",
-        description: state.message || "COULD NOT ESTABLISH CONNECTION.",
+        description: description,
       });
     }
-  }, [state, submitted, toast]);
+  }, [state, toast]);
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
@@ -51,7 +56,7 @@ export default function ContactPage() {
                   <Mail className="w-5 h-5 text-white/40 group-hover:text-white transition-all" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-white/60">EMAIL PROTOCOL</p>
+                  <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">EMAIL PROTOCOL</p>
                   <p className="text-xs tracking-widest uppercase text-white/90">voidwear26@gmail.com</p>
                 </div>
               </div>
@@ -61,7 +66,7 @@ export default function ContactPage() {
                   <MessageSquare className="w-5 h-5 text-white/40 group-hover:text-white transition-all" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-white/60">SUPPORT CHANNEL</p>
+                  <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">SUPPORT CHANNEL</p>
                   <p className="text-xs tracking-widest uppercase text-white/90">+91 94885 89972</p>
                 </div>
               </div>
@@ -71,7 +76,7 @@ export default function ContactPage() {
                   <Globe className="w-5 h-5 text-white/40 group-hover:text-white transition-all" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-white/60">BASE COMMAND</p>
+                  <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">BASE COMMAND</p>
                   <p className="text-xs tracking-widest uppercase text-white/90">TamilNadu, India / Vellore</p>
                 </div>
               </div>
@@ -87,7 +92,7 @@ export default function ContactPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="h-full flex flex-col items-center justify-center text-center space-y-8 py-20"
                 >
-                  <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
+                  <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.1)]">
                     <CheckCircle2 className="w-10 h-10 text-white" />
                   </div>
                   <div className="space-y-4">
@@ -110,7 +115,10 @@ export default function ContactPage() {
                   exit={{ opacity: 0 }}
                   className="space-y-8"
                 >
-                  <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">TRANSMIT MESSAGE</h3>
+                  <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">TRANSMIT MESSAGE</h3>
+                    <Zap className="w-3.5 h-3.5 text-white/40" />
+                  </div>
                   <form action={formAction} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
