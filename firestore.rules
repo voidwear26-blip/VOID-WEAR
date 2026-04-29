@@ -1,9 +1,10 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v30.0
+     * VOID WEAR SECURITY RULES v31.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
      * UNIVERSAL OVERRIDE FOR GLOBAL TRANSMISSION AUDITS
      */
@@ -26,27 +27,26 @@ service cloud.firestore {
     }
 
     // --- Universal Master Authority ---
-    // This top-level match ensures Admin identities have absolute oversight.
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
     // --- Collection Group Rule for Orders ---
-    // Optimized for the new composite index: orderDate (DESC), order_ID (ASC)
     match /{path=**}/orders/{orderId} {
-      // Master Audit: Absolute visibility at root for global queries
       allow list: if isAdmin();
       allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      
-      // Operator: Restricted to their own dossier for list operations
       allow list: if isSignedIn() && (request.query.limit <= 100); 
-      
-      // Create/Update Logic
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
     // --- Standard Collection Access ---
+
+    match /contacts/{contactId} {
+      // Allow public creation of contact messages
+      allow create: if true;
+      allow read: if isAdmin();
+    }
 
     match /app_config/{configId} {
       allow read: if true;

@@ -1,41 +1,66 @@
+
 'use client';
 
-import { useState, useActionState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, MessageSquare, Globe, Zap, Loader2, CheckCircle2, ShieldAlert } from 'lucide-react';
-import { sendContactEmail } from '@/app/actions/contact';
+import { Mail, MessageSquare, Globe, Zap, Loader2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function ContactPage() {
   const { toast } = useToast();
-  const [state, formAction, isPending] = useActionState(sendContactEmail, null);
+  const db = useFirestore();
+  const [isPending, setIsPending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    if (state?.success) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const subject = formData.get('subject') as string;
+    const message = formData.get('message') as string;
+
+    if (!name || !email || !subject || !message) {
+      toast({
+        variant: "destructive",
+        title: "MISSING_DATA_NODES",
+        description: "PLEASE ENSURE ALL TRANSMISSION NODES ARE POPULATED.",
+      });
+      return;
+    }
+
+    setIsPending(true);
+    try {
+      // TRANSMISSION PROTOCOL: Direct Firestore Log
+      await addDoc(collection(db, 'contacts'), {
+        name,
+        email,
+        subject,
+        message,
+        createdAt: new Date().toISOString()
+      });
+
       setSubmitted(true);
       toast({
         title: "TRANSMISSION SECURED",
         description: "YOUR MESSAGE HAS REACHED THE PRIMARY NODE.",
       });
-    } else if (state?.success === false) {
-      let description = "COULD NOT ESTABLISH CONNECTION.";
-      if (state.message === 'SYSTEM_CONFIG_ERROR') {
-        description = "UPLINK CONFIGURATION INCOMPLETE (ADMIN KEY MISSING).";
-      } else if (state.message === 'MISSING_DATA_NODES') {
-        description = "PLEASE ENSURE ALL TRANSMISSION NODES ARE POPULATED.";
-      }
-
+    } catch (error) {
+      console.error('[UPLINK_FAILURE]', error);
       toast({
         variant: "destructive",
         title: "UPLINK FAILURE",
-        description: description,
+        description: "COULD NOT ESTABLISH CONNECTION TO THE VOID.",
       });
+    } finally {
+      setIsPending(false);
     }
-  }, [state, toast]);
+  };
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
@@ -97,7 +122,7 @@ export default function ContactPage() {
                   </div>
                   <div className="space-y-4">
                     <h3 className="text-xl font-bold tracking-[0.4em] uppercase text-white">TRANSMISSION LOGGED</h3>
-                    <p className="text-[10px] tracking-[0.2em] text-white/60 uppercase font-bold">WE WILL RESPOND THROUGH THE UPLINK CHANNEL SHORTLY.</p>
+                    <p className="text-[10px] tracking-[0.2em] text-white/60 uppercase font-bold">YOUR MESSAGE HAS BEEN SAVED TO THE SYSTEM ARCHIVE.</p>
                   </div>
                   <Button 
                     variant="ghost" 
@@ -119,7 +144,7 @@ export default function ContactPage() {
                     <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">TRANSMIT MESSAGE</h3>
                     <Zap className="w-3.5 h-3.5 text-white/40" />
                   </div>
-                  <form action={formAction} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">FULL NAME</label>

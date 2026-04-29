@@ -122,6 +122,19 @@
         "items": { "type": "array" }
       },
       "required": ["order_ID", "transition_ID", "userId", "totalAmount"]
+    },
+    "Contact": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Contact",
+      "type": "object",
+      "description": "An incoming transmission log from the contact node.",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -154,6 +167,14 @@
           "entityName": "Product",
           "schema": { "$ref": "#/backend/entities/Product" },
           "description": "Master catalogue."
+        }
+      },
+      {
+        "path": "/contacts/{contactId}",
+        "definition": {
+          "entityName": "Contact",
+          "schema": { "$ref": "#/backend/entities/Contact" },
+          "description": "Incoming transmissions from contact form."
         }
       }
     ]

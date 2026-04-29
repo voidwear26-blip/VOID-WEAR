@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -45,9 +46,15 @@ export default function AdminDashboard() {
     return collection(db, 'users');
   }, [db, isAdmin]);
 
+  const contactsQuery = useMemoFirebase(() => {
+    if (!db || !isAdmin) return null;
+    return collection(db, 'contacts');
+  }, [db, isAdmin]);
+
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
   const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+  const { data: contacts, isLoading: contactsLoading } = useCollection(contactsQuery);
 
   const totalRevenue = useMemo(() => {
     if (!orders) return 0;
@@ -114,10 +121,10 @@ export default function AdminDashboard() {
             value={ordersLoading ? "..." : (orders?.length.toString() || "0")} 
           />
           <StatCard 
-            href="/admin/users"
-            icon={<Users className="w-5 h-5" />} 
-            label="ENTITIES" 
-            value={usersLoading ? "..." : (users?.length.toString() || "0")} 
+            href="/admin/messages"
+            icon={<MessageSquare className="w-5 h-5" />} 
+            label="MESSAGES" 
+            value={contactsLoading ? "..." : (contacts?.length.toString() || "0")} 
           />
           <StatCard 
             href="/admin/products"
@@ -135,7 +142,7 @@ export default function AdminDashboard() {
             <div className="grid gap-4">
               <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="Configure product database." icon={<Package className="w-4 h-4" />} />
               <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Monitor customer orders." icon={<ShoppingBag className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/stories" label="STORY NARRATIVE" description="Post trends and arrivals." icon={<Megaphone className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/messages" label="INCOMING MESSAGES" description="Audit customer inquiries." icon={<MessageSquare className="w-4 h-4" />} />
               <QuickActionButton href="/admin/system" label="SYSTEM ARCHIVE" description="Import / Export all database logs." icon={<Database className="w-4 h-4" />} />
               <QuickActionButton href="/admin/content" label="BRAND OVERRIDE" description="Homepage content control." icon={<Settings className="w-4 h-4" />} />
             </div>
