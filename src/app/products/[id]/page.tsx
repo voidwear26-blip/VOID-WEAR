@@ -1,4 +1,3 @@
-
 'use client';
 
 import { use, useState, useMemo } from 'react';
@@ -14,6 +13,7 @@ import { toggleWishlist } from '@/firebase/wishlist-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { FieldReports } from '@/components/field-reports';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -168,14 +168,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <span className="text-white">{product.name}</span>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-24 items-start">
+        <div className="grid lg:grid-cols-2 gap-24 items-start pb-32">
           <div className="space-y-8">
             <div className="grid grid-cols-1 gap-6">
               {displayImages.map((url: string, idx: number) => (
                 <div key={idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
                   <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
                   
-                  {/* Hover-Revealed Icons on Detail Page Image */}
                   {idx === 0 && (
                     <div className="absolute top-8 right-8 z-30 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
                       <motion.button 
@@ -299,6 +298,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Field Reports Section */}
+        <div className="border-t border-white/10 pt-32">
+           <FieldReports productId={id} productName={product.name} />
         </div>
       </div>
     </div>
