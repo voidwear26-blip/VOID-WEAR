@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -107,7 +106,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-16">
           <StatCard 
             href="/admin/revenue"
             icon={<TrendingUp className="w-5 h-5" />} 
@@ -119,6 +118,12 @@ export default function AdminDashboard() {
             icon={<ShoppingBag className="w-5 h-5" />} 
             label="TRANSMISSIONS" 
             value={ordersLoading ? "..." : (orders?.length.toString() || "0")} 
+          />
+          <StatCard 
+            href="/admin/users"
+            icon={<Users className="w-5 h-5" />} 
+            label="ENTITIES" 
+            value={usersLoading ? "..." : (users?.length.toString() || "0")} 
           />
           <StatCard 
             href="/admin/messages"
@@ -142,6 +147,7 @@ export default function AdminDashboard() {
             <div className="grid gap-4">
               <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="Configure product database." icon={<Package className="w-4 h-4" />} />
               <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Monitor customer orders." icon={<ShoppingBag className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/users" label="ENTITY ARCHIVE" description="Manage customer profiles." icon={<Users className="w-4 h-4" />} />
               <QuickActionButton href="/admin/messages" label="INCOMING MESSAGES" description="Audit customer inquiries." icon={<MessageSquare className="w-4 h-4" />} />
               <QuickActionButton href="/admin/system" label="SYSTEM ARCHIVE" description="Import / Export all database logs." icon={<Database className="w-4 h-4" />} />
               <QuickActionButton href="/admin/content" label="BRAND OVERRIDE" description="Homepage content control." icon={<Settings className="w-4 h-4" />} />
