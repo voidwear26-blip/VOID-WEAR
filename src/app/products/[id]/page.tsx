@@ -3,7 +3,7 @@
 import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -81,6 +81,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return keys.filter(color => colors[color] > 0);
   }, [product, selectedSize]);
 
+  const isSoldOut = product?.isOutOfStock || (product?.stockQuantity === 0);
+
   const handleAuthGuard = () => {
     if (!user) {
       toast({ title: "AUTHENTICATION REQUIRED", description: "LOG IN TO YOUR ENTITY TO CONTINUE." });
@@ -91,6 +93,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleAdd = async () => {
+    if (isSoldOut) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
       toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
@@ -110,6 +113,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleBuyNow = async () => {
+    if (isSoldOut) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
       toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
@@ -200,8 +204,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="grid grid-cols-1 gap-6">
               {displayImages.map((url: string, idx: number) => (
                 <div key={url + idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 group">
-                  <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
+                  <Image src={url} alt={product.name} fill className={cn("object-cover transition-all duration-1000 group-hover:scale-105", isSoldOut && "opacity-40 grayscale")} unoptimized priority={idx === 0} />
                   
+                  {isSoldOut && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <div className="bg-black/80 border border-white/20 px-8 py-4 backdrop-blur-xl">
+                        <span className="text-xs font-black tracking-[0.8em] text-white uppercase">OUT OF STOCK</span>
+                      </div>
+                    </div>
+                  )}
+
                   {idx === 0 && (
                     <div className="absolute top-8 right-8 z-30 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
                       <motion.button 
@@ -239,7 +251,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <span className="w-8 h-[1px] bg-white/20"></span>
                 {product.category}
               </div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase text-white">{product.name}</h1>
+              <div className="flex flex-col gap-2">
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase text-white">{product.name}</h1>
+                {isSoldOut && (
+                  <div className="flex items-center gap-2 text-red-500">
+                    <ZapOff className="w-4 h-4" />
+                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Status: Offline / Out of Stock</span>
+                  </div>
+                )}
+              </div>
               <p className="text-2xl font-light tracking-widest text-white/90">₹{product.basePrice}</p>
             </div>
 
@@ -252,7 +272,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">01. SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
                   {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => {
-                    const isDisabled = !availableSizes.includes(size) && availableSizes[0] !== 'DEFAULT';
+                    const isDisabled = isSoldOut || (!availableSizes.includes(size) && availableSizes[0] !== 'DEFAULT');
                     return (
                       <button 
                         key={size} 
@@ -279,9 +299,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       <button 
                         key={color} 
                         onClick={() => setSelectedColor(color)}
+                        disabled={isSoldOut}
                         className={cn(
                           "px-6 h-12 border flex items-center justify-center text-[9px] font-black tracking-[0.3em] uppercase transition-all backdrop-blur-sm",
-                          selectedColor === color ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50"
+                          selectedColor === color ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
+                          isSoldOut && "opacity-5 cursor-not-allowed"
                         )}
                       >
                         {color}
@@ -294,16 +316,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <div className="grid gap-4 pt-4">
                 <Button 
                   onClick={handleBuyNow}
-                  disabled={buying || !selectedSize || !selectedColor}
+                  disabled={buying || isSoldOut || !selectedSize || !selectedColor}
                   className="w-full bg-white text-black hover:bg-white/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none group shadow-[0_0_40px_rgba(255,255,255,0.1)] uppercase transition-all"
                 >
-                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
+                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : isSoldOut ? <>MODULE UNAVAILABLE <ZapOff className="ml-3 w-4 h-4" /></> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={handleAdd}
-                  disabled={adding || !selectedSize || !selectedColor}
+                  disabled={adding || isSoldOut || !selectedSize || !selectedColor}
                   className="w-full border-white/10 bg-transparent hover:bg-white/5 h-16 text-[10px] font-bold tracking-[0.4em] rounded-none text-white uppercase transition-all"
                 >
                   {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <>ADD TO TRANSMISSION BAG <ShoppingBag className="ml-3 w-3.5 h-3.5" /></>}

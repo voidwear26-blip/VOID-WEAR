@@ -2,13 +2,14 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
@@ -46,7 +47,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     basePrice: '',
     description: '',
     details: '',
-    imageUrls: [] as string[]
+    imageUrls: [] as string[],
+    isOutOfStock: false
   });
 
   const [newImageUrl, setNewImageUrl] = useState('');
@@ -63,7 +65,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         basePrice: product.basePrice?.toString() || '',
         description: product.description || '',
         details: Array.isArray(product.details) ? product.details.join('\n') : '',
-        imageUrls: product.imageUrls || []
+        imageUrls: product.imageUrls || [],
+        isOutOfStock: product.isOutOfStock || false
       });
       if (product.stockMatrix) {
         setStockMatrix(product.stockMatrix);
@@ -132,6 +135,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         basePrice: parseFloat(formData.basePrice) || 0,
         description: formData.description,
         imageUrls: formData.imageUrls,
+        isOutOfStock: formData.isOutOfStock,
         stockMatrix: stockMatrix,
         stockQuantity: totalStock,
         sizes: activeSizes,
@@ -172,6 +176,18 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-12 backdrop-blur-xl">
+          <div className="p-8 border border-red-500/20 bg-red-500/5 flex items-center justify-between">
+             <div className="space-y-1">
+                <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-500">SYSTEM OVERRIDE: OUT OF STOCK</p>
+                <p className="text-[8px] tracking-widest uppercase text-white/40">Manual toggle to immediately show this module as unavailable.</p>
+             </div>
+             <Switch 
+                checked={formData.isOutOfStock}
+                onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })}
+                className="data-[state=checked]:bg-red-500"
+             />
+          </div>
+
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">MODULE NAME</label>

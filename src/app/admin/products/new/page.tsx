@@ -3,13 +3,14 @@
 
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, ZapOff } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
@@ -44,7 +45,8 @@ export default function NewProductPage() {
     basePrice: '',
     description: '',
     imageUrls: [] as string[],
-    details: ''
+    details: '',
+    isOutOfStock: false
   });
 
   const [currentInputUrl, setCurrentInputUrl] = useState('');
@@ -117,8 +119,8 @@ export default function NewProductPage() {
     if (!db || !isAdmin) return;
 
     const totalStock = calculateTotalStock();
-    if (totalStock <= 0) {
-      toast({ variant: "destructive", title: "INVENTORY EMPTY", description: "ADD AT LEAST ONE SIZE-COLOR NODE." });
+    if (totalStock <= 0 && !formData.isOutOfStock) {
+      toast({ variant: "destructive", title: "INVENTORY EMPTY", description: "ADD AT LEAST ONE SIZE-COLOR NODE OR ENABLE OUT OF STOCK OVERRIDE." });
       return;
     }
 
@@ -136,6 +138,7 @@ export default function NewProductPage() {
       basePrice: parseFloat(formData.basePrice) || 0,
       description: formData.description,
       imageUrls: formData.imageUrls,
+      isOutOfStock: formData.isOutOfStock,
       stockMatrix: stockMatrix,
       stockQuantity: totalStock,
       sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
@@ -177,6 +180,18 @@ export default function NewProductPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-12 backdrop-blur-xl">
+          <div className="p-8 border border-red-500/20 bg-red-500/5 flex items-center justify-between">
+             <div className="space-y-1">
+                <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-500">SYSTEM OVERRIDE: OUT OF STOCK</p>
+                <p className="text-[8px] tracking-widest uppercase text-white/40">Immediately show this module as unavailable upon initialization.</p>
+             </div>
+             <Switch 
+                checked={formData.isOutOfStock}
+                onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })}
+                className="data-[state=checked]:bg-red-500"
+             />
+          </div>
+
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">MODULE NAME</label>

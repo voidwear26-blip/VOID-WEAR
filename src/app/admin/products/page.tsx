@@ -3,7 +3,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc, query, limit } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert, ZapOff } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useMemo } from 'react';
@@ -170,7 +170,7 @@ export default function AdminProductsPage() {
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">MODULE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CATEGORY</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">PRICE (₹)</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">STOCK</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">STATUS / STOCK</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
               </tr>
             </thead>
@@ -214,12 +214,20 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-3">
-                           <span className={`font-mono text-[10px] tracking-widest ${
-                             (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
-                           }`}>
-                             {product.stockQuantity || 0}
-                           </span>
-                           {(product.stockQuantity || 0) < 5 && <ShieldAlert className="w-3 h-3 text-red-500/60" />}
+                           {product.isOutOfStock ? (
+                             <span className="flex items-center gap-2 text-[8px] tracking-widest text-red-500 font-bold border border-red-500/20 px-3 py-1 uppercase">
+                               <ZapOff className="w-3 h-3" /> OVERRIDE: SOLD OUT
+                             </span>
+                           ) : (
+                             <>
+                               <span className={`font-mono text-[10px] tracking-widest ${
+                                 (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
+                               }`}>
+                                 {product.stockQuantity || 0} UNITS
+                               </span>
+                               {(product.stockQuantity || 0) < 5 && <ShieldAlert className="w-3 h-3 text-red-500/60" />}
+                             </>
+                           )}
                         </div>
                       </td>
                       <td className="px-10 py-8 text-right">

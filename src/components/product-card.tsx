@@ -4,16 +4,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/app/lib/products-service';
-import { Heart, Loader2, Share2, Zap } from 'lucide-react';
+import { Heart, Loader2, Share2, Zap, ZapOff } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { toggleWishlist } from '@/firebase/wishlist-actions';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
-  product: Product;
+  product: Product & { isOutOfStock?: boolean; stockQuantity?: number };
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -69,7 +70,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     setToggling(true);
     try {
-      await toggleWishlist(db!, user.uid, product);
+      await toggleWishlist(db!, user.uid, product as any);
       toast({ 
         title: isInWishlist ? "MODULE REMOVED" : "MODULE SECURED", 
         description: isInWishlist ? "STASIS LOG SEVERED." : "ASSEMBLAGE ADDED TO STASIS." 
@@ -118,6 +119,8 @@ export function ProductCard({ product }: ProductCardProps) {
     ? product.imageUrls[0] 
     : 'https://picsum.photos/seed/void-placeholder/1200/1600';
 
+  const isSoldOut = product.isOutOfStock || (product.stockQuantity === 0);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -140,12 +143,23 @@ export function ProductCard({ product }: ProductCardProps) {
             src={displayImage}
             alt={product.name || 'Assemblage Module'}
             fill
-            className="object-cover transition-all duration-1000 ease-out grayscale-0 group-hover:grayscale group-hover:scale-105"
+            className={cn(
+              "object-cover transition-all duration-1000 ease-out grayscale-0 group-hover:grayscale group-hover:scale-105",
+              isSoldOut && "opacity-40 grayscale"
+            )}
             unoptimized
           />
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
           
+          {isSoldOut && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+               <div className="bg-black/90 border border-white/10 px-6 py-3 backdrop-blur-xl">
+                  <span className="text-[9px] font-black tracking-[0.6em] text-white uppercase">OFFLINE</span>
+               </div>
+            </div>
+          )}
+
           {/* Top Overlays */}
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             <span className="text-[8px] tracking-[0.4em] font-bold text-white/70 uppercase border-l border-white/20 pl-3 py-1">
@@ -178,12 +192,16 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Info Area */}
         <Link href={`/products/${product.id}`} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
           <div className="space-y-2">
-            <h3 className="text-lg md:text-xl font-bold tracking-tight uppercase text-white group-hover:glow-text transition-all duration-300 line-clamp-1">
+            <h3 className={cn(
+              "text-lg md:text-xl font-bold tracking-tight uppercase text-white group-hover:glow-text transition-all duration-300 line-clamp-1",
+              isSoldOut && "opacity-50"
+            )}>
               {product.name}
             </h3>
             <div className="flex items-center justify-between">
                <p className="text-[10px] tracking-[0.4em] text-white/40 uppercase font-black flex items-center gap-2">
-                  <Zap className="w-3 h-3" /> UPLINK
+                  {isSoldOut ? <ZapOff className="w-3 h-3 text-red-500/50" /> : <Zap className="w-3 h-3" />} 
+                  {isSoldOut ? 'STASIS' : 'UPLINK'}
                </p>
                <span className="text-sm font-black tracking-widest text-white/90">₹{product.basePrice}</span>
             </div>
