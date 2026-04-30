@@ -53,13 +53,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return query(
       collection(db, 'products'),
       where('category', '==', product.category),
-      limit(4)
+      limit(10)
     );
   }, [db, product?.category]);
 
   const { data: rawSimilar } = useCollection(similarProductsQuery);
   const similarProducts = useMemo(() => {
-    return rawSimilar?.filter(p => p.id !== id).slice(0, 3) || [];
+    if (!rawSimilar) return [];
+    return rawSimilar.filter(p => p.id !== id).slice(0, 3);
   }, [rawSimilar, id]);
 
   const availableSizes = useMemo(() => {
