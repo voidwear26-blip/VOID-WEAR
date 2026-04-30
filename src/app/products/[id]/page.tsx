@@ -1,7 +1,7 @@
 
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag } from 'lucide-react';
