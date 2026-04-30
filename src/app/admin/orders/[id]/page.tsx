@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info, Hash, ShieldAlert, Download } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -157,7 +157,7 @@ export default function OrderDetailsPage() {
                       <div className="flex items-center gap-6">
                         <div className="w-12 h-16 bg-white/5 border border-white/10 flex items-center justify-center">
                           {item.image ? (
-                             <Image src={item.image} alt={item.name} width={48} height={64} className="object-cover grayscale" unoptimized />
+                             <Image src={item.image} alt={item.name || 'Module'} width={48} height={64} className="object-cover grayscale" unoptimized />
                           ) : (
                              <Package className="w-5 h-5 text-white/40" />
                           )}
