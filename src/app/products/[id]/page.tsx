@@ -62,11 +62,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     );
   }, [db, product?.category]);
 
-  const { data: rawSimilar } = useCollection(similarProductsQuery);
+  const fallbackProductsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), limit(5));
+  }, [db]);
+
+  const { data: rawSimilar, isLoading: similarLoading } = useCollection(similarProductsQuery);
+  const { data: fallbackProducts } = useCollection(fallbackProductsQuery);
+
   const similarProducts = useMemo(() => {
-    if (!rawSimilar) return [];
-    return rawSimilar.filter(p => p.id !== id).slice(0, 4);
-  }, [rawSimilar, id]);
+    // Priority 1: Products from same category
+    let filtered = rawSimilar?.filter(p => p.id !== id) || [];
+    
+    // Priority 2: If category is empty, use fallbacks
+    if (filtered.length === 0 && fallbackProducts) {
+      filtered = fallbackProducts.filter(p => p.id !== id);
+    }
+    
+    return filtered.slice(0, 4);
+  }, [rawSimilar, fallbackProducts, id]);
 
   const availableSizes = useMemo(() => {
     if (!product?.stockMatrix) return ['DEFAULT'];
@@ -394,15 +408,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
             {similarProducts.length > 0 ? (
               similarProducts.map((p) => (
                 <ProductCard key={p.id} product={p as any} />
               ))
-            ) : (
+            ) : similarLoading ? (
               [1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-[2/3] bg-white/[0.02] border border-white/5 animate-pulse" />
+                <div key={i} className="aspect-[3/4] bg-white/[0.02] border border-white/5 animate-pulse" />
               ))
+            ) : (
+               <div className="col-span-full py-20 text-center opacity-40">
+                  <p className="text-[10px] tracking-[0.5em] uppercase">No similar modules logged.</p>
+               </div>
             )}
           </div>
         </div>

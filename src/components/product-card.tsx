@@ -1,4 +1,3 @@
-
 "use client"
 
 import Image from 'next/image';
@@ -117,7 +116,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const displayImage = product.imageUrls && product.imageUrls.length > 0 
     ? product.imageUrls[0] 
-    : 'https://picsum.photos/seed/void-placeholder/1200/1600';
+    : 'https://picsum.photos/seed/void-placeholder/800/1000';
 
   const isSoldOut = product.isOutOfStock || (product.stockQuantity === 0);
 
@@ -150,7 +149,7 @@ export function ProductCard({ product }: ProductCardProps) {
             unoptimized
           />
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
           
           {isSoldOut && (
             <div className="absolute inset-0 flex items-center justify-center z-10">
