@@ -1,10 +1,10 @@
 
 'use client';
 
-import { use, useState, useMemo, useEffect } from 'react';
+import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';

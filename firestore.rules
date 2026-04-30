@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * VOID WEAR SECURITY RULES v36.0
+     * VOID WEAR SECURITY RULES v37.0
      * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
      */
 
@@ -25,7 +25,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Global Collection Access (PUBLIC READ) ---
+    // --- Global Collection Access (PUBLIC READ - NO AUTH REQUIRED) ---
 
     match /products/{productId} {
       allow read, get, list: if true;
