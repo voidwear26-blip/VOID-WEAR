@@ -76,20 +76,11 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        const path: string =
-          targetRefOrQuery.type === 'collection'
-            ? (targetRefOrQuery as CollectionReference).path
-            : (targetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
-
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path,
-        });
-
-        setError(contextualError);
+        console.error("🔥 REAL FIRESTORE ERROR:", error);
+      
+        setError(error); // show actual error
         setData(null);
         setIsLoading(false);
-        errorEmitter.emit('permission-error', contextualError);
       }
     );
 

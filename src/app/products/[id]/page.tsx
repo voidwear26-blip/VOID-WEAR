@@ -1,10 +1,9 @@
-
 'use client';
 
-import { use, useState, useMemo, useEffect } from 'react';
+import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -14,7 +13,6 @@ import { toggleWishlist } from '@/firebase/wishlist-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { FieldReports } from '@/components/field-reports';
 import { ProductCard } from '@/components/product-card';
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +58,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { data: rawSimilar } = useCollection(similarProductsQuery);
   const similarProducts = useMemo(() => {
     if (!rawSimilar) return [];
-    return rawSimilar.filter(p => p.id !== id).slice(0, 3);
+    return rawSimilar.filter(p => p.id !== id).slice(0, 4);
   }, [rawSimilar, id]);
 
   const availableSizes = useMemo(() => {
@@ -329,30 +327,35 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* Similar Assemblages Section */}
-        {similarProducts.length > 0 && (
-          <div className="border-t border-white/10 pt-32 pb-32">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
-              <div className="space-y-6">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">CONTEXTUAL // RECOMMENDATIONS</span>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Similar <br /> Assemblages</h2>
+        {/* Recommended Assemblages Section */}
+        <div className="border-t border-white/10 pt-32 pb-32">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <Sparkles className="w-4 h-4 text-white/40" />
+                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">CONTEXTUAL // UPLINK</span>
               </div>
-              <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-white/40 hover:text-white transition-all uppercase border-b border-white/10 pb-4">
-                EXPLORE ALL MODULES
-                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Recommended <br /> Assemblages</h2>
+              <p className="text-white/60 tracking-widest text-xs uppercase font-light max-w-xl">
+                SYSTEM IDENTIFIED MODULES THAT ALIGN WITH YOUR CURRENT ARCHITECTURAL REQUIREMENT.
+              </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-              {similarProducts.map((p) => (
-                <ProductCard key={p.id} product={p as any} />
-              ))}
-            </div>
+            <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-white/40 hover:text-white transition-all uppercase border-b border-white/10 pb-4">
+              EXPLORE ALL MODULES
+              <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
-        )}
-
-        {/* Field Reports Section */}
-        <div className="border-t border-white/10 pt-32">
-           <FieldReports productId={id} productName={product.name} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            {similarProducts.length > 0 ? (
+              similarProducts.map((p) => (
+                <ProductCard key={p.id} product={p as any} />
+              ))
+            ) : (
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="aspect-[2/3] bg-white/[0.02] border border-white/5 animate-pulse" />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

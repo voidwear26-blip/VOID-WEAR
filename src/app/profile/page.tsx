@@ -277,6 +277,8 @@ export default function ProfilePage() {
 
 function OrderCard({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
   const { toast } = useToast();
+  const isDelivered = order.shippingStatus === 'delivered';
+
   return (
     <div className="border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] p-8 md:p-10 space-y-10 transition-all group">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -293,7 +295,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                   <span className="text-[8px] font-bold tracking-widest uppercase text-white/40">TRANSITION_ID: {order.transition_ID || 'INTERNAL_TX'}</span>
                </div>
             </div>
-            <span className={`text-[8px] px-3 py-1 border tracking-[0.2em] uppercase font-black ${order.shippingStatus === 'delivered' ? 'border-green-500/50 text-green-500' : 'border-white/10 text-white/60'}`}>{order.shippingStatus || 'PROCESSING'}</span>
+            <span className={`text-[8px] px-3 py-1 border tracking-[0.2em] uppercase font-black ${isDelivered ? 'border-green-500/50 text-green-500' : 'border-white/10 text-white/60'}`}>{order.shippingStatus || 'PROCESSING'}</span>
           </div>
           <p className="text-[8px] text-white/20 tracking-widest uppercase font-bold">TRANSMITTED: {new Date(order.orderDate).toLocaleDateString()}</p>
         </div>
@@ -321,7 +323,13 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                        <p className="text-[8px] text-white/40 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
                     </div>
                  </div>
-                 <ReviewDialog productId={item.productId} productName={item.name} userId={userId} userName={userName} db={db} />
+                 {isDelivered ? (
+                   <ReviewDialog productId={item.productId} productName={item.name} userId={userId} userName={userName} db={db} />
+                 ) : (
+                   <div className="flex items-center gap-2 text-[8px] text-white/20 tracking-widest uppercase font-bold border border-white/5 px-4 py-2">
+                     <Clock className="w-3 h-3" /> AWAITING DELIVERY
+                   </div>
+                 )}
               </div>
             ))}
          </div>

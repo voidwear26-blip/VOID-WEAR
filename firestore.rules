@@ -2,14 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * VOID WEAR SECURITY RULES v46.0
-     * PUBLIC ACCESS PROTOCOL: Enabled for browsing products and reviews.
-     * MASTER AUTHORITY: voidwear26@gmail.com (A9vsqn10oddfmouKiKjWpTcFqZB2)
-     */
-
     // --- Helper Functions ---
-
     function isSignedIn() {
       return request.auth != null;
     }
@@ -17,7 +10,8 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
-        (request.auth.token.email != null && request.auth.token.email.lower() == 'voidwear26@gmail.com')
+        (request.auth.token.email != null &&
+         request.auth.token.email.lower() == 'voidwear26@gmail.com')
       );
     }
 
@@ -25,38 +19,50 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Global Collection Access (PUBLIC READ - NO AUTH REQUIRED) ---
-
+    // --- PRODUCTS (public) ---
     match /products/{productId} {
-      allow read, get, list: if true;
+      allow read: if true;
     }
 
+    // ✅ FIX 1: ROOT reviews (THIS fixes your error)
     match /reviews/{reviewId} {
-      allow read, get, list: if true;
+      allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
+    // ✅ FIX 2: collectionGroup support (nested reviews if any)
+    match /{path=**}/reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // --- CONTACTS ---
     match /contacts/{contactId} {
       allow create: if true;
       allow read: if isAdmin();
     }
 
+    // --- CONFIG ---
     match /app_config/{configId} {
-      allow read, get: if true;
+      allow read: if true;
     }
 
+    // --- STORIES ---
     match /stories/{storyId} {
-      allow read, list, get: if true;
+      allow read: if true;
     }
 
-    // --- User Dossiers & Logistics ---
-
+    // --- USERS ---
     match /users/{userId} {
       allow get, list, create, update: if isOwner(userId) || isAdmin();
-      
+
       match /carts/{cartId} {
         allow read, write: if isOwner(userId) || isAdmin();
+
         match /items/{itemId} {
           allow read, write: if isOwner(userId) || isAdmin();
         }
@@ -72,15 +78,16 @@ service cloud.firestore {
       }
     }
 
-    // --- Universal Master Authority (CATCH-ALL) ---
-    match /{document=**} {
-      allow read, write: if isAdmin();
-    }
-
-    // --- Global Collection Group Audits ---
+    // --- COLLECTION GROUP: ORDERS ---
     match /{path=**}/orders/{orderId} {
       allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100);
-      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow get: if isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // --- ADMIN CATCH-ALL ---
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
   }
 }
