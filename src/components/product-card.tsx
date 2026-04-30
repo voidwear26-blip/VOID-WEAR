@@ -140,7 +140,7 @@ export function ProductCard({ product }: ProductCardProps) {
             src={displayImage}
             alt={product.name || 'Assemblage Module'}
             fill
-            className="object-cover transition-all duration-1000 ease-out grayscale group-hover:grayscale-0 group-hover:scale-105"
+            className="object-cover transition-all duration-1000 ease-out grayscale-0 group-hover:grayscale group-hover:scale-105"
             unoptimized
           />
           

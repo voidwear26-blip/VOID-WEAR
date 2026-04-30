@@ -171,11 +171,11 @@ export default function Home() {
           >
             {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-[300px] md:w-[400px] aspect-[3/4] bg-white/5 animate-pulse border border-white/10" />
+                <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-white/5 animate-pulse border border-white/10" />
               ))
             ) : displayProducts.length > 0 ? (
               displayProducts.map((product, idx) => (
-                <div key={`${product.id}-${idx}`} className="w-[300px] md:w-[400px] shrink-0">
+                <div key={`${product.id}-${idx}`} className="w-[280px] md:w-[320px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
