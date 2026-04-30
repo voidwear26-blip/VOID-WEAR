@@ -3,7 +3,7 @@
 import { use, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -14,6 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { ProductCard } from '@/components/product-card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -201,48 +208,68 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
         <div className="grid lg:grid-cols-2 gap-24 items-start pb-32">
           <div className="space-y-8">
-            <div className="grid grid-cols-1 gap-6">
-              {displayImages.map((url: string, idx: number) => (
-                <div key={url + idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 group">
-                  <Image src={url} alt={product.name} fill className={cn("object-cover transition-all duration-1000 group-hover:scale-105", isSoldOut && "opacity-40 grayscale")} unoptimized priority={idx === 0} />
-                  
-                  {isSoldOut && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <div className="bg-black/80 border border-white/20 px-8 py-4 backdrop-blur-xl">
-                        <span className="text-xs font-black tracking-[0.8em] text-white uppercase">OUT OF STOCK</span>
-                      </div>
-                    </div>
-                  )}
+            <Carousel className="w-full group/carousel">
+              <CarouselContent>
+                {displayImages.map((url: string, idx: number) => (
+                  <CarouselItem key={url + idx}>
+                    <div className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 group">
+                      <Image 
+                        src={url} 
+                        alt={product.name} 
+                        fill 
+                        className={cn(
+                          "object-cover transition-all duration-1000 group-hover:scale-105", 
+                          isSoldOut && "opacity-40 grayscale"
+                        )} 
+                        unoptimized 
+                        priority={idx === 0} 
+                      />
+                      
+                      {isSoldOut && (
+                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                          <div className="bg-black/80 border border-white/20 px-8 py-4 backdrop-blur-xl">
+                            <span className="text-xs font-black tracking-[0.8em] text-white uppercase">OUT OF STOCK</span>
+                          </div>
+                        </div>
+                      )}
 
-                  {idx === 0 && (
-                    <div className="absolute top-8 right-8 z-30 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
-                      <motion.button 
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={handleWishlistToggle}
-                        disabled={toggling}
-                        className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
-                          isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
-                        }`}
-                        title="STASIS LOG"
-                      >
-                        {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
-                      </motion.button>
+                      {idx === 0 && (
+                        <div className="absolute top-8 right-8 z-30 flex flex-col gap-4 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-500">
+                          <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={handleWishlistToggle}
+                            disabled={toggling}
+                            className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
+                              isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
+                            }`}
+                            title="STASIS LOG"
+                          >
+                            {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
+                          </motion.button>
 
-                      <motion.button 
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={handleShare}
-                        className="p-5 rounded-full border border-white/20 bg-black/60 text-white hover:border-white backdrop-blur-xl transition-all"
-                        title="SHARE TRANSMISSION"
-                      >
-                        <Share2 className="w-6 h-6" />
-                      </motion.button>
+                          <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={handleShare}
+                            className="p-5 rounded-full border border-white/20 bg-black/60 text-white hover:border-white backdrop-blur-xl transition-all"
+                            title="SHARE TRANSMISSION"
+                          >
+                            <Share2 className="w-6 h-6" />
+                          </motion.button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {displayImages.length > 1 && (
+                <>
+                  <CarouselPrevious className="left-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-0 group-hover/carousel:opacity-100 transition-all duration-500" />
+                  <CarouselNext className="right-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-0 group-hover/carousel:opacity-100 transition-all duration-500" />
+                </>
+              )}
+            </Carousel>
           </div>
 
           <div className="space-y-12 lg:sticky lg:top-32">
