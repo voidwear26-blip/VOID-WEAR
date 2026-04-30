@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap, ZapOff } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
@@ -111,6 +111,14 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     }));
   };
 
+  const setVariantOOS = (size: string, color: string) => {
+    setStockMatrix(prev => ({
+      ...prev,
+      [size]: { ...prev[size], [color]: 0 }
+    }));
+    toast({ title: "VARIANT OFFLINE", description: `${size} // ${color} SET TO OOS.` });
+  };
+
   const calculateTotalStock = () => {
     let total = 0;
     Object.values(stockMatrix).forEach(colors => {
@@ -127,7 +135,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     try {
       const detailsArray = formData.details.split('\n').filter(d => d.trim() !== '');
       const totalStock = calculateTotalStock();
-      const activeSizes = Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0));
+      const activeSizes = Object.keys(stockMatrix).filter(s => Object.keys(stockMatrix[s]).length > 0);
       
       const updateData = {
         name: formData.name.toUpperCase(),
@@ -178,8 +186,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-12 backdrop-blur-xl">
           <div className="p-8 border border-red-500/20 bg-red-500/5 flex items-center justify-between">
              <div className="space-y-1">
-                <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-500">SYSTEM OVERRIDE: OUT OF STOCK</p>
-                <p className="text-[8px] tracking-widest uppercase text-white/40">Manual toggle to immediately show this module as unavailable.</p>
+                <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-500">SYSTEM OVERRIDE: GLOBAL OOS</p>
+                <p className="text-[8px] tracking-widest uppercase text-white/40">Force all variants of this module to show as unavailable.</p>
              </div>
              <Switch 
                 checked={formData.isOutOfStock}
@@ -210,37 +218,6 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
             </div>
           </div>
 
-          <div className="space-y-8">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">VISUAL UPLINKS (IMAGES)</label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {formData.imageUrls.map((url, i) => (
-                <div key={i} className="relative aspect-[3/4] border border-white/10 group bg-black/40 overflow-hidden">
-                  <Image src={url} alt="Product" fill className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" unoptimized />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button type="button" onClick={() => removeImageUrl(i)} className="p-3 bg-red-500/80 text-white rounded-none">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <div className="relative aspect-[3/4] border border-white/10 border-dashed flex flex-col items-center justify-center opacity-40 hover:opacity-100 transition-all cursor-pointer">
-                <Upload className="w-6 h-6 mb-2" />
-                <span className="text-[8px] tracking-[0.2em] font-bold">ADD VISUAL</span>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <Input 
-                placeholder="HTTPS://REMOTE-UPLINK.COM/IMAGE.JPG" 
-                value={newImageUrl} 
-                onChange={e => setNewImageUrl(e.target.value)} 
-                className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest" 
-              />
-              <Button type="button" onClick={addImageUrl} className="bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-none h-12 px-8 text-[10px] font-bold tracking-widest">
-                LINK ASSET
-              </Button>
-            </div>
-          </div>
-
           <div className="space-y-10">
             <div className="border-b border-white/10 pb-4">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">INVENTORY MATRIX (SIZE // COLOR // QTY)</label>
@@ -266,19 +243,31 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {Object.keys(stockMatrix[size] || {}).map(color => (
-                      <div key={color} className="flex items-center gap-4 p-4 bg-black/60 border border-white/10">
-                        <div className="flex-1 space-y-2">
-                          <p className="text-[9px] tracking-[0.2em] font-bold text-white/40 uppercase">{color}</p>
-                          <Input 
+                      <div key={color} className="flex flex-col gap-4 p-4 bg-black/60 border border-white/10">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                           <p className="text-[9px] tracking-[0.2em] font-bold text-white/40 uppercase">{color}</p>
+                           <div className="flex gap-2">
+                              <button 
+                                type="button" 
+                                onClick={() => setVariantOOS(size, color)} 
+                                title="FORCE OUT OF STOCK"
+                                className="text-white/20 hover:text-red-500 transition-colors"
+                              >
+                                <ZapOff className="w-3 h-3" />
+                              </button>
+                              <button type="button" onClick={() => handleRemoveColor(size, color)} className="text-white/20 hover:text-white transition-colors">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                           </div>
+                        </div>
+                        <div className="space-y-2">
+                           <Input 
                             type="number"
                             value={stockMatrix[size][color]}
                             onChange={e => handleQtyChange(size, color, e.target.value)}
                             className="h-8 bg-transparent border-0 border-b border-white/10 focus:border-white/40 text-[11px] p-0 rounded-none font-mono text-white"
                           />
                         </div>
-                        <button type="button" onClick={() => handleRemoveColor(size, color)} className="text-white/20 hover:text-red-500 transition-colors">
-                          <X className="w-4 h-4" />
-                        </button>
                       </div>
                     ))}
                     {(!stockMatrix[size] || Object.keys(stockMatrix[size]).length === 0) && (
@@ -290,9 +279,36 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                 </div>
               ))}
             </div>
-            <div className="p-6 border border-white/10 bg-white/[0.01] flex justify-between items-center">
-               <span className="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase">AGGREGATED INVENTORY UNITS</span>
-               <span className="text-2xl font-black glow-text">{calculateTotalStock()}</span>
+          </div>
+
+          <div className="space-y-8">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">VISUAL UPLINKS (IMAGES)</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {formData.imageUrls.map((url, i) => (
+                <div key={i} className="relative aspect-[3/4] border border-white/10 group bg-black/40 overflow-hidden">
+                  <Image src={url} alt="Product" fill className="object-cover grayscale" unoptimized />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button type="button" onClick={() => removeImageUrl(i)} className="p-3 bg-red-500/80 text-white rounded-none">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div className="relative aspect-[3/4] border border-white/10 border-dashed flex flex-col items-center justify-center opacity-40 hover:opacity-100 transition-all cursor-pointer">
+                <Upload className="w-6 h-6 mb-2" />
+                <span className="text-[8px] tracking-[0.2em] font-bold">ADD VISUAL</span>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <Input 
+                placeholder="HTTPS://REMOTE-UPLINK.COM/IMAGE.JPG" 
+                value={newImageUrl} 
+                onChange={e => setNewImageUrl(e.target.value)} 
+                className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest" 
+              />
+              <Button type="button" onClick={addImageUrl} className="bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-none h-12 px-8 text-[10px] font-bold tracking-widest">
+                LINK ASSET
+              </Button>
             </div>
           </div>
 

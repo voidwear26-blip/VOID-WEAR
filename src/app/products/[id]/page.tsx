@@ -22,6 +22,15 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+const OutOfStockOverlay = () => (
+  <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+    <svg className="w-full h-full text-red-500/60" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="1" />
+      <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="1" />
+    </svg>
+  </div>
+);
+
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
@@ -52,7 +61,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
 
-  // Similar Products Intelligence
   const similarProductsQuery = useMemoFirebase(() => {
     if (!db || !product?.category) return null;
     return query(
@@ -71,38 +79,42 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const { data: fallbackProducts } = useCollection(fallbackProductsQuery);
 
   const similarProducts = useMemo(() => {
-    // Priority 1: Products from same category
     let filtered = rawSimilar?.filter(p => p.id !== id) || [];
-    
-    // Priority 2: If category is empty, use fallbacks
     if (filtered.length === 0 && fallbackProducts) {
       filtered = fallbackProducts.filter(p => p.id !== id);
     }
-    
     return filtered.slice(0, 4);
   }, [rawSimilar, fallbackProducts, id]);
 
-  const availableSizes = useMemo(() => {
+  const allDefinedSizes = useMemo(() => {
     if (!product?.stockMatrix) return ['DEFAULT'];
     const keys = Object.keys(product.stockMatrix);
-    if (keys.length === 0) return ['DEFAULT'];
-    
-    return keys.filter(size => {
-      const colors = product.stockMatrix[size];
-      return Object.values(colors).some((qty: any) => qty > 0);
-    });
+    return keys.length > 0 ? keys : ['DEFAULT'];
   }, [product]);
 
-  const availableColors = useMemo(() => {
-    if (!product?.stockMatrix || !selectedSize) return ['OBSIDIAN'];
+  const allDefinedColors = useMemo(() => {
+    if (!product?.stockMatrix || !selectedSize) return [];
     const colors = product.stockMatrix[selectedSize] || {};
-    const keys = Object.keys(colors);
-    if (keys.length === 0) return ['OBSIDIAN'];
-    
-    return keys.filter(color => colors[color] > 0);
+    return Object.keys(colors);
   }, [product, selectedSize]);
 
-  const isSoldOut = product?.isOutOfStock || (product?.stockQuantity === 0);
+  const isGlobalOOS = product?.isOutOfStock || (product?.stockQuantity === 0);
+
+  const isVariantOOS = (size: string, color: string) => {
+    if (!product?.stockMatrix) return false;
+    return (product.stockMatrix[size]?.[color] || 0) <= 0;
+  }, [product]);
+
+  const isSizeOOS = (size: string) => {
+    if (!product?.stockMatrix) return false;
+    const colors = product.stockMatrix[size] || {};
+    return Object.values(colors).every((qty: any) => qty <= 0);
+  };
+
+  const isSelectedVariantOOS = useMemo(() => {
+    if (!selectedSize || !selectedColor) return false;
+    return isVariantOOS(selectedSize, selectedColor);
+  }, [selectedSize, selectedColor, isVariantOOS]);
 
   const handleAuthGuard = () => {
     if (!user) {
@@ -114,7 +126,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleAdd = async () => {
-    if (isSoldOut) return;
+    if (isGlobalOOS || isSelectedVariantOOS) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
       toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
@@ -134,7 +146,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleBuyNow = async () => {
-    if (isSoldOut) return;
+    if (isGlobalOOS || isSelectedVariantOOS) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
       toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
@@ -181,9 +193,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (navigator.share && navigator.canShare?.(shareData)) {
       try {
         await navigator.share(shareData);
-      } catch (err) {
-        // Silent fail
-      }
+      } catch (err) { }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
@@ -233,13 +243,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         fill 
                         className={cn(
                           "object-cover transition-all duration-1000 group-hover:scale-105", 
-                          isSoldOut && "opacity-40 grayscale"
+                          isGlobalOOS && "opacity-40 grayscale"
                         )} 
                         unoptimized 
                         priority={idx === 0} 
                       />
                       
-                      {isSoldOut && (
+                      {isGlobalOOS && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
                           <div className="bg-black/80 border border-white/20 px-8 py-4 backdrop-blur-xl">
                             <span className="text-xs font-black tracking-[0.8em] text-white uppercase">OUT OF STOCK</span>
@@ -257,7 +267,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
                               isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
                             }`}
-                            title="STASIS LOG"
                           >
                             {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
                           </motion.button>
@@ -267,7 +276,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             whileTap={{ scale: 0.9 }}
                             onClick={handleShare}
                             className="p-5 rounded-full border border-white/20 bg-black/60 text-white hover:border-white backdrop-blur-xl transition-all"
-                            title="SHARE TRANSMISSION"
                           >
                             <Share2 className="w-6 h-6" />
                           </motion.button>
@@ -294,10 +302,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
               <div className="flex flex-col gap-2">
                 <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase text-white">{product.name}</h1>
-                {isSoldOut && (
+                {(isGlobalOOS || isSelectedVariantOOS) && (
                   <div className="flex items-center gap-2 text-red-500">
                     <ZapOff className="w-4 h-4" />
-                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Status: Offline / Out of Stock</span>
+                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Status: Offline - Out of Stock</span>
                   </div>
                 )}
               </div>
@@ -312,20 +320,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">01. SELECT SIZE</h4>
                 <div className="flex flex-wrap gap-4">
-                  {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => {
-                    const isDisabled = isSoldOut || (!availableSizes.includes(size) && availableSizes[0] !== 'DEFAULT');
+                  {allDefinedSizes.map(size => {
+                    const isOOS = isSizeOOS(size) || isGlobalOOS;
                     return (
                       <button 
                         key={size} 
-                        disabled={isDisabled}
-                        onClick={() => { setSelectedSize(size); setSelectedColor(null); }}
+                        onClick={() => { 
+                          setSelectedSize(size); 
+                          setSelectedColor(null); 
+                          if (isOOS) toast({ title: "OFFLINE", description: "SIZE OUT OF STOCK" });
+                        }}
                         className={cn(
-                          "w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
+                          "relative w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
                           selectedSize === size ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
-                          isDisabled && "opacity-5 cursor-not-allowed border-transparent"
+                          isOOS && "border-red-500/20 text-red-500/30"
                         )}
                       >
                         {size}
+                        {isOOS && <OutOfStockOverlay />}
                       </button>
                     );
                   })}
@@ -336,20 +348,26 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
                   <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">02. SELECT COLOR</h4>
                   <div className="flex flex-wrap gap-4">
-                    {availableColors.map(color => (
-                      <button 
-                        key={color} 
-                        onClick={() => setSelectedColor(color)}
-                        disabled={isSoldOut}
-                        className={cn(
-                          "px-6 h-12 border flex items-center justify-center text-[9px] font-black tracking-[0.3em] uppercase transition-all backdrop-blur-sm",
-                          selectedColor === color ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
-                          isSoldOut && "opacity-5 cursor-not-allowed"
-                        )}
-                      >
-                        {color}
-                      </button>
-                    ))}
+                    {allDefinedColors.map(color => {
+                      const isOOS = isVariantOOS(selectedSize, color) || isGlobalOOS;
+                      return (
+                        <button 
+                          key={color} 
+                          onClick={() => {
+                            setSelectedColor(color);
+                            if (isOOS) toast({ title: "OFFLINE", description: "OUT OF STOCK" });
+                          }}
+                          className={cn(
+                            "relative px-6 h-12 border flex items-center justify-center text-[9px] font-black tracking-[0.3em] uppercase transition-all backdrop-blur-sm",
+                            selectedColor === color ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
+                            isOOS && "border-red-500/20 text-red-500/30"
+                          )}
+                        >
+                          {color}
+                          {isOOS && <OutOfStockOverlay />}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -357,16 +375,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <div className="grid gap-4 pt-4">
                 <Button 
                   onClick={handleBuyNow}
-                  disabled={buying || isSoldOut || !selectedSize || !selectedColor}
+                  disabled={buying || isGlobalOOS || isSelectedVariantOOS || !selectedSize || !selectedColor}
                   className="w-full bg-white text-black hover:bg-white/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none group shadow-[0_0_40px_rgba(255,255,255,0.1)] uppercase transition-all"
                 >
-                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : isSoldOut ? <>MODULE UNAVAILABLE <ZapOff className="ml-3 w-4 h-4" /></> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
+                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : (isGlobalOOS || isSelectedVariantOOS) ? <>MODULE UNAVAILABLE <ZapOff className="ml-3 w-4 h-4" /></> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={handleAdd}
-                  disabled={adding || isSoldOut || !selectedSize || !selectedColor}
+                  disabled={adding || isGlobalOOS || isSelectedVariantOOS || !selectedSize || !selectedColor}
                   className="w-full border-white/10 bg-transparent hover:bg-white/5 h-16 text-[10px] font-bold tracking-[0.4em] rounded-none text-white uppercase transition-all"
                 >
                   {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <>ADD TO TRANSMISSION BAG <ShoppingBag className="ml-3 w-3.5 h-3.5" /></>}
@@ -390,7 +408,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* Recommended Assemblages Section */}
         <div className="border-t border-white/10 pt-32 pb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
             <div className="space-y-6">
