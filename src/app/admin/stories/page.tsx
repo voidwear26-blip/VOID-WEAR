@@ -2,7 +2,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc, deleteDoc } from 'firebase/firestore';
-import { Plus, Trash2, ChevronLeft, Loader2, MessageSquare, Megaphone } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronLeft, Loader2, MessageSquare, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -44,6 +44,7 @@ export default function AdminStoriesPage() {
       toast({ title: "STORY REMOVED", description: "Narrative updated." });
     } catch (e) {
       console.error(e);
+      toast({ variant: "destructive", title: "PURGE_FAILURE" });
     }
   };
 
@@ -80,7 +81,9 @@ export default function AdminStoriesPage() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {isLoading ? (
-                <tr><td colSpan={4} className="px-10 py-12 text-center text-white/20">LOADING TRANSMISSIONS...</td></tr>
+                <tr><td colSpan={4} className="px-10 py-32 text-center">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-white/20" />
+                </td></tr>
               ) : stories && stories.length > 0 ? (
                 stories.map((story) => (
                   <tr key={story.id} className="hover:bg-white/[0.02] transition-colors group">
@@ -88,7 +91,7 @@ export default function AdminStoriesPage() {
                       <span className="text-[10px] font-bold tracking-widest uppercase">{story.title}</span>
                     </td>
                     <td className="px-10 py-8">
-                      <span className="text-[8px] px-3 py-1 border border-white/10 tracking-[0.2em] font-bold text-white/60">
+                      <span className="text-[8px] px-3 py-1 border border-white/10 tracking-[0.2em] font-bold text-white/60 uppercase">
                         {story.type}
                       </span>
                     </td>
@@ -96,9 +99,16 @@ export default function AdminStoriesPage() {
                       {new Date(story.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-10 py-8 text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(story.id)} className="text-white/20 hover:text-red-500">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-3">
+                        <Button variant="ghost" size="icon" asChild className="text-white/20 hover:text-white">
+                          <Link href={`/admin/stories/${story.id}`}>
+                            <Edit2 className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(story.id)} className="text-white/20 hover:text-red-500">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
