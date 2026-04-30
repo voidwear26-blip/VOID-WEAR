@@ -48,7 +48,7 @@ export default function Home() {
       controls.start({
         x: [0, -containerWidth],
         transition: {
-          duration: 30,
+          duration: 40,
           repeat: Infinity,
           ease: "linear",
           repeatType: "loop"
@@ -83,75 +83,73 @@ export default function Home() {
       <Hero />
 
       {/* System Definition Section (Branding Verification) */}
-      <section className="py-32 md:py-48 bg-white/[0.01] border-y border-white/5 relative overflow-hidden">
+      <section className="py-32 md:py-64 bg-white/[0.01] border-y border-white/5 relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-32 items-center">
             <motion.div 
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="space-y-10"
+              className="space-y-12"
             >
-              <div className="space-y-4">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">SYSTEM // DEFINITION</span>
-                <h2 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">
-                  HIGH-PERFORMANCE <br /> APPAREL UPLINK
+              <div className="space-y-6">
+                <span className="text-[11px] font-black tracking-[1em] text-white/30 uppercase">SYSTEM // DEFINITION</span>
+                <h2 className="text-5xl md:text-8xl font-black tracking-tight glow-text uppercase leading-none">
+                  HIGH-SPEED <br /> UPLINK
                 </h2>
               </div>
-              <p className="text-sm md:text-lg text-white/60 tracking-widest leading-relaxed uppercase font-light max-w-xl">
+              <p className="text-base md:text-xl text-white/60 tracking-[0.2em] leading-relaxed uppercase font-light max-w-2xl">
                 VOID WEAR is a specialized futuristic e-commerce platform providing high-performance technical apparel. 
                 Our assemblages are precision-engineered for the digital migration, utilizing advanced materials to create 
                 protective shells for the high-density urban environment.
               </p>
-              <div className="pt-4">
-                <Link href="/products" className="group flex items-center gap-6 text-[10px] font-bold tracking-[0.5em] text-white uppercase border-b border-white/20 pb-4 w-fit hover:border-white transition-all">
+              <div className="pt-8">
+                <Link href="/products" className="group flex items-center gap-8 text-[12px] font-black tracking-[0.6em] text-white uppercase border-b border-white/20 pb-6 w-fit hover:border-white transition-all">
                   INITIALIZE ACQUISITION
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" />
                 </Link>
               </div>
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               <FeatureNode 
-                icon={<Package className="w-5 h-5" />} 
-                title="MODULAR ASSEMBLAGE" 
-                desc="Technical shells, thermal bases, and modular accessories." 
+                icon={<Package className="w-6 h-6" />} 
+                title="MODULAR" 
+                desc="Technical shells and thermal regulation bases." 
               />
               <FeatureNode 
-                icon={<FileText className="w-5 h-5" />} 
-                title="NEURAL SPECS" 
-                desc="Detailed fabric engineering and performance data." 
+                icon={<FileText className="w-6 h-6" />} 
+                title="NEURAL" 
+                desc="Fabric engineering and performance metadata." 
               />
               <FeatureNode 
-                icon={<Globe className="w-5 h-5" />} 
-                title="GLOBAL EXPEDITION" 
-                desc="Secure logistics and Pan-India transit protocols." 
+                icon={<Globe className="w-6 h-6" />} 
+                title="GLOBAL" 
+                desc="Secure logistics and frontier transit nodes." 
               />
               <FeatureNode 
-                icon={<ShieldCheck className="w-5 h-5" />} 
-                title="ENCRYPTED SECURE" 
-                desc="Quantum-resistant data and financial integrity." 
+                icon={<ShieldCheck className="w-6 h-6" />} 
+                title="SECURE" 
+                desc="Quantum-resistant financial integrity." 
               />
             </div>
           </div>
         </div>
-        {/* Subtle background element */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.01] rounded-full blur-[120px] pointer-events-none" />
       </section>
       
       {/* Seamless Loop Gallery Section */}
-      <section className="py-24 md:py-48 bg-transparent relative overflow-hidden" aria-label="Latest Arrivals">
-        <div className="container mx-auto px-6 mb-20 md:mb-32">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.8em] text-white/60 uppercase">SYSTEM // GALLERY</span>
-              <h2 className="text-4xl md:text-7xl font-bold tracking-tighter glow-text uppercase leading-none">
-                LATEST <br /> ASSEMBLAGES
+      <section className="py-32 md:py-64 bg-transparent relative overflow-hidden" aria-label="Latest Arrivals">
+        <div className="container mx-auto px-6 mb-24 md:mb-40">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+            <div className="space-y-8">
+              <span className="text-[12px] font-black tracking-[1.2em] text-white/40 uppercase">SYSTEM // GALLERY</span>
+              <h2 className="text-6xl md:text-9xl font-black tracking-tighter glow-text uppercase leading-none">
+                LATEST <br /> MODULES
               </h2>
             </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.5em] text-white/70 hover:text-white transition-all duration-500 border-b border-white/20 hover:border-white pb-4 w-fit uppercase flex items-center gap-4">
+            <Link href="/products" className="text-[12px] font-black tracking-[0.6em] text-white/70 hover:text-white transition-all duration-700 border-b border-white/10 hover:border-white pb-6 w-fit uppercase flex items-center gap-6">
               VIEW FULL COLLECTION
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -167,68 +165,68 @@ export default function Home() {
             dragConstraints={{ left: -containerWidth * 1.5, right: 0 }}
             animate={controls}
             style={{ x }}
-            className="flex gap-8 md:gap-16 whitespace-nowrap px-6 md:px-0"
+            className="flex gap-12 md:gap-24 whitespace-nowrap px-10 md:px-0"
             onDragStart={() => setIsPaused(true)}
             onDragEnd={() => setIsPaused(false)}
           >
             {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-[300px] md:w-[450px] aspect-[3/4] bg-white/5 animate-pulse border border-white/10" />
+                <div key={i} className="w-[400px] md:w-[600px] aspect-[2/3] bg-white/5 animate-pulse border border-white/10" />
               ))
             ) : displayProducts.length > 0 ? (
               displayProducts.map((product, idx) => (
-                <div key={`${product.id}-${idx}`} className="w-[300px] md:w-[450px] shrink-0">
+                <div key={`${product.id}-${idx}`} className="w-[400px] md:w-[600px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
             ) : (
-              <div className="py-32 text-center opacity-40 border border-dashed border-white/20 w-screen flex flex-col items-center justify-center gap-6">
-                <Package className="w-12 h-12 stroke-[0.5px]" />
-                <p className="text-[10px] tracking-[0.8em] uppercase font-bold text-center px-6">NO ASSEMBLAGES DETECTED</p>
+              <div className="py-48 text-center opacity-40 border border-dashed border-white/20 w-screen flex flex-col items-center justify-center gap-12">
+                <Package className="w-20 h-20 stroke-[0.5px]" />
+                <p className="text-[14px] tracking-[1em] uppercase font-black text-center px-12">NO ASSEMBLAGES DETECTED</p>
               </div>
             )}
           </motion.div>
           
-          <div className="mt-16 container mx-auto px-6 flex items-center gap-4 text-white/20">
-            <div className="text-[8px] tracking-[0.5em] uppercase font-bold">INTERACTIVE TRANSMISSION // DRAG TO CONTROL</div>
+          <div className="mt-24 container mx-auto px-6 flex items-center gap-8 text-white/20">
+            <div className="text-[10px] tracking-[0.8em] uppercase font-black">INTERACTIVE TRANSMISSION // DRAG TO CONTROL</div>
             <div className="flex-1 h-[1px] bg-white/10"></div>
           </div>
         </div>
       </section>
 
       {/* Top Purchased Section */}
-      <section className="py-32 md:py-64 bg-white/[0.02] border-y border-white/10" aria-label="Top Modules">
+      <section className="py-32 md:py-64 bg-white/[0.02] border-y border-white/5" aria-label="Top Modules">
         <div className="container mx-auto px-6">
-          <div className="text-center space-y-8 mb-24 md:mb-48">
-            <span className="text-[10px] font-bold tracking-[1em] text-white/60 uppercase">MOST TRANSMITTED</span>
-            <h2 className="text-4xl md:text-8xl font-black tracking-tight glow-text uppercase leading-none">Top Modules</h2>
+          <div className="text-center space-y-12 mb-32 md:mb-56">
+            <span className="text-[12px] font-black tracking-[1.5em] text-white/30 uppercase">MOST TRANSMITTED</span>
+            <h2 className="text-5xl md:text-9xl font-black tracking-tight glow-text uppercase leading-none">Top Modules</h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12 md:gap-24">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-32">
             {topLoading ? (
               [1, 2, 3].map(i => (
-                <div key={i} className="aspect-[3/4] bg-white/10 animate-pulse border border-white/10" />
+                <div key={i} className="aspect-[2/3] bg-white/10 animate-pulse border border-white/10" />
               ))
             ) : topProducts && topProducts.length > 0 ? (
               topProducts.map((product, idx) => (
                 <motion.div 
                   key={product.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.2 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.3, duration: 1.2 }}
                   viewport={{ once: true }}
                 >
                   <div className="relative group">
                     <ProductCard product={product as any} />
-                    <div className="absolute -top-6 -left-6 w-12 h-12 border border-white/20 bg-black flex items-center justify-center text-[10px] font-bold tracking-widest text-white/60 z-20">
+                    <div className="absolute -top-10 -left-10 w-20 h-20 border-2 border-white/20 bg-black flex items-center justify-center text-[14px] font-black tracking-[0.2em] text-white/80 z-30 shadow-[0_0_40px_rgba(0,0,0,1)]">
                       0{idx + 1}
                     </div>
                   </div>
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-32 text-center opacity-40">
-                <p className="text-[10px] tracking-[1em] uppercase">SYSTEM IDLE</p>
+              <div className="col-span-full py-48 text-center opacity-20">
+                <p className="text-[14px] tracking-[1em] uppercase font-black">SYSTEM IDLE</p>
               </div>
             )}
           </div>
@@ -236,15 +234,15 @@ export default function Home() {
       </section>
 
       {/* Manifesto */}
-      <section className="py-64 bg-transparent overflow-hidden" aria-label="Brand Manifesto">
+      <section className="py-64 md:py-96 bg-transparent overflow-hidden" aria-label="Brand Manifesto">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-16">
-            <span className="text-[10px] tracking-[1em] text-white/60 uppercase font-bold">MANIFESTO</span>
-            <h3 className="text-2xl md:text-5xl font-light tracking-[0.2em] leading-relaxed uppercase">
-              WE ARE THE SHELL <br /> FOR YOUR <span className="text-white font-bold glow-text">DIGITAL MIGRATION</span>. 
+          <div className="max-w-6xl mx-auto text-center space-y-24">
+            <span className="text-[12px] tracking-[2em] text-white/40 uppercase font-black">MANIFESTO</span>
+            <h3 className="text-3xl md:text-7xl font-light tracking-[0.1em] leading-relaxed uppercase">
+              WE ARE THE SHELL <br /> FOR YOUR <span className="text-white font-black glow-text">DIGITAL MIGRATION</span>. 
               TECHNICAL APPAREL FOR COMPLEX IDENTITIES.
             </h3>
-            <div className="w-[1px] h-32 bg-gradient-to-b from-white/60 to-transparent mx-auto"></div>
+            <div className="w-[1px] h-48 bg-gradient-to-b from-white/60 to-transparent mx-auto"></div>
           </div>
         </div>
       </section>
@@ -255,15 +253,15 @@ export default function Home() {
 function FeatureNode({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
   return (
     <motion.div 
-      whileHover={{ y: -5 }}
-      className="p-10 border border-white/10 bg-white/[0.01] space-y-6 backdrop-blur-sm group hover:border-white/30 transition-all"
+      whileHover={{ y: -10, backgroundColor: "rgba(255,255,255,0.03)" }}
+      className="p-12 border border-white/5 bg-white/[0.005] space-y-8 backdrop-blur-3xl group hover:border-white/40 transition-all duration-700"
     >
-      <div className="text-white/40 group-hover:text-white transition-colors">
+      <div className="text-white/20 group-hover:text-white transition-colors duration-700">
         {icon}
       </div>
-      <div className="space-y-2">
-        <h3 className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">{title}</h3>
-        <p className="text-[9px] text-white/40 tracking-widest uppercase font-bold leading-relaxed">{desc}</p>
+      <div className="space-y-4">
+        <h3 className="text-[12px] font-black tracking-[0.5em] uppercase text-white">{title}</h3>
+        <p className="text-[10px] text-white/30 tracking-[0.3em] uppercase font-bold leading-relaxed group-hover:text-white/60 transition-colors duration-700">{desc}</p>
       </div>
     </motion.div>
   );
