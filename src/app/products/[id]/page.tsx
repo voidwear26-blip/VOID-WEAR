@@ -25,7 +25,7 @@ import {
 const OutOfStockOverlay = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
     <svg className="w-full h-full text-red-500/60" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="1" />
+      <line x1="0" y1="0" x2="100" x2="100" stroke="currentColor" strokeWidth="1" />
       <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="1" />
     </svg>
   </div>
@@ -87,10 +87,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }, [rawSimilar, fallbackProducts, id]);
 
   const allDefinedSizes = useMemo(() => {
-    if (!product?.stockMatrix) return ['DEFAULT'];
     const order = ['S', 'M', 'L', 'XL'];
+    if (!product?.stockMatrix) return order;
     const keys = Object.keys(product.stockMatrix).filter(s => order.includes(s));
-    if (keys.length === 0) return ['DEFAULT'];
+    if (keys.length === 0) return order;
     return keys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   }, [product]);
 
@@ -414,7 +414,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <include src="lucide-react" name="Sparkles" className="w-4 h-4 text-white/40" />
+                <Sparkles className="w-4 h-4 text-white/40" />
                 <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">CONTEXTUAL // UPLINK</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Recommended <br /> Assemblages</h2>
