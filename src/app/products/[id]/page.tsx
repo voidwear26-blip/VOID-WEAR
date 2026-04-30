@@ -88,8 +88,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const allDefinedSizes = useMemo(() => {
     if (!product?.stockMatrix) return ['DEFAULT'];
-    const keys = Object.keys(product.stockMatrix);
-    return keys.length > 0 ? keys : ['DEFAULT'];
+    const order = ['S', 'M', 'L', 'XL'];
+    const keys = Object.keys(product.stockMatrix).filter(s => order.includes(s));
+    if (keys.length === 0) return ['DEFAULT'];
+    return keys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   }, [product]);
 
   const allDefinedColors = useMemo(() => {
@@ -412,7 +414,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <Sparkles className="w-4 h-4 text-white/40" />
+                <include src="lucide-react" name="Sparkles" className="w-4 h-4 text-white/40" />
                 <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">CONTEXTUAL // UPLINK</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Recommended <br /> Assemblages</h2>

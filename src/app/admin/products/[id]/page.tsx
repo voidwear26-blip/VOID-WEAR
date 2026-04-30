@@ -53,7 +53,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
 
   const [newImageUrl, setNewImageUrl] = useState('');
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
-    'XS': {}, 'S': {}, 'M': {}, 'L': {}, 'XL': {}, 'XXL': {}
+    'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
 
@@ -69,7 +69,13 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         isOutOfStock: product.isOutOfStock || false
       });
       if (product.stockMatrix) {
-        setStockMatrix(product.stockMatrix);
+        const filteredMatrix: StockMatrix = { 'S': {}, 'M': {}, 'L': {}, 'XL': {} };
+        ['S', 'M', 'L', 'XL'].forEach(size => {
+          if (product.stockMatrix[size]) {
+            filteredMatrix[size] = product.stockMatrix[size];
+          }
+        });
+        setStockMatrix(filteredMatrix);
       }
     }
   }, [product]);
@@ -223,7 +229,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">INVENTORY MATRIX (SIZE // COLOR // QTY)</label>
             </div>
             <div className="grid gap-10">
-              {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
+              {['S', 'M', 'L', 'XL'].map(size => (
                 <div key={size} className="space-y-6 p-8 border border-white/5 bg-white/[0.01]">
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-black tracking-tighter text-white/80">{size}</span>

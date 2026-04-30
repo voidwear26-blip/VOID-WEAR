@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
@@ -52,7 +51,7 @@ export default function NewProductPage() {
   const [currentInputUrl, setCurrentInputUrl] = useState('');
 
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
-    'XS': {}, 'S': {}, 'M': {}, 'L': {}, 'XL': {}, 'XXL': {}
+    'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
 
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
@@ -240,7 +239,7 @@ export default function NewProductPage() {
             </div>
             
             <div className="grid gap-10">
-              {Object.keys(stockMatrix).map(size => (
+              {['S', 'M', 'L', 'XL'].map(size => (
                 <div key={size} className="space-y-6 p-6 border border-white/5 bg-white/[0.01]">
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-black tracking-widest text-white/80">{size}</span>
