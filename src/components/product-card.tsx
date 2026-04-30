@@ -109,9 +109,9 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const iconMotionProps = {
-    whileHover: { scale: 1.2, filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))" },
-    whileTap: { scale: 0.9 },
-    transition: { type: "spring", stiffness: 400, damping: 10 }
+    whileHover: { scale: 1.1, filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.6))" },
+    whileTap: { scale: 0.95 },
+    transition: { type: "spring", stiffness: 400, damping: 15 }
   };
 
   const displayImage = product.imageUrls && product.imageUrls.length > 0 
@@ -120,10 +120,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
@@ -133,67 +133,62 @@ export function ProductCard({ product }: ProductCardProps) {
       }}
       className="group relative h-full flex flex-col"
     >
-      <div className="flex flex-col h-full bg-white/[0.01] border border-white/10 group-hover:border-white/40 transition-all duration-700 glow-border overflow-hidden">
-        {/* Massive Image Container */}
-        <Link href={`/products/${product.id}`} className="block relative aspect-[2/3] overflow-hidden shrink-0">
+      <div className="flex flex-col h-full bg-white/[0.02] border border-white/10 group-hover:border-white/20 transition-all duration-500 overflow-hidden">
+        {/* Image Container */}
+        <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden shrink-0">
           <Image
             src={displayImage}
             alt={product.name || 'Assemblage Module'}
             fill
-            className="object-cover transition-all duration-1000 ease-out group-hover:scale-110"
+            className="object-cover transition-all duration-1000 ease-out grayscale group-hover:grayscale-0 group-hover:scale-105"
             unoptimized
-            priority
           />
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-20 transition-opacity"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
           
           {/* Top Overlays */}
-          <div className="absolute top-8 left-8 flex flex-col gap-2">
-            <span className="text-[10px] tracking-[0.6em] font-black text-white group-hover:glow-text transition-all uppercase border-l-2 border-white pl-4 py-1">
-              {product.category || 'UNCLASSIFIED'}
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
+            <span className="text-[8px] tracking-[0.4em] font-bold text-white/70 uppercase border-l border-white/20 pl-3 py-1">
+              {product.category || 'UNSET'}
             </span>
           </div>
 
-          <div className="absolute top-8 right-8 z-20 flex flex-col gap-5 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-700">
+          <div className="absolute top-4 right-4 z-20 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500">
             <motion.button 
               {...iconMotionProps}
               onClick={handleWishlistToggle}
               disabled={toggling}
-              className={`p-5 rounded-full backdrop-blur-3xl border transition-all duration-500 ${
-                isInWishlist ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.4)]' : 'bg-black/80 text-white border-white/20 hover:border-white'
+              className={`p-3 rounded-full backdrop-blur-xl border transition-all duration-300 ${
+                isInWishlist ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'bg-black/60 text-white border-white/10 hover:border-white'
               }`}
             >
-              {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
+              {toggling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current' : ''}`} />}
             </motion.button>
 
             <motion.button 
               {...iconMotionProps}
               onClick={handleShare}
-              className="p-5 rounded-full backdrop-blur-3xl border border-white/20 bg-black/80 text-white hover:border-white transition-all duration-500"
+              className="p-3 rounded-full backdrop-blur-xl border border-white/10 bg-black/60 text-white hover:border-white transition-all duration-300"
             >
-              <Share2 className="w-6 h-6" />
+              <Share2 className="w-4 h-4" />
             </motion.button>
-          </div>
-
-          {/* Price Float */}
-          <div className="absolute bottom-10 right-10">
-            <div className="bg-white text-black px-8 py-4 text-sm font-black tracking-widest shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-              ₹{product.basePrice}
-            </div>
           </div>
         </Link>
 
         {/* Info Area */}
-        <Link href={`/products/${product.id}`} className="p-12 space-y-6 flex-1 flex flex-col justify-center">
-          <div className="space-y-4">
-            <h3 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-white group-hover:glow-text transition-all duration-500 line-clamp-2">
+        <Link href={`/products/${product.id}`} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+          <div className="space-y-2">
+            <h3 className="text-lg md:text-xl font-bold tracking-tight uppercase text-white group-hover:glow-text transition-all duration-300 line-clamp-1">
               {product.name}
             </h3>
-            <p className="text-[11px] tracking-[0.5em] text-white/50 uppercase font-black flex items-center gap-3">
-               <Zap className="w-4 h-4 text-white/40" /> INITIALIZE_UPLINK
-            </p>
+            <div className="flex items-center justify-between">
+               <p className="text-[10px] tracking-[0.4em] text-white/40 uppercase font-black flex items-center gap-2">
+                  <Zap className="w-3 h-3" /> UPLINK
+               </p>
+               <span className="text-sm font-black tracking-widest text-white/90">₹{product.basePrice}</span>
+            </div>
           </div>
-          <div className="h-[1px] w-0 group-hover:w-full bg-gradient-to-r from-white to-transparent transition-all duration-1000 ease-in-out"></div>
+          <div className="h-[1px] w-0 group-hover:w-full bg-gradient-to-r from-white/40 to-transparent transition-all duration-700 ease-in-out"></div>
         </Link>
       </div>
     </motion.div>
