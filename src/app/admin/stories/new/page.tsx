@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Sparkles, Loader2, Upload, Trash2 } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -35,6 +36,8 @@ export default function NewStoryPage() {
     imageUrl: ''
   });
 
+  const [linkInput, setLinkInput] = useState('');
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -42,6 +45,13 @@ export default function NewStoryPage() {
       reader.onloadend = () => setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleLinkApply = () => {
+    if (!linkInput.trim()) return;
+    setFormData(prev => ({ ...prev, imageUrl: linkInput.trim() }));
+    setLinkInput('');
+    toast({ title: "UPLINK APPLIED", description: "REMOTE ASSET LINKED." });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +85,7 @@ export default function NewStoryPage() {
             <ChevronLeft className="w-3 h-3" />
             BACK TO STORIES
           </Link>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Initialize Story</h1>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Initialize Story</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
@@ -105,25 +115,45 @@ export default function NewStoryPage() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (OPTIONAL)</label>
-            <div className="relative group w-full aspect-video bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+          <div className="space-y-8">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINK (IMAGE)</label>
+            
+            <div className="relative group w-full aspect-video bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center overflow-hidden">
               {formData.imageUrl ? (
                 <>
                   <Image src={formData.imageUrl} alt="Preview" fill className="object-cover grayscale" unoptimized />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, imageUrl: '' }))} className="text-white">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, imageUrl: '' }))} className="text-white">
                       <Trash2 className="w-5 h-5" />
                     </Button>
                   </div>
                 </>
               ) : (
-                <>
-                  <Upload className="w-8 h-8 text-white/20 mb-2" />
-                  <span className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-bold">SELECT IMAGE FILE</span>
+                <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+                  <Upload className="w-8 h-8 text-white/10" />
+                  <p className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-black">DROP ASSET OR USE REMOTE UPLINK BELOW</p>
                   <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                </>
+                </div>
               )}
+            </div>
+
+            <div className="flex gap-4">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+                <Input 
+                  value={linkInput}
+                  onChange={e => setLinkInput(e.target.value)}
+                  placeholder="HTTPS://REMOTE-STORAGE.COM/ASSET.JPG"
+                  className="bg-black/40 border-white/10 rounded-none h-14 pl-12 text-[10px] tracking-widest text-white"
+                />
+              </div>
+              <Button 
+                type="button" 
+                onClick={handleLinkApply}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-none h-14 px-8 text-[10px] font-bold tracking-widest text-white"
+              >
+                LINK ASSET
+              </Button>
             </div>
           </div>
 
