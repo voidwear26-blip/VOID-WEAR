@@ -1,29 +1,37 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
-import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2 } from 'lucide-react';
+import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 export default function AdminReviewsPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+  }, [user, isUserLoading]);
 
   const reviewsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
+    if (!db || !mounted || !isAdmin) return null;
     return query(
       collection(db, 'reviews'),
       orderBy('createdAt', 'desc'),
       limit(100)
     );
-  }, [db, isAdmin]);
+  }, [db, isAdmin, mounted]);
 
   const { data: reviews, isLoading } = useCollection(reviewsQuery);
 
@@ -37,31 +45,44 @@ export default function AdminReviewsPage() {
       });
     } catch (e) {
       console.error(e);
+      toast({
+        variant: "destructive",
+        title: "PURGE_FAILURE",
+      });
     }
   };
 
-  if (!isAdmin) {
+  if (isUserLoading || !mounted) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-20">
+      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white bg-black">
         Authenticating Protocol...
       </div>
     );
   }
 
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-6 text-white bg-black">
+        <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-bold">ACCESS DENIED // MASTER ONLY</p>
+        <Link href="/" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO SURFACE</Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/80 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Feedback Audit</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Feedback Audit</h1>
           </div>
           <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
-            <ShieldAlert className="w-4 h-4 text-white/40" />
-            <span className="text-[10px] tracking-[0.3em] font-bold text-white/40 uppercase">MODERATION CHANNEL ACTIVE</span>
+            <ShieldAlert className="w-4 h-4 text-white/60" />
+            <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">MODERATION CHANNEL ACTIVE</span>
           </div>
         </div>
 
@@ -71,9 +92,9 @@ export default function AdminReviewsPage() {
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">PRODUCT_ID</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">RATING</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">COMMENT</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE_ID</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CALIBRATION</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">NARRATIVE</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">ACTION</th>
                 </tr>
               </thead>
@@ -89,12 +110,15 @@ export default function AdminReviewsPage() {
                     <tr key={review.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-bold tracking-widest text-white/80">{review.userName || 'Anonymous'}</span>
-                          <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold">{review.userId.slice(0, 12)}</p>
+                          <span className="text-[10px] font-bold tracking-widest text-white/80 uppercase">{review.userName || 'Anonymous'}</span>
+                          <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold font-mono">{review.userId.slice(0, 12)}...</p>
                         </div>
                       </td>
-                      <td className="px-10 py-8 text-[10px] text-white/40 tracking-widest font-bold">
-                        {review.productId.slice(0, 12)}...
+                      <td className="px-10 py-8">
+                         <div className="flex items-center gap-2 text-[10px] text-white/40 tracking-widest font-bold">
+                            <Package className="w-3 h-3" />
+                            {review.productId.slice(0, 12)}...
+                         </div>
                       </td>
                       <td className="px-10 py-8">
                         <div className="flex gap-1">
@@ -104,7 +128,7 @@ export default function AdminReviewsPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8 max-w-md">
-                        <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase">{review.comment}</p>
+                        <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase line-clamp-2">{review.comment}</p>
                       </td>
                       <td className="px-10 py-8 text-right">
                         <Button 

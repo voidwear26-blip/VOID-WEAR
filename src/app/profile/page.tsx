@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
@@ -376,18 +375,18 @@ function ReviewDialog({ productId, productName, userId, userName, db }: { produc
         </DialogHeader>
         <div className="space-y-8 pt-6">
           <div className="space-y-4">
-             <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">AESTHETIC CALIBRATION (1-5)</label>
-             <div className="flex gap-2">
+             <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">AESTHETIC CALIBRATION (STARS)</label>
+             <div className="flex gap-4">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => setRating(s)}
-                    className={`w-10 h-10 border transition-all flex items-center justify-center ${
-                      rating >= s ? 'bg-white text-black border-white' : 'border-white/10 text-white/20 hover:border-white/40'
-                    }`}
+                    className="transition-all hover:scale-125 focus:outline-none"
                   >
-                    <span className="text-[10px] font-black">0{s}</span>
+                    <Star 
+                      className={`w-6 h-6 ${rating >= s ? 'text-white fill-current' : 'text-white/10'}`} 
+                    />
                   </button>
                 ))}
              </div>

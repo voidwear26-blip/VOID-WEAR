@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -55,11 +55,17 @@ export default function AdminDashboard() {
     return collection(db, 'stories');
   }, [db, isAdmin]);
 
+  const reviewsQuery = useMemoFirebase(() => {
+    if (!db || !isAdmin) return null;
+    return collection(db, 'reviews');
+  }, [db, isAdmin]);
+
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
   const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
   const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
   const { data: contacts, isLoading: contactsLoading } = useCollection(contactsQuery);
   const { data: stories, isLoading: storiesLoading } = useCollection(storiesQuery);
+  const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
 
   const totalRevenue = useMemo(() => {
     if (!orders) return 0;
@@ -112,7 +118,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-16">
           <StatCard 
             href="/admin/revenue"
             icon={<TrendingUp className="w-5 h-5" />} 
@@ -144,6 +150,12 @@ export default function AdminDashboard() {
             value={contactsLoading ? "..." : (contacts?.length.toString() || "0")} 
           />
           <StatCard 
+            href="/admin/reviews"
+            icon={<Star className="w-5 h-5" />} 
+            label="FEEDBACK" 
+            value={reviewsLoading ? "..." : (reviews?.length.toString() || "0")} 
+          />
+          <StatCard 
             href="/admin/products"
             icon={<Package className="w-5 h-5" />} 
             label="INVENTORY" 
@@ -162,6 +174,7 @@ export default function AdminDashboard() {
               <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Monitor customer orders." icon={<ShoppingBag className="w-4 h-4" />} />
               <QuickActionButton href="/admin/users" label="ENTITY ARCHIVE" description="Manage customer profiles." icon={<Users className="w-4 h-4" />} />
               <QuickActionButton href="/admin/messages" label="INCOMING MESSAGES" description="Audit customer inquiries." icon={<MessageSquare className="w-4 h-4" />} />
+              <QuickActionButton href="/admin/reviews" label="FEEDBACK AUDIT" description="Moderate customer field reports." icon={<Star className="w-4 h-4" />} />
               <QuickActionButton href="/admin/system" label="SYSTEM ARCHIVE" description="Generate mission audit logs." icon={<Database className="w-4 h-4" />} />
               <QuickActionButton href="/admin/content" label="BRAND OVERRIDE" description="Homepage content control." icon={<Settings className="w-4 h-4" />} />
             </div>
@@ -192,14 +205,14 @@ export default function AdminDashboard() {
 function StatCard({ icon, label, value, href }: { icon: React.ReactNode, label: string, value: string, href: string }) {
   return (
     <Link href={href}>
-      <div className="bg-white/[0.02] border border-white/5 p-8 space-y-4 hover:border-white/20 transition-all group backdrop-blur-sm cursor-pointer h-full">
+      <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/20 transition-all group backdrop-blur-sm cursor-pointer h-full">
         <div className="text-white/60 group-hover:text-white transition-colors flex justify-between items-center">
           {icon}
           <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
         <div className="space-y-1">
-          <p className="text-[10px] tracking-[0.3em] text-white/60 uppercase font-bold">{label}</p>
-          <p className="text-2xl font-bold tracking-widest glow-text text-white">{value}</p>
+          <p className="text-[8px] tracking-[0.3em] text-white/60 uppercase font-bold">{label}</p>
+          <p className="text-xl font-bold tracking-widest glow-text text-white">{value}</p>
         </div>
       </div>
     </Link>
@@ -208,12 +221,12 @@ function StatCard({ icon, label, value, href }: { icon: React.ReactNode, label: 
 
 function QuickActionButton({ href, label, description, icon }: { href: string, label: string, description: string, icon?: React.ReactNode }) {
   return (
-    <Link href={href} className="flex items-center justify-between p-8 border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/20 transition-all group">
+    <Link href={href} className="flex items-center justify-between p-6 border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/20 transition-all group">
       <div className="flex items-center gap-6">
         <div className="text-white/40 group-hover:text-white transition-colors">{icon}</div>
         <div className="space-y-2">
           <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/80">{label}</span>
-          <p className="text-[9px] text-white/40 tracking-widest uppercase font-bold">{description}</p>
+          <p className="text-[8px] text-white/40 tracking-widest uppercase font-bold">{description}</p>
         </div>
       </div>
       <ArrowUpRight className="w-5 h-5 text-white/40 group-hover:text-white transition-all group-hover:translate-x-1 group-hover:-translate-y-1" />
