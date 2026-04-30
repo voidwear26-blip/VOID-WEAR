@@ -145,11 +145,11 @@ export function ProductCard({ product }: ProductCardProps) {
             priority
           />
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-20 transition-opacity"></div>
           
           {/* Top Overlays */}
           <div className="absolute top-8 left-8 flex flex-col gap-2">
-            <span className="text-[9px] tracking-[0.5em] font-black text-white/60 group-hover:text-white transition-colors uppercase border-l-2 border-white/20 pl-4 py-1">
+            <span className="text-[10px] tracking-[0.6em] font-black text-white group-hover:glow-text transition-all uppercase border-l-2 border-white pl-4 py-1">
               {product.category || 'UNCLASSIFIED'}
             </span>
           </div>
@@ -159,41 +159,41 @@ export function ProductCard({ product }: ProductCardProps) {
               {...iconMotionProps}
               onClick={handleWishlistToggle}
               disabled={toggling}
-              className={`p-4 rounded-full backdrop-blur-2xl border transition-all duration-500 ${
-                isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]' : 'bg-black/60 text-white border-white/20 hover:border-white'
+              className={`p-5 rounded-full backdrop-blur-3xl border transition-all duration-500 ${
+                isInWishlist ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.4)]' : 'bg-black/80 text-white border-white/20 hover:border-white'
               }`}
             >
-              {toggling ? <Loader2 className="w-5 h-5 animate-spin" /> : <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />}
+              {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
             </motion.button>
 
             <motion.button 
               {...iconMotionProps}
               onClick={handleShare}
-              className="p-4 rounded-full backdrop-blur-2xl border border-white/20 bg-black/60 text-white hover:border-white transition-all duration-500"
+              className="p-5 rounded-full backdrop-blur-3xl border border-white/20 bg-black/80 text-white hover:border-white transition-all duration-500"
             >
-              <Share2 className="w-5 h-5" />
+              <Share2 className="w-6 h-6" />
             </motion.button>
           </div>
 
           {/* Price Float */}
-          <div className="absolute bottom-8 right-8">
-            <div className="bg-white text-black px-6 py-3 text-xs font-black tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          <div className="absolute bottom-10 right-10">
+            <div className="bg-white text-black px-8 py-4 text-sm font-black tracking-widest shadow-[0_0_40px_rgba(255,255,255,0.3)]">
               ₹{product.basePrice}
             </div>
           </div>
         </Link>
 
         {/* Info Area */}
-        <Link href={`/products/${product.id}`} className="p-10 space-y-6 flex-1 flex flex-col justify-center">
-          <div className="space-y-3">
-            <h3 className="text-xl md:text-2xl font-black tracking-tighter uppercase text-white group-hover:glow-text transition-all duration-500 line-clamp-2">
+        <Link href={`/products/${product.id}`} className="p-12 space-y-6 flex-1 flex flex-col justify-center">
+          <div className="space-y-4">
+            <h3 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-white group-hover:glow-text transition-all duration-500 line-clamp-2">
               {product.name}
             </h3>
-            <p className="text-[10px] tracking-[0.4em] text-white/40 uppercase font-bold flex items-center gap-3">
-               <Zap className="w-3 h-3" /> INITIALIZE_UPLINK
+            <p className="text-[11px] tracking-[0.5em] text-white/50 uppercase font-black flex items-center gap-3">
+               <Zap className="w-4 h-4 text-white/40" /> INITIALIZE_UPLINK
             </p>
           </div>
-          <div className="h-[1px] w-0 group-hover:w-full bg-gradient-to-r from-white/60 to-transparent transition-all duration-1000 ease-in-out"></div>
+          <div className="h-[1px] w-0 group-hover:w-full bg-gradient-to-r from-white to-transparent transition-all duration-1000 ease-in-out"></div>
         </Link>
       </div>
     </motion.div>

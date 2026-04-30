@@ -201,7 +201,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="space-y-8">
             <div className="grid grid-cols-1 gap-6">
               {displayImages.map((url: string, idx: number) => (
-                <div key={url + idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 glow-border group">
+                <div key={url + idx} className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 group">
                   <Image src={url} alt={product.name} fill className="object-cover transition-all duration-1000 group-hover:scale-105" unoptimized priority={idx === 0} />
                   
                   {idx === 0 && (
