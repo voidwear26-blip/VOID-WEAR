@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff, ChevronLeft } from 'lucide-react';
@@ -100,16 +100,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const isGlobalOOS = product?.isOutOfStock || (product?.stockQuantity === 0);
 
-  const isVariantOOS = (size: string, color: string) => {
+  const isVariantOOS = useCallback((size: string, color: string) => {
     if (!product?.stockMatrix) return false;
     return (product.stockMatrix[size]?.[color] || 0) <= 0;
   }, [product]);
 
-  const isSizeOOS = (size: string) => {
+  const isSizeOOS = useCallback((size: string) => {
     if (!product?.stockMatrix) return false;
     const colors = product.stockMatrix[size] || {};
     return Object.values(colors).every((qty: any) => qty <= 0);
-  };
+  }, [product]);
 
   const isSelectedVariantOOS = useMemo(() => {
     if (!selectedSize || !selectedColor) return false;
