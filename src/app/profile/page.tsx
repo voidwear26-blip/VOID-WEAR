@@ -20,6 +20,7 @@ import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { useRouter } from 'next/navigation';
+import { submitReview } from '@/firebase/review-actions';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -275,10 +276,10 @@ export default function ProfilePage() {
   );
 }
 
-function OrderCard({ order }: { order: any, userId: string, userName: string, db: any }) {
+function OrderCard({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
   const { toast } = useToast();
   return (
-    <div className="border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] p-8 md:p-10 space-y-8 transition-all group">
+    <div className="border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] p-8 md:p-10 space-y-10 transition-all group">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="space-y-4 flex-1">
           <div className="flex flex-wrap items-center gap-3">
@@ -306,7 +307,106 @@ function OrderCard({ order }: { order: any, userId: string, userName: string, db
           </Button>
         </div>
       </div>
+
+      <div className="space-y-6 pt-6 border-t border-white/5">
+         <h4 className="text-[8px] font-bold tracking-[0.4em] text-white/30 uppercase">MODULES & FIELD REPORTS</h4>
+         <div className="grid gap-6">
+            {order.items?.map((item: any, idx: number) => (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-white/[0.01] border border-white/5 p-6 group/item">
+                 <div className="flex items-center gap-6">
+                    <div className="relative w-12 aspect-[3/4] bg-white/5 border border-white/10 overflow-hidden">
+                       <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
+                    </div>
+                    <div className="space-y-1">
+                       <p className="text-[10px] font-bold tracking-widest uppercase text-white/80">{item.name}</p>
+                       <p className="text-[8px] text-white/40 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
+                    </div>
+                 </div>
+                 <ReviewDialog productId={item.productId} productName={item.name} userId={userId} userName={userName} db={db} />
+              </div>
+            ))}
+         </div>
+      </div>
     </div>
+  );
+}
+
+function ReviewDialog({ productId, productName, userId, userName, db }: { productId: string, productName: string, userId: string, userName: string, db: any }) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleReviewSubmit = async () => {
+    if (!comment.trim()) return;
+    setSubmitting(true);
+    try {
+      await submitReview(db, {
+        productId,
+        userId,
+        userName,
+        orderId: 'VERIFIED_TRANSMISSION',
+        rating,
+        comment,
+        createdAt: new Date().toISOString()
+      });
+      toast({ title: "REPORT LOGGED", description: "FIELD DATA SYNCED SUCCESSFULLY." });
+      setOpen(false);
+    } catch (e) {
+      toast({ variant: "destructive", title: "UPLINK FAILURE" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="h-10 border-white/10 text-[9px] tracking-[0.3em] font-black rounded-none uppercase hover:bg-white hover:text-black transition-all">
+          LOG FIELD REPORT <MessageSquare className="ml-2 w-3 h-3" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-black border border-white/10 text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-bold tracking-[0.5em] uppercase text-white/80">FIELD REPORT Protocol</DialogTitle>
+          <DialogDescription className="text-[9px] tracking-widest uppercase text-white/40 font-medium">
+             MODULE: {productName}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-8 pt-6">
+          <div className="space-y-4">
+             <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">AESTHETIC CALIBRATION (1-5)</label>
+             <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRating(s)}
+                    className={`w-10 h-10 border transition-all flex items-center justify-center ${
+                      rating >= s ? 'bg-white text-black border-white' : 'border-white/10 text-white/20 hover:border-white/40'
+                    }`}
+                  >
+                    <span className="text-[10px] font-black">0{s}</span>
+                  </button>
+                ))}
+             </div>
+          </div>
+          <div className="space-y-4">
+             <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">NARRATIVE PERFORMANCE DATA</label>
+             <Textarea
+               value={comment}
+               onChange={(e) => setComment(e.target.value)}
+               placeholder="INPUT DATA..."
+               className="bg-white/[0.02] border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+             />
+          </div>
+          <Button disabled={submitting || !comment.trim()} onClick={handleReviewSubmit} className="w-full bg-white text-black hover:bg-white/90 h-14 text-[10px] font-black tracking-[0.5em] rounded-none">
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>TRANSMIT REPORT <Zap className="ml-3 w-3.5 h-3.5" /></>}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

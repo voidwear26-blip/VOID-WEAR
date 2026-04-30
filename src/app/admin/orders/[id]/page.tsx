@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info, Hash, ShieldAlert } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck, Package, Loader2, Phone, Mail, MapPin, Send, Zap, Info, Hash, ShieldAlert, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { generateNotificationContent } from '@/ai/flows/generate-notification-content';
+import { generateInvoicePDF } from '@/lib/invoice-generator';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -76,6 +78,13 @@ export default function OrderDetailsPage() {
     }
   };
 
+  const handleDownloadInvoice = () => {
+    if (order) {
+      generateInvoicePDF(order);
+      toast({ title: "LOG GENERATED", description: "TRANSMISSION BILL DOWNLOADED." });
+    }
+  };
+
   if (!isAdmin) {
     return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase">Authenticating Protocol...</div>;
   }
@@ -114,6 +123,13 @@ export default function OrderDetailsPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={handleDownloadInvoice}
+                className="h-12 border-white/10 bg-white/5 hover:bg-white hover:text-black rounded-none text-[10px] font-bold tracking-widest uppercase transition-all"
+              >
+                DOWNLOAD LOG (PDF) <Download className="ml-2 w-3.5 h-3.5" />
+              </Button>
               <Select defaultValue={order.shippingStatus || 'processing'} onValueChange={handleStatusChange} disabled={notifying}>
                 <SelectTrigger className="w-48 bg-white/5 border-white/20 rounded-none h-12 text-[10px] tracking-[0.2em] uppercase text-white font-bold">
                   <SelectValue />
@@ -140,7 +156,11 @@ export default function OrderDetailsPage() {
                     <div key={idx} className="flex items-center justify-between group">
                       <div className="flex items-center gap-6">
                         <div className="w-12 h-16 bg-white/5 border border-white/10 flex items-center justify-center">
-                          <Package className="w-5 h-5 text-white/40" />
+                          {item.image ? (
+                             <Image src={item.image} alt={item.name} width={48} height={64} className="object-cover grayscale" unoptimized />
+                          ) : (
+                             <Package className="w-5 h-5 text-white/40" />
+                          )}
                         </div>
                         <div className="space-y-1">
                           <p className="text-[11px] font-bold tracking-widest uppercase">{item.name || 'ASSEMBLAGE MODULE'}</p>
