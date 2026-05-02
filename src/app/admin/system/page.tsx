@@ -8,8 +8,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 export default function SystemArchivePage() {
   const { user, isUserLoading } = useUser();
@@ -33,7 +31,11 @@ export default function SystemArchivePage() {
     setLoading(true);
 
     try {
-      // 1. Fetch System Data with simplified queries
+      // DYNAMIC IMPORTS: Preventing SSR crash by loading browser libraries only when triggered
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+
+      // 1. Fetch System Data
       const productsSnap = await getDocs(collection(db, 'products'));
       const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 

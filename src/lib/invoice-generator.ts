@@ -1,19 +1,20 @@
 'use client';
 
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import QRCode from 'qrcode';
-
 /**
- * VOID WEAR // INVOICE GENERATOR V2.1
- * Generates a cinematic 3.93x5.90 inch PDF transmission log with QR verification.
- * Optimized for Next.js client-side execution with robust error handling.
+ * VOID WEAR // INVOICE GENERATOR V2.2
+ * Generates a cinematic PDF transmission log with QR verification.
+ * Optimized for Next.js with dynamic imports to prevent SSR crashes.
  */
 export async function generateInvoicePDF(order: any) {
   if (!order || !order.items) {
     console.error('SYSTEM_ERROR: INVALID_TRANSMISSION_DATA');
     return;
   }
+
+  // DYNAMIC IMPORTS: Shielding SSR from browser-only libraries
+  const { jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  const QRCode = await import('qrcode');
 
   // Dimensions: 3.93in x 5.90in = ~100mm x 150mm
   const doc = new jsPDF({
