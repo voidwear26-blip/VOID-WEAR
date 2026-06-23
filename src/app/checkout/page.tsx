@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, runTransaction, getDocs } from 'firebase/firestore';
+import { collection, doc, runTransaction } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
+import { sendAdminOrderNotification } from '@/app/actions/admin-notifications';
 
 type CheckoutStep = 'shipping' | 'review' | 'payment' | 'success';
 type PaymentMethod = 'card' | 'upi' | 'wallet';
@@ -186,6 +186,9 @@ export default function CheckoutPage() {
         // 4. Record Transmission Log (Order)
         transaction.set(orderRef, newOrder);
       });
+
+      // 5. TRIGGER ADMIN NOTIFICATIONS (Neural Relay)
+      sendAdminOrderNotification(newOrder);
 
       setOrderObject(newOrder);
       setFinalOrderId(orderId);
