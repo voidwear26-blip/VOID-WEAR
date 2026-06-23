@@ -530,10 +530,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
+        {/* FIELD REPORTS (REVIEWS) - PLACED ABOVE RECOMMENDATIONS */}
         <div className="border-t border-white/10 pt-32 pb-32">
           <FieldReports productId={product.id} productName={product.name} />
         </div>
 
+        {/* RECOMMENDED ASSEMBLAGES */}
         <div className="border-t border-white/10 pt-32 pb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
             <div className="space-y-6">
