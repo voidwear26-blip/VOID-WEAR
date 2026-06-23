@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap, ZapOff, Palette, Link as LinkIcon } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap, ZapOff, Palette, Link as LinkIcon, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -45,7 +45,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const [formData, setFormData] = useState({
     name: '',
     category: '',
-    basePrice: '',
+    originalPrice: '',
+    discountPercentage: '0',
     description: '',
     details: '',
     imageUrls: [] as string[],
@@ -57,6 +58,13 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const [colorInputUrl, setColorInputUrl] = useState<{ [color: string]: string }>({});
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({ 'S': {}, 'M': {}, 'L': {}, 'XL': {} });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
+
+  const calculatedBasePrice = useMemo(() => {
+    const original = parseFloat(formData.originalPrice) || 0;
+    const discount = parseFloat(formData.discountPercentage) || 0;
+    const final = original - (original * (discount / 100));
+    return Math.round(final);
+  }, [formData.originalPrice, formData.discountPercentage]);
 
   const uniqueColors = useMemo(() => {
     const colors = new Set<string>();
@@ -71,7 +79,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
       setFormData({
         name: product.name || '',
         category: product.category || '',
-        basePrice: product.basePrice?.toString() || '',
+        originalPrice: product.originalPrice?.toString() || product.basePrice?.toString() || '',
+        discountPercentage: product.discountPercentage?.toString() || '0',
         description: product.description || '',
         details: Array.isArray(product.details) ? product.details.join('\n') : '',
         imageUrls: product.imageUrls || [],
@@ -177,7 +186,9 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
       const updateData = {
         name: formData.name.toUpperCase(),
         category: formData.category.toUpperCase(),
-        basePrice: parseFloat(formData.basePrice) || 0,
+        originalPrice: parseFloat(formData.originalPrice) || 0,
+        discountPercentage: parseFloat(formData.discountPercentage) || 0,
+        basePrice: calculatedBasePrice,
         description: formData.description,
         imageUrls: formData.imageUrls,
         colorImages: formData.colorImages,
@@ -232,8 +243,28 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
               <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-white uppercase tracking-widest" />
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">BASE PRICE (₹)</label>
-              <Input required type="number" value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-white font-mono" />
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">CATEGORY</label>
+              <Input required value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-white uppercase tracking-widest" />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">ORIGINAL PRICE (₹)</label>
+              <Input required type="number" value={formData.originalPrice} onChange={e => setFormData({ ...formData, originalPrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-white font-mono" />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">DISCOUNT (%)</label>
+              <div className="relative">
+                <Input type="number" value={formData.discountPercentage} onChange={e => setFormData({ ...formData, discountPercentage: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-white pr-12" />
+                <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">SALE PRICE (CALCULATED)</label>
+              <div className="h-14 border border-white/10 bg-white/5 flex items-center px-6 text-[14px] font-black tracking-widest text-white glow-text">
+                ₹{calculatedBasePrice}
+              </div>
             </div>
           </div>
 

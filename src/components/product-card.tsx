@@ -13,7 +13,12 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
-  product: Product & { isOutOfStock?: boolean; stockQuantity?: number };
+  product: Product & { 
+    isOutOfStock?: boolean; 
+    stockQuantity?: number;
+    originalPrice?: number;
+    discountPercentage?: number;
+  };
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -119,6 +124,7 @@ export function ProductCard({ product }: ProductCardProps) {
     : 'https://picsum.photos/seed/void-placeholder/800/1000';
 
   const isSoldOut = product.isOutOfStock || (product.stockQuantity === 0);
+  const hasDiscount = product.discountPercentage && product.discountPercentage > 0;
 
   return (
     <motion.div
@@ -202,7 +208,12 @@ export function ProductCard({ product }: ProductCardProps) {
                   {isSoldOut ? <ZapOff className="w-3 h-3 text-red-500/50" /> : <Zap className="w-3 h-3" />} 
                   {isSoldOut ? 'STASIS' : 'UPLINK'}
                </p>
-               <span className="text-sm font-black tracking-widest text-white/90">₹{product.basePrice}</span>
+               <div className="flex items-center gap-2">
+                  {hasDiscount && (
+                    <span className="text-[10px] line-through text-white/30 tracking-widest">₹{product.originalPrice}</span>
+                  )}
+                  <span className="text-sm font-black tracking-widest text-white/90">₹{product.basePrice}</span>
+               </div>
             </div>
           </div>
           <div className="h-[1px] w-0 group-hover:w-full bg-gradient-to-r from-white/40 to-transparent transition-all duration-700 ease-in-out"></div>

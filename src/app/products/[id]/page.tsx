@@ -198,6 +198,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }, [product, selectedColor]);
 
   const isGlobalOOS = product?.isOutOfStock || (product?.stockQuantity === 0);
+  const hasDiscount = product?.discountPercentage && product.discountPercentage > 0;
 
   const isVariantOOS = useCallback((size: string, color: string) => {
     if (!product?.stockMatrix) return false;
@@ -409,7 +410,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   </div>
                 )}
               </div>
-              <p className="text-2xl font-light tracking-widest text-white/90">₹{product.basePrice}</p>
+              <div className="flex items-baseline gap-4">
+                {hasDiscount && (
+                  <span className="text-xl line-through text-white/30 tracking-widest">₹{product.originalPrice}</span>
+                )}
+                <p className="text-3xl font-black tracking-tighter glow-text text-white">₹{product.basePrice}</p>
+                {hasDiscount && (
+                  <span className="bg-white/10 text-white text-[9px] font-black px-3 py-1 tracking-[0.2em] uppercase">-{product.discountPercentage}% OFF</span>
+                )}
+              </div>
             </div>
 
             <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase font-light max-w-xl">
@@ -530,7 +539,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* FIELD REPORTS (REVIEWS) - PLACED ABOVE RECOMMENDATIONS */}
+        {/* FIELD REPORTS (REVIEWS) - PLACED ABOVE RECOMMENDED ASSEMBLAGES */}
         <div className="border-t border-white/10 pt-32 pb-32">
           <FieldReports productId={product.id} productName={product.name} />
         </div>

@@ -2,7 +2,7 @@
 
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, ZapOff, Link as LinkIcon, Palette } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, ZapOff, Link as LinkIcon, Palette, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -42,7 +42,8 @@ export default function NewProductPage() {
   const [formData, setFormData] = useState({
     name: '',
     category: '',
-    basePrice: '',
+    originalPrice: '',
+    discountPercentage: '0',
     description: '',
     imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
@@ -56,6 +57,13 @@ export default function NewProductPage() {
     'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
+
+  const calculatedBasePrice = useMemo(() => {
+    const original = parseFloat(formData.originalPrice) || 0;
+    const discount = parseFloat(formData.discountPercentage) || 0;
+    const final = original - (original * (discount / 100));
+    return Math.round(final);
+  }, [formData.originalPrice, formData.discountPercentage]);
 
   const uniqueColors = useMemo(() => {
     const colors = new Set<string>();
@@ -154,7 +162,9 @@ export default function NewProductPage() {
     const productData = {
       name: formData.name.toUpperCase(),
       category: formData.category.toUpperCase(),
-      basePrice: parseFloat(formData.basePrice) || 0,
+      originalPrice: parseFloat(formData.originalPrice) || 0,
+      discountPercentage: parseFloat(formData.discountPercentage) || 0,
+      basePrice: calculatedBasePrice,
       description: formData.description,
       imageUrls: formData.imageUrls,
       colorImages: formData.colorImages,
@@ -219,9 +229,24 @@ export default function NewProductPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (₹ INR)</label>
-            <Input required type="number" value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white" placeholder="0.00" />
+          <div className="grid md:grid-cols-3 gap-10">
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">ORIGINAL PRICE (₹)</label>
+              <Input required type="number" value={formData.originalPrice} onChange={e => setFormData({ ...formData, originalPrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white" placeholder="0.00" />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">DISCOUNT (%)</label>
+              <div className="relative">
+                <Input type="number" value={formData.discountPercentage} onChange={e => setFormData({ ...formData, discountPercentage: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white pr-12" placeholder="0" />
+                <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SALE PRICE (CALCULATED)</label>
+              <div className="h-14 border border-white/10 bg-white/5 flex items-center px-6 text-[14px] font-black tracking-widest text-white glow-text">
+                ₹{calculatedBasePrice}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-8">
