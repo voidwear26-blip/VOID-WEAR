@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, doc, deleteDoc, query, limit, addDoc } from 'firebase/firestore';
 import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert, ZapOff, Copy } from 'lucide-react';
 import Link from 'next/link';
@@ -29,16 +28,19 @@ export default function AdminProductsPage() {
     setMounted(true);
   }, []);
 
-  const isAdmin = !isUserLoading && (
-    user?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
-  );
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
 
-  useEffect(() => {
-    if (mounted && !isUserLoading && !isAdmin) {
-      router.push('/');
-    }
-  }, [mounted, isUserLoading, isAdmin, router]);
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -126,7 +128,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  if (!mounted || isUserLoading) {
+  if (!mounted || isUserLoading || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">

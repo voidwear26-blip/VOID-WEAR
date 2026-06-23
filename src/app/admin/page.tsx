@@ -1,12 +1,12 @@
 "use client"
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { motion } from 'framer-motion';
 import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, collectionGroup } from 'firebase/firestore';
+import { collection, collectionGroup, doc } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
@@ -18,17 +18,19 @@ export default function AdminDashboard() {
     setMounted(true);
   }, []);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
-  }, [user, isUserLoading]);
-
-  useEffect(() => {
-    if (mounted && !isUserLoading && !isAdmin) {
-      router.push('/');
-    }
-  }, [mounted, isUserLoading, isAdmin, router]);
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -77,7 +79,7 @@ export default function AdminDashboard() {
     return products.reduce((acc, prod) => acc + (Number(prod.stockQuantity) || 0), 0);
   }, [products]);
 
-  if (!mounted || isUserLoading) {
+  if (!mounted || isUserLoading || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">

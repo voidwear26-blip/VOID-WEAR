@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { ChevronLeft, ShieldAlert, ShieldCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, Search, SlidersHorizontal, Trash2, Shield, UserCog } from 'lucide-react';
 import Link from 'next/link';
@@ -25,10 +24,21 @@ export default function AdminUsersPage() {
     setMounted(true);
   }, []);
 
-  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !currentUser) return null;
+    return doc(db, 'users', currentUser.uid);
+  }, [db, currentUser]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !currentUser) return false;
+    return currentUser.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           currentUser.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [currentUser, isUserLoading, profile]);
 
   const usersQuery = useMemoFirebase(() => {
-    // CRITICAL: Depend on user.uid to ensure query resets after auth
     if (!db || !currentUser?.uid || !isAdmin) return null;
     return collection(db, 'users');
   }, [db, currentUser?.uid, isAdmin]);
@@ -110,7 +120,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (!mounted || isUserLoading) {
+  if (!mounted || isUserLoading || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="flex flex-col items-center gap-6">
@@ -121,13 +131,7 @@ export default function AdminUsersPage() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 text-white font-bold">
-        ACCESS DENIED // MASTER ONLY
-      </div>
-    );
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collectionGroup, query, limit, updateDoc, doc } from 'firebase/firestore';
 import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -19,16 +19,23 @@ export default function AdminOrdersPage() {
     setMounted(true);
   }, []);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
-  }, [user, isUserLoading]);
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
     try {
-      // Simplified query to avoid COLLECTION_GROUP index requirements
       return query(collectionGroup(db, 'orders'), limit(100));
     } catch (e) {
       console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
@@ -38,7 +45,6 @@ export default function AdminOrdersPage() {
 
   const { data: rawOrders, isLoading, error: queryError } = useCollection(allOrdersQuery);
 
-  // Perform sorting client-side to avoid Index requirement
   const orders = useMemo(() => {
     if (!rawOrders) return [];
     return [...rawOrders].sort((a, b) => 
@@ -68,7 +74,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (isUserLoading || !mounted) {
+  if (isUserLoading || !mounted || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white bg-black">
         Authenticating Protocol...
@@ -76,14 +82,7 @@ export default function AdminOrdersPage() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center gap-6 text-white bg-black">
-        <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-bold">ACCESS DENIED // MASTER ONLY</p>
-        <Link href="/" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO SURFACE</Link>
-      </div>
-    );
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
