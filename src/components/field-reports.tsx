@@ -126,18 +126,9 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
               <p className="text-[9px] tracking-[0.3em] text-white/40 uppercase font-bold">Verifying Acquisition...</p>
             </div>
           ) : !hasPurchased ? (
-            <div className="p-12 border border-red-500/20 bg-red-500/5 space-y-8 text-center backdrop-blur-xl">
-              <ShieldAlert className="w-10 h-10 text-red-500/40 mx-auto" />
-              <div className="space-y-3">
-                <p className="text-[10px] tracking-[0.3em] text-white uppercase font-bold">VERIFICATION REQUIRED</p>
-                <p className="text-[8px] tracking-[0.2em] text-white/40 uppercase leading-relaxed font-black">
-                  FIELD REPORTS ARE RESTRICTED TO OPERATORS WHO HAVE SUCCESSFULLY ACQUIRED THIS MODULE.
-                </p>
-              </div>
-              <Button asChild variant="outline" className="w-full border-white/10 bg-white/5 h-14 text-[9px] tracking-[0.4em] font-black rounded-none transition-all hover:bg-white hover:text-black uppercase">
-                <Link href="/products">ACQUIRE MODULE</Link>
-              </Button>
-            </div>
+            // User requested to remove the "Verification Required" box. 
+            // We return null to leave the space empty for future review capability.
+            null
           ) : (
             <div className="space-y-8">
               <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/10 p-12 space-y-10 backdrop-blur-xl">
