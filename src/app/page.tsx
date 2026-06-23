@@ -6,12 +6,11 @@ import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query } from 'firebase/firestore';
 import { Package, ArrowRight, ShieldCheck, Zap, Globe, FileText } from 'lucide-react';
-import { motion, useAnimationControls, useMotionValue } from 'framer-motion';
+import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
   const db = useFirestore();
-  const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const [isPaused, setIsPaused] = useState(false);
@@ -35,28 +34,33 @@ export default function Home() {
 
   useEffect(() => {
     if (scrollRef.current) {
+      // containerWidth is half the scrollable content because we duplicated the items
       setContainerWidth(scrollRef.current.scrollWidth / 2);
     }
   }, [latestProducts]);
 
-  const controls = useAnimationControls();
+  // Persistent motion value for x position
   const x = useMotionValue(0);
 
-  useEffect(() => {
-    if (!latestLoading && containerWidth > 0 && !isPaused) {
-      controls.start({
-        x: [0, -containerWidth],
-        transition: {
-          duration: 40,
-          repeat: Infinity,
-          ease: "linear",
-          repeatType: "loop"
-        }
-      });
-    } else {
-      controls.stop();
+  // NEURAL DRIFT ENGINE: Infinite auto-scroll that supports manual drag offsets
+  useAnimationFrame((time, delta) => {
+    if (!latestLoading && containerWidth > 0) {
+      // 1. CONSTANT WRAP: Ensure the offset stays within the duplicated bounds
+      let currentX = x.get();
+      if (currentX <= -containerWidth) {
+        x.set(currentX + containerWidth);
+      } else if (currentX > 0) {
+        x.set(currentX - containerWidth);
+      }
+
+      // 2. DRIFT RESUMPTION: Continue motion from current position if not paused
+      if (!isPaused) {
+        const pixelsPerSecond = 40; // Calibrated drift speed
+        const moveBy = (pixelsPerSecond * delta) / 1000;
+        x.set(x.get() - moveBy);
+      }
     }
-  }, [latestLoading, containerWidth, isPaused, controls]);
+  });
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -161,8 +165,9 @@ export default function Home() {
           <motion.div 
             ref={scrollRef}
             drag="x"
-            dragConstraints={{ left: -containerWidth * 1.5, right: 0 }}
-            animate={controls}
+            // High constraints to allow free-flowing infinite drag wrap
+            dragConstraints={{ left: -containerWidth * 1.5, right: containerWidth * 0.5 }}
+            dragElastic={0.05}
             style={{ x }}
             className="flex gap-8 md:gap-12 whitespace-nowrap px-6 md:px-0"
             onDragStart={() => setIsPaused(true)}
