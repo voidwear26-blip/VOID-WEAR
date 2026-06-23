@@ -6,7 +6,7 @@ import { collection, query, where, limit } from 'firebase/firestore';
 import { submitReview } from '@/firebase/review-actions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, MessageSquare, Loader2, Zap, User as UserIcon, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Star, MessageSquare, Loader2, Zap, User as UserIcon, ShieldAlert, CheckCircle2, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -24,8 +24,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Note: orderBy on productId + createdAt would require an index. 
-  // We perform client-side sorting to ensure the system remains index-free.
+  // 1. Fetch Global Reports for this product
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !productId) return null;
     return query(
@@ -44,9 +43,25 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
     );
   }, [rawReports]);
 
+  // 2. VERIFICATION PROTOCOL: Check if user has purchased this module
+  const userOrdersQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'orders');
+  }, [db, user]);
+
+  const { data: userOrders, isLoading: checkingVerification } = useCollection(userOrdersQuery);
+
+  const hasPurchased = useMemo(() => {
+    if (!userOrders) return false;
+    return userOrders.some(order => 
+      order.items?.some((item: any) => item.productId === productId)
+    );
+  }, [userOrders, productId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !db) return;
+    if (!user || !db || !hasPurchased) return;
+    
     if (!comment.trim()) {
       toast({ variant: "destructive", title: "REPORT_INCOMPLETE", description: "INPUT NARRATIVE DATA." });
       return;
@@ -61,7 +76,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
         rating,
         comment,
         createdAt: new Date().toISOString(),
-        orderId: 'INTERNAL_UPLINK' // Flagged as manual product page review
+        orderId: 'VERIFIED_TRANSMISSION' // Tagged as verified on purchase check
       } as any);
 
       setComment('');
@@ -99,10 +114,28 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
               <ShieldAlert className="w-10 h-10 text-white/20 mx-auto" />
               <div className="space-y-2">
                 <p className="text-[10px] tracking-[0.3em] text-white/60 uppercase font-bold">AUTHENTICATION REQUIRED</p>
-                <p className="text-[8px] tracking-[0.2em] text-white/30 uppercase leading-relaxed font-black">LINK YOUR IDENTITY TO SUBMIT PERFORMANCE DATA.</p>
+                <p className="text-[8px] tracking-[0.2em] text-white/30 uppercase leading-relaxed font-black">LINK YOUR IDENTITY TO VIEW ELIGIBILITY.</p>
               </div>
               <Button asChild variant="outline" className="w-full border-white/10 h-14 text-[9px] tracking-[0.4em] font-black rounded-none transition-all hover:bg-white hover:text-black uppercase">
                 <Link href="/login">ESTABLISH LINK</Link>
+              </Button>
+            </div>
+          ) : checkingVerification ? (
+            <div className="p-12 border border-white/10 bg-white/[0.02] flex flex-col items-center justify-center space-y-6">
+              <Loader2 className="w-8 h-8 animate-spin text-white/20" />
+              <p className="text-[9px] tracking-[0.3em] text-white/40 uppercase font-bold">Verifying Acquisition...</p>
+            </div>
+          ) : !hasPurchased ? (
+            <div className="p-12 border border-red-500/20 bg-red-500/5 space-y-8 text-center backdrop-blur-xl">
+              <ShieldAlert className="w-10 h-10 text-red-500/40 mx-auto" />
+              <div className="space-y-3">
+                <p className="text-[10px] tracking-[0.3em] text-white uppercase font-bold">VERIFICATION REQUIRED</p>
+                <p className="text-[8px] tracking-[0.2em] text-white/40 uppercase leading-relaxed font-black">
+                  FIELD REPORTS ARE RESTRICTED TO OPERATORS WHO HAVE SUCCESSFULLY ACQUIRED THIS MODULE.
+                </p>
+              </div>
+              <Button asChild variant="outline" className="w-full border-white/10 bg-white/5 h-14 text-[9px] tracking-[0.4em] font-black rounded-none transition-all hover:bg-white hover:text-black uppercase">
+                <Link href="/products">ACQUIRE MODULE</Link>
               </Button>
             </div>
           ) : (
@@ -111,7 +144,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
                     <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">AESTHETIC CALIBRATION</label>
-                    <Zap className="w-3 h-3 text-white/20" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />
                   </div>
                   <div className="flex gap-4">
                     {[1, 2, 3, 4, 5].map((s) => (
@@ -147,10 +180,10 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
               <div className="p-8 border border-white/5 bg-white/[0.01] space-y-4">
                 <div className="flex items-center gap-3 text-white/20">
                   <ShieldAlert className="w-3.5 h-3.5" />
-                  <h4 className="text-[8px] font-black tracking-[0.4em] uppercase">SYSTEM ADVISORY</h4>
+                  <h4 className="text-[8px] font-black tracking-[0.4em] uppercase">VERIFIED STATUS</h4>
                 </div>
                 <p className="text-[9px] text-white/30 tracking-[0.2em] leading-relaxed uppercase font-medium italic">
-                  FIELD REPORTS ARE AUDITED FOR ACCURACY AND INTEGRITY. VERIFIED TRANSMISSIONS (ORDERS) RECEIVE PRIORITY INDEXING IN THE ARCHIVE.
+                  IDENTITY AUTHENTICATED. YOU ARE ELIGIBLE TO LOG PERFORMANCE DATA FOR THIS MODULE BASED ON YOUR ACQUISITION HISTORY.
                 </p>
               </div>
             </div>
