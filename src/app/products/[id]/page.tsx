@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductCard } from '@/components/product-card';
+import { FieldReports } from '@/components/field-reports';
 import {
   Carousel,
   CarouselContent,
@@ -527,6 +528,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="border-t border-white/10 pt-32 pb-32">
+          <FieldReports productId={product.id} productName={product.name} />
         </div>
 
         <div className="border-t border-white/10 pt-32 pb-32">
