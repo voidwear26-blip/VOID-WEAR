@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
@@ -12,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { compressImage } from '@/lib/image-utils';
 import Image from 'next/image';
 
 export default function EditStoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -57,12 +57,16 @@ export default function EditStoryPage({ params }: { params: Promise<{ id: string
     }
   }, [story]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setFormData(prev => ({ ...prev, imageUrl: compressed }));
+        toast({ title: "ASSET COMPRESSED", description: "LOCAL NARRATIVE BUFFER UPDATED." });
+      } catch (err) {
+        toast({ variant: "destructive", title: "COMPRESSION_FAILURE" });
+      }
     }
   };
 

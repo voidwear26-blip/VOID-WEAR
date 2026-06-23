@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
@@ -14,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { compressImage } from '@/lib/image-utils';
 import Image from 'next/image';
 
 type StockMatrix = {
@@ -44,7 +44,7 @@ export default function NewProductPage() {
     category: '',
     basePrice: '',
     description: '',
-    imageUrls: [] as string[], // Fallback/Default
+    imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
     details: '',
     isOutOfStock: false
@@ -52,11 +52,9 @@ export default function NewProductPage() {
 
   const [currentInputUrl, setCurrentInputUrl] = useState('');
   const [colorInputUrl, setColorInputUrl] = useState<{ [color: string]: string }>({});
-
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
     'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
-
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
 
   const uniqueColors = useMemo(() => {
@@ -67,22 +65,10 @@ export default function NewProductPage() {
     return Array.from(colors);
   }, [stockMatrix]);
 
-  const calculateTotalStock = () => {
-    let total = 0;
-    Object.values(stockMatrix).forEach(colors => {
-      Object.values(colors).forEach(qty => total += qty);
-    });
-    return total;
-  };
-
   const handleAddColor = (size: string) => {
     const color = newColor[size]?.trim().toUpperCase();
     if (!color) return;
-    
-    setStockMatrix(prev => ({
-      ...prev,
-      [size]: { ...prev[size], [color]: 0 }
-    }));
+    setStockMatrix(prev => ({ ...prev, [size]: { ...prev[size], [color]: 0 } }));
     setNewColor(prev => ({ ...prev, [size]: '' }));
   };
 
@@ -96,34 +82,26 @@ export default function NewProductPage() {
 
   const handleQtyChange = (size: string, color: string, value: string) => {
     const qty = parseInt(value) || 0;
-    setStockMatrix(prev => ({
-      ...prev,
-      [size]: { ...prev[size], [color]: Math.max(0, qty) }
-    }));
+    setStockMatrix(prev => ({ ...prev, [size]: { ...prev[size], [color]: Math.max(0, qty) } }));
   };
 
   const addColorImageUrl = (color: string) => {
     const url = colorInputUrl[color]?.trim();
     if (!url) return;
-    
-    setFormData(prev => ({
-      ...prev,
-      colorImages: {
-        ...prev.colorImages,
-        [color]: [...(prev.colorImages[color] || []), url]
-      }
-    }));
+    setFormData(prev => ({ ...prev, colorImages: { ...prev.colorImages, [color]: [...(prev.colorImages[color] || []), url] } }));
     setColorInputUrl(prev => ({ ...prev, [color]: '' }));
   };
 
-  const removeColorImageUrl = (color: string, idx: number) => {
-    setFormData(prev => ({
-      ...prev,
-      colorImages: {
-        ...prev.colorImages,
-        [color]: prev.colorImages[color].filter((_, i) => i !== idx)
-      }
-    }));
+  const handleLocalColorUpload = async (color: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      setFormData(prev => ({ ...prev, colorImages: { ...prev.colorImages, [color]: [...(prev.colorImages[color] || []), compressed] } }));
+      toast({ title: "ASSET COMPRESSED", description: `${color} MODULE LOGGED TO SESSION.` });
+    } catch (err) {
+      toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "NEURAL COMPRESSION FAILED." });
+    }
   };
 
   const addDefaultImageUrl = () => {
@@ -132,8 +110,30 @@ export default function NewProductPage() {
     setCurrentInputUrl('');
   };
 
+  const handleLocalDefaultUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, compressed] }));
+      toast({ title: "ASSET COMPRESSED", description: "DEFAULT MODULE LOGGED TO SESSION." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "UPLINK_FAILURE", description: "NEURAL COMPRESSION FAILED." });
+    }
+  };
+
+  const removeColorImageUrl = (color: string, idx: number) => {
+    setFormData(prev => ({ ...prev, colorImages: { ...prev.colorImages, [color]: prev.colorImages[color].filter((_, i) => i !== idx) } }));
+  };
+
   const removeDefaultImageUrl = (idx: number) => {
     setFormData(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, i) => i !== idx) }));
+  };
+
+  const calculateTotalStock = () => {
+    let total = 0;
+    Object.values(stockMatrix).forEach(colors => { Object.values(colors).forEach(qty => total += qty); });
+    return total;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,15 +141,10 @@ export default function NewProductPage() {
     if (!db || !isAdmin) return;
 
     const totalStock = calculateTotalStock();
-    
-    // Validation: Ensure every unique color has at least one image if possible
     const colorsWithoutImages = uniqueColors.filter(c => !formData.colorImages[c] || formData.colorImages[c].length === 0);
+    
     if (colorsWithoutImages.length > 0) {
-       toast({ 
-         variant: "destructive", 
-         title: "CHROMA_VISUALS_MISSING", 
-         description: `ADD IMAGES FOR COLORS: ${colorsWithoutImages.join(', ')}.` 
-       });
+       toast({ variant: "destructive", title: "CHROMA_VISUALS_MISSING", description: `ADD IMAGES FOR COLORS: ${colorsWithoutImages.join(', ')}.` });
        return;
     }
 
@@ -210,46 +205,23 @@ export default function NewProductPage() {
                 <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-500">SYSTEM OVERRIDE: OUT OF STOCK</p>
                 <p className="text-[8px] tracking-widest uppercase text-white/40">Immediately show this module as unavailable upon initialization.</p>
              </div>
-             <Switch 
-                checked={formData.isOutOfStock}
-                onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })}
-                className="data-[state=checked]:bg-red-500"
-             />
+             <Switch checked={formData.isOutOfStock} onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })} className="data-[state=checked]:bg-red-500" />
           </div>
 
           <div className="grid md:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">MODULE NAME</label>
-              <Input 
-                required
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
-                placeholder="E.G. NEON JACKET"
-              />
+              <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" placeholder="E.G. NEON JACKET" />
             </div>
             <div className="space-y-3">
               <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CATEGORY</label>
-              <Input 
-                required
-                value={formData.category}
-                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
-                placeholder="E.G. OUTERWEAR"
-              />
+              <Input required value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" placeholder="E.G. OUTERWEAR" />
             </div>
           </div>
 
           <div className="space-y-3">
             <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (₹ INR)</label>
-            <Input 
-              required
-              type="number"
-              value={formData.basePrice}
-              onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-              className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-              placeholder="0.00"
-            />
+            <Input required type="number" value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white" placeholder="0.00" />
           </div>
 
           <div className="space-y-8">
@@ -263,34 +235,18 @@ export default function NewProductPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-black tracking-widest text-white/80">{size}</span>
                     <div className="flex gap-2">
-                       <Input 
-                         placeholder="COLOR NAME" 
-                         value={newColor[size] || ''}
-                         onChange={e => setNewColor({...newColor, [size]: e.target.value})}
-                         className="h-10 w-40 bg-black/40 border-white/10 text-[9px] tracking-widest uppercase rounded-none"
-                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddColor(size))}
-                       />
-                       <Button type="button" onClick={() => handleAddColor(size)} size="sm" className="h-10 rounded-none bg-white/10 hover:bg-white/20 text-white border-white/10">
-                          <Plus className="w-3 h-3" />
-                       </Button>
+                       <Input placeholder="COLOR NAME" value={newColor[size] || ''} onChange={e => setNewColor({...newColor, [size]: e.target.value})} className="h-10 w-40 bg-black/40 border-white/10 text-[9px] tracking-widest uppercase rounded-none" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddColor(size))} />
+                       <Button type="button" onClick={() => handleAddColor(size)} size="sm" className="h-10 rounded-none bg-white/10 hover:bg-white/20 text-white border-white/10"><Plus className="w-3 h-3" /></Button>
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {Object.keys(stockMatrix[size]).map(color => (
                       <div key={color} className="flex items-center gap-3 p-3 bg-black/40 border border-white/5">
                         <div className="flex-1 space-y-1">
                           <p className="text-[8px] tracking-[0.2em] font-bold text-white/40 uppercase">{color}</p>
-                          <Input 
-                            type="number"
-                            value={stockMatrix[size][color]}
-                            onChange={e => handleQtyChange(size, color, e.target.value)}
-                            className="h-8 bg-transparent border-0 border-b border-white/10 focus:border-white/40 text-[10px] p-0 rounded-none font-mono"
-                          />
+                          <Input type="number" value={stockMatrix[size][color]} onChange={e => handleQtyChange(size, color, e.target.value)} className="h-8 bg-transparent border-0 border-b border-white/10 focus:border-white/40 text-[10px] p-0 rounded-none font-mono" />
                         </div>
-                        <button type="button" onClick={() => handleRemoveColor(size, color)} className="text-white/20 hover:text-red-500 transition-colors">
-                          <X className="w-3 h-3" />
-                        </button>
+                        <button type="button" onClick={() => handleRemoveColor(size, color)} className="text-white/20 hover:text-red-500 transition-colors"><X className="w-3 h-3" /></button>
                       </div>
                     ))}
                   </div>
@@ -312,15 +268,12 @@ export default function NewProductPage() {
                       <h3 className="text-xs font-black tracking-[0.3em] uppercase text-white/80">{color} VISUALS</h3>
                       <span className="text-[8px] tracking-[0.4em] text-white/20 uppercase font-bold">ASSETS LOGGED: {formData.colorImages[color]?.length || 0}</span>
                    </div>
-
                    <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                       {formData.colorImages[color]?.map((url, i) => (
                         <div key={i} className="relative aspect-[3/4] bg-white/5 border border-white/10 group overflow-hidden">
                            <Image src={url} alt={`${color} module`} fill className="object-cover" unoptimized />
                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <button type="button" onClick={() => removeColorImageUrl(color, i)} className="p-3 bg-red-500/80 text-white">
-                                 <Trash2 className="w-4 h-4" />
-                              </button>
+                              <button type="button" onClick={() => removeColorImageUrl(color, i)} className="p-3 bg-red-500/80 text-white"><Trash2 className="w-4 h-4" /></button>
                            </div>
                         </div>
                       ))}
@@ -329,27 +282,19 @@ export default function NewProductPage() {
                          <span className="text-[7px] tracking-widest uppercase">AWAITING ASSET</span>
                       </div>
                    </div>
-
-                   <div className="flex gap-4">
-                      <Input 
-                        value={colorInputUrl[color] || ''}
-                        onChange={e => setColorInputUrl({...colorInputUrl, [color]: e.target.value})}
-                        className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest text-white"
-                        placeholder={`UPLINK URL FOR ${color} VARIANT...`}
-                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColorImageUrl(color))}
-                      />
-                      <Button type="button" onClick={() => addColorImageUrl(color)} className="h-12 bg-white/5 border border-white/10 rounded-none px-8 text-[10px] font-bold tracking-widest">
-                         LINK ASSET
-                      </Button>
+                   <div className="flex flex-col md:flex-row gap-4">
+                      <Input value={colorInputUrl[color] || ''} onChange={e => setColorInputUrl({...colorInputUrl, [color]: e.target.value})} className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest text-white flex-1" placeholder={`UPLINK URL FOR ${color}...`} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColorImageUrl(color))} />
+                      <div className="flex gap-4">
+                        <Button type="button" onClick={() => addColorImageUrl(color)} className="h-12 bg-white/5 border border-white/10 rounded-none px-8 text-[10px] font-bold tracking-widest">LINK URL</Button>
+                        <div className="relative">
+                          <Button type="button" className="h-12 bg-white text-black hover:bg-white/90 rounded-none px-8 text-[10px] font-bold tracking-widest">LOCAL UPLINK</Button>
+                          <input type="file" accept="image/*" onChange={(e) => handleLocalColorUpload(color, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                        </div>
+                      </div>
                    </div>
                 </div>
               ))}
-              
-              {uniqueColors.length === 0 && (
-                <div className="py-12 text-center opacity-20 border border-dashed border-white/10">
-                   <p className="text-[10px] tracking-[0.3em] uppercase font-bold">INITIALIZE INVENTORY MATRIX TO ENABLE CHROMA UPLINKS</p>
-                </div>
-              )}
+              {uniqueColors.length === 0 && <div className="py-12 text-center opacity-20 border border-dashed border-white/10"><p className="text-[10px] tracking-[0.3em] uppercase font-bold">INITIALIZE INVENTORY MATRIX TO ENABLE CHROMA UPLINKS</p></div>}
             </div>
           </div>
 
@@ -360,59 +305,35 @@ export default function NewProductPage() {
                 <div key={i} className="relative aspect-[3/4] bg-white/[0.02] border border-white/10 group overflow-hidden">
                    <Image src={url} alt={`Fallback visual ${i}`} fill className="object-cover grayscale" unoptimized />
                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button type="button" onClick={() => removeDefaultImageUrl(i)} className="p-3 bg-red-500/80 text-white">
-                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      <button type="button" onClick={() => removeDefaultImageUrl(i)} className="p-3 bg-red-500/80 text-white"><Trash2 className="w-4 h-4" /></button>
                    </div>
                 </div>
               ))}
             </div>
-            <div className="flex gap-4">
-                <Input 
-                  value={currentInputUrl}
-                  onChange={e => setCurrentInputUrl(e.target.value)}
-                  className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  placeholder="HTTPS://REMOTE-UPLINK.COM/DEFAULT_ASSET.JPG"
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addDefaultImageUrl())}
-                />
-                <Button type="button" onClick={addDefaultImageUrl} className="h-14 rounded-none bg-white/10 hover:bg-white/20 border border-white/10 px-8 text-[10px] font-bold tracking-widest">
-                   LINK ASSET
-                </Button>
+            <div className="flex flex-col md:flex-row gap-4">
+                <Input value={currentInputUrl} onChange={e => setCurrentInputUrl(e.target.value)} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white flex-1" placeholder="HTTPS://REMOTE-UPLINK.COM/DEFAULT_ASSET.JPG" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addDefaultImageUrl())} />
+                <div className="flex gap-4">
+                  <Button type="button" onClick={addDefaultImageUrl} className="h-14 rounded-none bg-white/10 hover:bg-white/20 border border-white/10 px-8 text-[10px] font-bold tracking-widest">LINK URL</Button>
+                  <div className="relative">
+                    <Button type="button" className="h-14 rounded-none bg-white text-black hover:bg-white/90 px-8 text-[10px] font-bold tracking-widest">LOCAL UPLINK</Button>
+                    <input type="file" accept="image/*" onChange={handleLocalDefaultUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                  </div>
+                </div>
             </div>
           </div>
 
           <div className="space-y-3">
             <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">NEURAL DESCRIPTION</label>
-            <Textarea 
-              required
-              value={formData.description}
-              onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white"
-              placeholder="ENTER PRODUCT STORY..."
-            />
+            <Textarea required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white" placeholder="ENTER PRODUCT STORY..." />
           </div>
 
           <div className="space-y-3">
             <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SPECIFICATIONS (ONE PER LINE)</label>
-            <Textarea 
-              value={formData.details}
-              onChange={e => setFormData({ ...formData, details: e.target.value })}
-              className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white"
-              placeholder="WATERPROOF SHELL&#10;NEON FIBER OPTICS"
-            />
+            <Textarea value={formData.details} onChange={e => setFormData({ ...formData, details: e.target.value })} className="bg-black/40 border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white" placeholder="WATERPROOF SHELL&#10;NEON FIBER OPTICS" />
           </div>
 
-          <Button 
-            type="submit"
-            disabled={loading}
-            className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-              <>
-                INITIALIZE MODULE
-                <Sparkles className="ml-3 w-4 h-4" />
-              </>
-            )}
+          <Button type="submit" disabled={loading} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>INITIALIZE MODULE <Sparkles className="ml-3 w-4 h-4" /></>}
           </Button>
         </form>
       </div>
