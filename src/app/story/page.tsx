@@ -53,12 +53,13 @@ export default function StoryPage() {
                 >
                   <div className="grid md:grid-cols-2 gap-16 items-start">
                     {story.imageUrl && (
-                      <div className="relative aspect-video md:aspect-[4/3] bg-white/5 border border-white/5 overflow-hidden">
+                      <div className="bg-white/5 border border-white/5 overflow-hidden w-full">
                         <Image 
                           src={story.imageUrl} 
                           alt={story.title} 
-                          fill 
-                          className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+                          width={1200}
+                          height={1200}
+                          className="w-full h-auto grayscale group-hover:grayscale-0 transition-all duration-1000"
                           unoptimized
                         />
                       </div>
