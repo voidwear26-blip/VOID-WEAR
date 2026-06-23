@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, doc, runTransaction, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -104,12 +105,10 @@ export default function CheckoutPage() {
   const finalizeOrderInFirestore = async (paymentId: string) => {
     if (!user || !db || !cartItems) return;
     
-    const batch = writeBatch(db);
+    setLoading(true);
     const orderId = `VOID-${Date.now()}`;
     const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
-    
     const userRef = doc(db, 'users', user.uid);
-    batch.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
     const newOrder = {
       id: orderId,
@@ -135,21 +134,73 @@ export default function CheckoutPage() {
       updatedAt: new Date().toISOString()
     };
 
-    batch.set(orderRef, newOrder);
+    try {
+      await runTransaction(db, async (transaction) => {
+        // 1. Update User Profile
+        transaction.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
-    const cartSnap = await getDocs(cartItemsRef!);
-    cartSnap.docs.forEach(d => batch.delete(d.ref));
+        // 2. Automated Inventory Depletion
+        for (const item of cartItems) {
+          const productRef = doc(db, 'products', item.productId);
+          const productSnap = await transaction.get(productRef);
+          
+          if (productSnap.exists()) {
+            const productData = productSnap.data();
+            const matrix = productData.stockMatrix || {};
+            const size = item.size;
+            const color = item.color;
+            const qtyPurchased = Number(item.quantity) || 1;
 
-    for (const item of cartItems) {
-      const wishlistRef = doc(db, 'users', user.uid, 'wishlist', item.productId);
-      batch.delete(wishlistRef);
+            if (matrix[size] && matrix[size][color] !== undefined) {
+              const currentVariantStock = Number(matrix[size][color]);
+              const newVariantStock = Math.max(0, currentVariantStock - qtyPurchased);
+              
+              // Update Matrix
+              matrix[size][color] = newVariantStock;
+              
+              // Recalculate Total Stock
+              let newTotalStock = 0;
+              Object.values(matrix).forEach((colors: any) => {
+                Object.values(colors).forEach((q: any) => {
+                  newTotalStock += (Number(q) || 0);
+                });
+              });
+
+              transaction.update(productRef, {
+                stockMatrix: matrix,
+                stockQuantity: newTotalStock,
+                updatedAt: new Date().toISOString()
+              });
+            }
+          }
+
+          // 3. Remove from Wishlist
+          const wishlistRef = doc(db, 'users', user.uid, 'wishlist', item.productId);
+          transaction.delete(wishlistRef);
+          
+          // 4. Remove from Cart
+          const itemDocRef = doc(db, 'users', user.uid, 'carts', 'active_cart', 'items', item.id);
+          transaction.delete(itemDocRef);
+        }
+
+        // 4. Record Transmission Log (Order)
+        transaction.set(orderRef, newOrder);
+      });
+
+      setOrderObject(newOrder);
+      setFinalOrderId(orderId);
+      setFinalTransitionId(paymentId);
+      setStep('success');
+    } catch (e) {
+      console.error('[TRANSACTION_FAILURE]', e);
+      toast({
+        variant: "destructive",
+        title: "TRANSMISSION_CRASH",
+        description: "COULD NOT FINALIZE INVENTORY DEPLEITION.",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    await batch.commit();
-    setOrderObject(newOrder);
-    setFinalOrderId(orderId);
-    setFinalTransitionId(paymentId);
-    setStep('success');
   };
 
   const handlePaymentUplink = async () => {
@@ -190,10 +241,10 @@ export default function CheckoutPage() {
               toast({ title: "TRANSMISSION SECURED", description: "UPLINK VERIFIED SUCCESSFULLY." });
             } else {
               toast({ variant: "destructive", title: "VERIFICATION_FAILURE" });
+              setLoading(false);
             }
           } catch (err) {
             toast({ variant: "destructive", title: "CONNECTION_TIMEOUT" });
-          } finally {
             setLoading(false);
           }
         },
@@ -209,7 +260,6 @@ export default function CheckoutPage() {
       rzp.open();
     } catch (e: any) {
       toast({ variant: "destructive", title: "GATEWAY_ERROR", description: e.message });
-    } finally {
       setLoading(false);
     }
   };
