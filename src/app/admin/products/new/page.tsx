@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
@@ -44,6 +45,7 @@ export default function NewProductPage() {
     category: '',
     originalPrice: '',
     discountPercentage: '0',
+    basePrice: '', // Explicitly tracked for manual override
     description: '',
     imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
@@ -58,11 +60,15 @@ export default function NewProductPage() {
   });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
 
-  const calculatedBasePrice = useMemo(() => {
+  // Helper: Auto-calculate price when discount or original changes, 
+  // but we allow manual override via the input's onChange.
+  useEffect(() => {
     const original = parseFloat(formData.originalPrice) || 0;
     const discount = parseFloat(formData.discountPercentage) || 0;
-    const final = original - (original * (discount / 100));
-    return Math.round(final);
+    if (original > 0) {
+      const final = Math.round(original - (original * (discount / 100)));
+      setFormData(prev => ({ ...prev, basePrice: final.toString() }));
+    }
   }, [formData.originalPrice, formData.discountPercentage]);
 
   const uniqueColors = useMemo(() => {
@@ -164,7 +170,7 @@ export default function NewProductPage() {
       category: formData.category.toUpperCase(),
       originalPrice: parseFloat(formData.originalPrice) || 0,
       discountPercentage: parseFloat(formData.discountPercentage) || 0,
-      basePrice: calculatedBasePrice,
+      basePrice: parseFloat(formData.basePrice) || 0,
       description: formData.description,
       imageUrls: formData.imageUrls,
       colorImages: formData.colorImages,
@@ -242,10 +248,8 @@ export default function NewProductPage() {
               </div>
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SALE PRICE (CALCULATED)</label>
-              <div className="h-14 border border-white/10 bg-white/5 flex items-center px-6 text-[14px] font-black tracking-widest text-white glow-text">
-                ₹{calculatedBasePrice}
-              </div>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">SALE PRICE (₹)</label>
+              <Input required type="number" value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white font-black" placeholder="0.00" />
             </div>
           </div>
 

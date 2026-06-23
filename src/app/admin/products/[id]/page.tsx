@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
@@ -47,6 +48,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     category: '',
     originalPrice: '',
     discountPercentage: '0',
+    basePrice: '', // Editable manual price
     description: '',
     details: '',
     imageUrls: [] as string[],
@@ -59,11 +61,14 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({ 'S': {}, 'M': {}, 'L': {}, 'XL': {} });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
 
-  const calculatedBasePrice = useMemo(() => {
+  // Pricing Offset Auto-calculation
+  useEffect(() => {
     const original = parseFloat(formData.originalPrice) || 0;
     const discount = parseFloat(formData.discountPercentage) || 0;
-    const final = original - (original * (discount / 100));
-    return Math.round(final);
+    if (original > 0) {
+      const final = Math.round(original - (original * (discount / 100)));
+      setFormData(prev => ({ ...prev, basePrice: final.toString() }));
+    }
   }, [formData.originalPrice, formData.discountPercentage]);
 
   const uniqueColors = useMemo(() => {
@@ -81,6 +86,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         category: product.category || '',
         originalPrice: product.originalPrice?.toString() || product.basePrice?.toString() || '',
         discountPercentage: product.discountPercentage?.toString() || '0',
+        basePrice: product.basePrice?.toString() || '',
         description: product.description || '',
         details: Array.isArray(product.details) ? product.details.join('\n') : '',
         imageUrls: product.imageUrls || [],
@@ -188,7 +194,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         category: formData.category.toUpperCase(),
         originalPrice: parseFloat(formData.originalPrice) || 0,
         discountPercentage: parseFloat(formData.discountPercentage) || 0,
-        basePrice: calculatedBasePrice,
+        basePrice: parseFloat(formData.basePrice) || 0,
         description: formData.description,
         imageUrls: formData.imageUrls,
         colorImages: formData.colorImages,
@@ -261,10 +267,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
               </div>
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">SALE PRICE (CALCULATED)</label>
-              <div className="h-14 border border-white/10 bg-white/5 flex items-center px-6 text-[14px] font-black tracking-widest text-white glow-text">
-                ₹{calculatedBasePrice}
-              </div>
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">SALE PRICE (₹)</label>
+              <Input required type="number" value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-white font-black glow-text" />
             </div>
           </div>
 
