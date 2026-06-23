@@ -1,7 +1,7 @@
 
 'use client';
 
-import { use, useState, useMemo, useCallback } from 'react';
+import { use, useState, useMemo, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff, ChevronLeft } from 'lucide-react';
@@ -250,7 +250,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
         <div className="grid lg:grid-cols-2 gap-24 items-start pb-32">
           <div className="space-y-8">
-            <Carousel className="w-full group/carousel" key={selectedColor}>
+            <Carousel 
+              key={`${id}-${selectedColor}`}
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full group/carousel"
+            >
               <CarouselContent>
                 {displayImages.map((url: string, idx: number) => (
                   <CarouselItem key={url + idx}>
@@ -305,8 +312,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </CarouselContent>
               {displayImages.length > 1 && (
                 <>
-                  <CarouselPrevious className="left-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-0 group-hover/carousel:opacity-100 transition-all duration-500" />
-                  <CarouselNext className="right-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-0 group-hover/carousel:opacity-100 transition-all duration-500" />
+                  <CarouselPrevious className="left-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-50 group-hover/carousel:opacity-100 transition-all duration-500 z-50" />
+                  <CarouselNext className="right-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-50 group-hover/carousel:opacity-100 transition-all duration-500 z-50" />
                 </>
               )}
             </Carousel>
