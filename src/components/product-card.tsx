@@ -143,7 +143,7 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.name || 'Assemblage Module'}
             fill
             className={cn(
-              "object-cover transition-all duration-1000 ease-out grayscale-0 group-hover:grayscale group-hover:scale-105",
+              "object-cover transition-all duration-1000 ease-out grayscale-0 group-hover:grayscale group-hover:scale-110",
               isSoldOut && "opacity-40 grayscale"
             )}
             unoptimized

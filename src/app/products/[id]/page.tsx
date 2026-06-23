@@ -267,7 +267,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         alt={product.name} 
                         fill 
                         className={cn(
-                          "object-cover transition-all duration-1000 group-hover:scale-105", 
+                          "object-cover transition-all duration-700 ease-in-out group-hover:scale-110", 
                           isGlobalOOS && "opacity-40 grayscale"
                         )} 
                         unoptimized 
