@@ -45,7 +45,7 @@ export default function NewProductPage() {
     category: '',
     originalPrice: '',
     discountPercentage: '0',
-    basePrice: '', // Explicitly tracked for manual override
+    basePrice: '', 
     description: '',
     imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
@@ -59,17 +59,6 @@ export default function NewProductPage() {
     'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
-
-  // Helper: Auto-calculate price when discount or original changes, 
-  // but we allow manual override via the input's onChange.
-  useEffect(() => {
-    const original = parseFloat(formData.originalPrice) || 0;
-    const discount = parseFloat(formData.discountPercentage) || 0;
-    if (original > 0) {
-      const final = Math.round(original - (original * (discount / 100)));
-      setFormData(prev => ({ ...prev, basePrice: final.toString() }));
-    }
-  }, [formData.originalPrice, formData.discountPercentage]);
 
   const uniqueColors = useMemo(() => {
     const colors = new Set<string>();

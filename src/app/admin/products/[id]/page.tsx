@@ -48,7 +48,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     category: '',
     originalPrice: '',
     discountPercentage: '0',
-    basePrice: '', // Editable manual price
+    basePrice: '', 
     description: '',
     details: '',
     imageUrls: [] as string[],
@@ -60,16 +60,6 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const [colorInputUrl, setColorInputUrl] = useState<{ [color: string]: string }>({});
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({ 'S': {}, 'M': {}, 'L': {}, 'XL': {} });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
-
-  // Pricing Offset Auto-calculation
-  useEffect(() => {
-    const original = parseFloat(formData.originalPrice) || 0;
-    const discount = parseFloat(formData.discountPercentage) || 0;
-    if (original > 0) {
-      const final = Math.round(original - (original * (discount / 100)));
-      setFormData(prev => ({ ...prev, basePrice: final.toString() }));
-    }
-  }, [formData.originalPrice, formData.discountPercentage]);
 
   const uniqueColors = useMemo(() => {
     const colors = new Set<string>();

@@ -2,8 +2,8 @@
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, doc, deleteDoc, query, limit } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert, ZapOff } from 'lucide-react';
+import { collection, doc, deleteDoc, query, limit, addDoc } from 'firebase/firestore';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert, ZapOff, Copy } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useMemo } from 'react';
@@ -23,6 +23,7 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<AdminSortOption>('newest');
   const [mounted, setMounted] = useState(false);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -93,6 +94,35 @@ export default function AdminProductsPage() {
       });
     } catch (e: any) {
       console.error('[PRODUCT_DELETE_ERROR]', e);
+    }
+  };
+
+  const handleDuplicate = async (product: any) => {
+    if (!db) return;
+    setDuplicating(product.id);
+    
+    try {
+      const { id, ...rest } = product;
+      const duplicatedData = {
+        ...rest,
+        name: `COPY OF ${product.name}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      await addDoc(collection(db, 'products'), duplicatedData);
+      toast({
+        title: "MODULE CLONED",
+        description: `CREATED REPLICA OF ${product.name}.`,
+      });
+    } catch (e) {
+      console.error('[DUPLICATION_FAILURE]', e);
+      toast({
+        variant: "destructive",
+        title: "CLONE FAILURE",
+      });
+    } finally {
+      setDuplicating(null);
     }
   };
 
@@ -232,6 +262,16 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="px-10 py-8 text-right">
                         <div className="flex items-center justify-end gap-4">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDuplicate(product)}
+                            disabled={duplicating === product.id}
+                            className="text-white/40 hover:text-white transition-colors"
+                            title="DUPLICATE MODULE"
+                          >
+                            {duplicating === product.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+                          </Button>
                           <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
                             <Link href={`/admin/products/${product.id}`}>
                               <Edit2 className="w-4 h-4" />
