@@ -1,10 +1,11 @@
+
 "use client"
 
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, ZapOff } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, ZapOff, Link as LinkIcon, Palette } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,18 +44,28 @@ export default function NewProductPage() {
     category: '',
     basePrice: '',
     description: '',
-    imageUrls: [] as string[],
+    imageUrls: [] as string[], // Fallback/Default
+    colorImages: {} as { [color: string]: string[] },
     details: '',
     isOutOfStock: false
   });
 
   const [currentInputUrl, setCurrentInputUrl] = useState('');
+  const [colorInputUrl, setColorInputUrl] = useState<{ [color: string]: string }>({});
 
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
     'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
 
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
+
+  const uniqueColors = useMemo(() => {
+    const colors = new Set<string>();
+    Object.values(stockMatrix).forEach(sizeColors => {
+      Object.keys(sizeColors).forEach(c => colors.add(c));
+    });
+    return Array.from(colors);
+  }, [stockMatrix]);
 
   const calculateTotalStock = () => {
     let total = 0;
@@ -91,25 +102,37 @@ export default function NewProductPage() {
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, imageUrls: [reader.result as string, ...prev.imageUrls] }));
-        toast({ title: "VISUAL BUFFERED", description: "LOCAL ASSET CONVERTED." });
-      };
-      reader.readAsDataURL(file);
-    }
+  const addColorImageUrl = (color: string) => {
+    const url = colorInputUrl[color]?.trim();
+    if (!url) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      colorImages: {
+        ...prev.colorImages,
+        [color]: [...(prev.colorImages[color] || []), url]
+      }
+    }));
+    setColorInputUrl(prev => ({ ...prev, [color]: '' }));
   };
 
-  const addRemoteImageUrl = () => {
+  const removeColorImageUrl = (color: string, idx: number) => {
+    setFormData(prev => ({
+      ...prev,
+      colorImages: {
+        ...prev.colorImages,
+        [color]: prev.colorImages[color].filter((_, i) => i !== idx)
+      }
+    }));
+  };
+
+  const addDefaultImageUrl = () => {
     if (!currentInputUrl.trim()) return;
-    setFormData(prev => ({ ...prev, imageUrls: [currentInputUrl.trim(), ...prev.imageUrls] }));
+    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, currentInputUrl.trim()] }));
     setCurrentInputUrl('');
   };
 
-  const removeImageUrl = (idx: number) => {
+  const removeDefaultImageUrl = (idx: number) => {
     setFormData(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, i) => i !== idx) }));
   };
 
@@ -118,14 +141,16 @@ export default function NewProductPage() {
     if (!db || !isAdmin) return;
 
     const totalStock = calculateTotalStock();
-    if (totalStock <= 0 && !formData.isOutOfStock) {
-      toast({ variant: "destructive", title: "INVENTORY EMPTY", description: "ADD AT LEAST ONE SIZE-COLOR NODE OR ENABLE OUT OF STOCK OVERRIDE." });
-      return;
-    }
-
-    if (formData.imageUrls.length === 0) {
-      toast({ variant: "destructive", title: "VISUALS MISSING", description: "ADD AT LEAST ONE PRODUCT IMAGE." });
-      return;
+    
+    // Validation: Ensure every unique color has at least one image if possible
+    const colorsWithoutImages = uniqueColors.filter(c => !formData.colorImages[c] || formData.colorImages[c].length === 0);
+    if (colorsWithoutImages.length > 0) {
+       toast({ 
+         variant: "destructive", 
+         title: "CHROMA_VISUALS_MISSING", 
+         description: `ADD IMAGES FOR COLORS: ${colorsWithoutImages.join(', ')}.` 
+       });
+       return;
     }
 
     setLoading(true);
@@ -137,10 +162,11 @@ export default function NewProductPage() {
       basePrice: parseFloat(formData.basePrice) || 0,
       description: formData.description,
       imageUrls: formData.imageUrls,
+      colorImages: formData.colorImages,
       isOutOfStock: formData.isOutOfStock,
       stockMatrix: stockMatrix,
       stockQuantity: totalStock,
-      sizes: Object.keys(stockMatrix).filter(s => Object.values(stockMatrix[s]).some(q => q > 0)),
+      sizes: Object.keys(stockMatrix).filter(s => Object.keys(stockMatrix[s]).length > 0),
       details: detailsArray,
       slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
       createdAt: new Date().toISOString(),
@@ -214,23 +240,16 @@ export default function NewProductPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-10">
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (₹ INR)</label>
-              <Input 
-                required
-                type="number"
-                value={formData.basePrice}
-                onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-                className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                placeholder="0.00"
-              />
-            </div>
-            <div className="flex flex-col justify-end">
-               <div className="p-4 border border-white/5 bg-white/[0.01]">
-                  <p className="text-[10px] tracking-[0.3em] font-bold text-white/40 uppercase">TOTAL STOCK: {calculateTotalStock()}</p>
-               </div>
-            </div>
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRICE (₹ INR)</label>
+            <Input 
+              required
+              type="number"
+              value={formData.basePrice}
+              onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
+              className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
+              placeholder="0.00"
+            />
           </div>
 
           <div className="space-y-8">
@@ -280,40 +299,83 @@ export default function NewProductPage() {
             </div>
           </div>
 
+          <div className="space-y-12">
+            <div className="border-b border-white/10 pb-4 flex items-center gap-4">
+              <Palette className="w-4 h-4 text-white/40" />
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CHROMA VISUAL UPLINKS (PER COLOR)</label>
+            </div>
+
+            <div className="grid gap-16">
+              {uniqueColors.map(color => (
+                <div key={color} className="space-y-8 p-10 bg-white/[0.01] border border-white/5">
+                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <h3 className="text-xs font-black tracking-[0.3em] uppercase text-white/80">{color} VISUALS</h3>
+                      <span className="text-[8px] tracking-[0.4em] text-white/20 uppercase font-bold">ASSETS LOGGED: {formData.colorImages[color]?.length || 0}</span>
+                   </div>
+
+                   <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                      {formData.colorImages[color]?.map((url, i) => (
+                        <div key={i} className="relative aspect-[3/4] bg-white/5 border border-white/10 group overflow-hidden">
+                           <Image src={url} alt={`${color} module`} fill className="object-cover" unoptimized />
+                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button type="button" onClick={() => removeColorImageUrl(color, i)} className="p-3 bg-red-500/80 text-white">
+                                 <Trash2 className="w-4 h-4" />
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                      <div className="relative aspect-[3/4] bg-white/[0.01] border border-white/5 border-dashed flex flex-col items-center justify-center opacity-20">
+                         <Upload className="w-6 h-6 mb-2" />
+                         <span className="text-[7px] tracking-widest uppercase">AWAITING ASSET</span>
+                      </div>
+                   </div>
+
+                   <div className="flex gap-4">
+                      <Input 
+                        value={colorInputUrl[color] || ''}
+                        onChange={e => setColorInputUrl({...colorInputUrl, [color]: e.target.value})}
+                        className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest text-white"
+                        placeholder={`UPLINK URL FOR ${color} VARIANT...`}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColorImageUrl(color))}
+                      />
+                      <Button type="button" onClick={() => addColorImageUrl(color)} className="h-12 bg-white/5 border border-white/10 rounded-none px-8 text-[10px] font-bold tracking-widest">
+                         LINK ASSET
+                      </Button>
+                   </div>
+                </div>
+              ))}
+              
+              {uniqueColors.length === 0 && (
+                <div className="py-12 text-center opacity-20 border border-dashed border-white/10">
+                   <p className="text-[10px] tracking-[0.3em] uppercase font-bold">INITIALIZE INVENTORY MATRIX TO ENABLE CHROMA UPLINKS</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-8">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">VISUAL UPLINKS (IMAGES)</label>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">DEFAULT / FALLBACK VISUALS</label>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
               {formData.imageUrls.map((url, i) => (
                 <div key={i} className="relative aspect-[3/4] bg-white/[0.02] border border-white/10 group overflow-hidden">
-                   <Image src={url} alt={`Module visual ${i}`} fill className="object-cover" unoptimized />
+                   <Image src={url} alt={`Fallback visual ${i}`} fill className="object-cover grayscale" unoptimized />
                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button type="button" onClick={() => removeImageUrl(i)} className="p-3 bg-red-500/80 text-white">
+                      <button type="button" onClick={() => removeDefaultImageUrl(i)} className="p-3 bg-red-500/80 text-white">
                          <Trash2 className="w-4 h-4" />
                       </button>
                    </div>
                 </div>
               ))}
-              <div className="relative aspect-[3/4] bg-white/[0.02] border border-white/10 border-dashed flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-all">
-                 <Upload className="w-8 h-8 text-white/20 mb-2" />
-                 <span className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-bold text-center px-4">UPLOAD ASSET</span>
-                 <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
-                  className="absolute inset-0 opacity-0 cursor-pointer" 
-                />
-              </div>
             </div>
-
             <div className="flex gap-4">
                 <Input 
                   value={currentInputUrl}
                   onChange={e => setCurrentInputUrl(e.target.value)}
                   className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  placeholder="HTTPS://REMOTE-UPLINK.COM/IMAGE.JPG"
+                  placeholder="HTTPS://REMOTE-UPLINK.COM/DEFAULT_ASSET.JPG"
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addDefaultImageUrl())}
                 />
-                <Button type="button" onClick={addRemoteImageUrl} className="h-14 rounded-none bg-white/10 hover:bg-white/20 border border-white/10 px-8 text-[10px] font-bold tracking-widest">
+                <Button type="button" onClick={addDefaultImageUrl} className="h-14 rounded-none bg-white/10 hover:bg-white/20 border border-white/10 px-8 text-[10px] font-bold tracking-widest">
                    LINK ASSET
                 </Button>
             </div>

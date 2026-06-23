@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap, ZapOff } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, ShieldAlert, Zap, ZapOff, Palette, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,14 +49,24 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     description: '',
     details: '',
     imageUrls: [] as string[],
+    colorImages: {} as { [color: string]: string[] },
     isOutOfStock: false
   });
 
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [colorInputUrl, setColorInputUrl] = useState<{ [color: string]: string }>({});
   const [stockMatrix, setStockMatrix] = useState<StockMatrix>({
     'S': {}, 'M': {}, 'L': {}, 'XL': {}
   });
   const [newColor, setNewColor] = useState<{ [size: string]: string }>({});
+
+  const uniqueColors = useMemo(() => {
+    const colors = new Set<string>();
+    Object.values(stockMatrix).forEach(sizeColors => {
+      Object.keys(sizeColors).forEach(c => colors.add(c));
+    });
+    return Array.from(colors);
+  }, [stockMatrix]);
 
   useEffect(() => {
     if (product) {
@@ -66,6 +77,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         description: product.description || '',
         details: Array.isArray(product.details) ? product.details.join('\n') : '',
         imageUrls: product.imageUrls || [],
+        colorImages: product.colorImages || {},
         isOutOfStock: product.isOutOfStock || false
       });
       if (product.stockMatrix) {
@@ -88,6 +100,30 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
 
   const removeImageUrl = (idx: number) => {
     setFormData(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, i) => i !== idx) }));
+  };
+
+  const addColorImageUrl = (color: string) => {
+    const url = colorInputUrl[color]?.trim();
+    if (!url) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      colorImages: {
+        ...prev.colorImages,
+        [color]: [...(prev.colorImages[color] || []), url]
+      }
+    }));
+    setColorInputUrl(prev => ({ ...prev, [color]: '' }));
+  };
+
+  const removeColorImageUrl = (color: string, idx: number) => {
+    setFormData(prev => ({
+      ...prev,
+      colorImages: {
+        ...prev.colorImages,
+        [color]: prev.colorImages[color].filter((_, i) => i !== idx)
+      }
+    }));
   };
 
   const handleAddColor = (size: string) => {
@@ -149,6 +185,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         basePrice: parseFloat(formData.basePrice) || 0,
         description: formData.description,
         imageUrls: formData.imageUrls,
+        colorImages: formData.colorImages,
         isOutOfStock: formData.isOutOfStock,
         stockMatrix: stockMatrix,
         stockQuantity: totalStock,
@@ -276,23 +313,62 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                         </div>
                       </div>
                     ))}
-                    {(!stockMatrix[size] || Object.keys(stockMatrix[size]).length === 0) && (
-                      <div className="col-span-full py-4 text-center">
-                        <span className="text-[8px] tracking-[0.3em] text-white/20 uppercase font-bold">NO COLOR NODES DEFINED FOR THIS SIZE</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
+          <div className="space-y-12">
+            <div className="border-b border-white/10 pb-4 flex items-center gap-4">
+              <Palette className="w-4 h-4 text-white/40" />
+              <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CHROMA VISUAL UPLINKS (PER COLOR)</label>
+            </div>
+
+            <div className="grid gap-16">
+              {uniqueColors.map(color => (
+                <div key={color} className="space-y-8 p-10 bg-white/[0.01] border border-white/5">
+                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <h3 className="text-xs font-black tracking-[0.3em] uppercase text-white/80">{color} VISUALS</h3>
+                      <span className="text-[8px] tracking-[0.4em] text-white/20 uppercase font-bold">ASSETS LOGGED: {formData.colorImages[color]?.length || 0}</span>
+                   </div>
+
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {formData.colorImages[color]?.map((url, i) => (
+                        <div key={i} className="relative aspect-[3/4] bg-white/5 border border-white/10 group overflow-hidden">
+                           <Image src={url} alt={`${color} variant`} fill className="object-cover" unoptimized />
+                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button type="button" onClick={() => removeColorImageUrl(color, i)} className="p-3 bg-red-500/80 text-white">
+                                 <Trash2 className="w-4 h-4" />
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+
+                   <div className="flex gap-4">
+                      <Input 
+                        value={colorInputUrl[color] || ''}
+                        onChange={e => setColorInputUrl({...colorInputUrl, [color]: e.target.value})}
+                        className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest text-white"
+                        placeholder={`UPLINK URL FOR ${color} VARIANT...`}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColorImageUrl(color))}
+                      />
+                      <Button type="button" onClick={() => addColorImageUrl(color)} className="h-12 bg-white/5 border border-white/10 rounded-none px-8 text-[10px] font-bold tracking-widest">
+                         LINK ASSET
+                      </Button>
+                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-8">
-            <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">VISUAL UPLINKS (IMAGES)</label>
+            <label className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">FALLBACK VISUALS (DEFAULT)</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {formData.imageUrls.map((url, i) => (
                 <div key={i} className="relative aspect-[3/4] border border-white/10 group bg-black/40 overflow-hidden">
-                  <Image src={url} alt="Product" fill className="object-cover grayscale" unoptimized />
+                  <Image src={url} alt="Fallback" fill className="object-cover grayscale" unoptimized />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button type="button" onClick={() => removeImageUrl(i)} className="p-3 bg-red-500/80 text-white rounded-none">
                       <Trash2 className="w-4 h-4" />
@@ -302,7 +378,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
               ))}
               <div className="relative aspect-[3/4] border border-white/10 border-dashed flex flex-col items-center justify-center opacity-40 hover:opacity-100 transition-all cursor-pointer">
                 <Upload className="w-6 h-6 mb-2" />
-                <span className="text-[8px] tracking-[0.2em] font-bold">ADD VISUAL</span>
+                <span className="text-[8px] tracking-[0.2em] font-bold">ADD ASSET</span>
               </div>
             </div>
             <div className="flex gap-4">
@@ -311,6 +387,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                 value={newImageUrl} 
                 onChange={e => setNewImageUrl(e.target.value)} 
                 className="bg-black/40 border-white/10 rounded-none h-12 text-[10px] tracking-widest" 
+                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
               />
               <Button type="button" onClick={addImageUrl} className="bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-none h-12 px-8 text-[10px] font-bold tracking-widest">
                 LINK ASSET

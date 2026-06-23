@@ -78,7 +78,16 @@
         },
         "imageUrls": {
           "type": "array",
+          "description": "Fallback or default images.",
           "items": { "type": "string" }
+        },
+        "colorImages": {
+          "type": "object",
+          "description": "Mapping of color names to specific image arrays.",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
         },
         "category": {
           "type": "string"

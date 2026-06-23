@@ -1,3 +1,4 @@
+
 'use client';
 
 import { use, useState, useMemo, useCallback } from 'react';
@@ -99,6 +100,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const colors = product.stockMatrix[selectedSize] || {};
     return Object.keys(colors);
   }, [product, selectedSize]);
+
+  // DYNAMIC IMAGE REFRESH LOGIC
+  const displayImages = useMemo(() => {
+    if (!product) return ['https://picsum.photos/seed/void-placeholder/800/1000'];
+    
+    // If a color is selected and specific images exist for it, prioritize them
+    if (selectedColor && product.colorImages?.[selectedColor] && product.colorImages[selectedColor].length > 0) {
+      return product.colorImages[selectedColor];
+    }
+    
+    // Fallback to master image list
+    if (product.imageUrls && product.imageUrls.length > 0) {
+      return product.imageUrls;
+    }
+
+    return ['https://picsum.photos/seed/void-placeholder/800/1000'];
+  }, [product, selectedColor]);
 
   const isGlobalOOS = product?.isOutOfStock || (product?.stockQuantity === 0);
 
@@ -219,8 +237,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   if (!product) return notFound();
 
-  const displayImages = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls : ['https://picsum.photos/seed/void-placeholder/800/1000'];
-
   return (
     <div className="pt-32 pb-24 bg-transparent min-h-screen">
       <div className="container mx-auto px-6">
@@ -234,7 +250,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
         <div className="grid lg:grid-cols-2 gap-24 items-start pb-32">
           <div className="space-y-8">
-            <Carousel className="w-full group/carousel">
+            <Carousel className="w-full group/carousel" key={selectedColor}>
               <CarouselContent>
                 {displayImages.map((url: string, idx: number) => (
                   <CarouselItem key={url + idx}>
