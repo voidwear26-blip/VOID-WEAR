@@ -1,10 +1,9 @@
-
 'use client';
 
 import { use, useState, useMemo, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff, ChevronLeft } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff, Ruler, X } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, useRouter } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -22,6 +21,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const OutOfStockOverlay = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
@@ -101,20 +106,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return Object.keys(colors);
   }, [product, selectedSize]);
 
-  // DYNAMIC IMAGE REFRESH LOGIC
   const displayImages = useMemo(() => {
     if (!product) return ['https://picsum.photos/seed/void-placeholder/800/1000'];
-    
-    // If a color is selected and specific images exist for it, prioritize them
     if (selectedColor && product.colorImages?.[selectedColor] && product.colorImages[selectedColor].length > 0) {
       return product.colorImages[selectedColor];
     }
-    
-    // Fallback to master image list
     if (product.imageUrls && product.imageUrls.length > 0) {
       return product.imageUrls;
     }
-
     return ['https://picsum.photos/seed/void-placeholder/800/1000'];
   }, [product, selectedColor]);
 
@@ -128,7 +127,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const isSizeOOS = useCallback((size: string) => {
     if (!product?.stockMatrix) return false;
     const colors = product.stockMatrix[size] || {};
-    return Object.values(colors).every((qty: any) => qty <= 0);
+    const colorValues = Object.values(colors) as number[];
+    return colorValues.every((qty: number) => qty <= 0);
   }, [product]);
 
   const isSelectedVariantOOS = useMemo(() => {
@@ -343,7 +343,29 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <div className="space-y-10">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">01. SELECT SIZE</h4>
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">01. SELECT SIZE</h4>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="flex items-center gap-2 text-[9px] font-black tracking-[0.3em] text-white/60 hover:text-white transition-all uppercase">
+                        <Ruler className="w-3 h-3" />
+                        SIZE GUIDE
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-black/95 border border-white/10 max-w-2xl p-0 overflow-hidden">
+                      <DialogTitle className="sr-only">SIZE CHART</DialogTitle>
+                      <div className="relative aspect-square md:aspect-[4/3] w-full">
+                        <Image 
+                          src="/SIZE CHART.png" 
+                          alt="VOID WEAR SIZE GUIDE" 
+                          fill 
+                          className="object-contain" 
+                          unoptimized
+                        />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <div className="flex flex-wrap gap-4">
                   {allDefinedSizes.map(size => {
                     const isOOS = isSizeOOS(size) || isGlobalOOS;
@@ -371,7 +393,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
               {selectedSize && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
-                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">02. SELECT COLOR</h4>
+                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 border-b border-white/10 pb-4">02. SELECT COLOR</h4>
                   <div className="flex flex-wrap gap-4">
                     {allDefinedColors.map(color => {
                       const isOOS = isVariantOOS(selectedSize, color) || isGlobalOOS;
