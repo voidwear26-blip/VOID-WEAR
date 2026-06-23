@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useMemo, useCallback, useEffect } from 'react';
+import { use, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Heart, Loader2, Zap, Share2, ArrowRight, ShoppingBag, Sparkles, ZapOff, Ruler, X } from 'lucide-react';
@@ -12,7 +12,7 @@ import { addToCart } from '@/firebase/cart-actions';
 import { toggleWishlist } from '@/firebase/wishlist-actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ProductCard } from '@/components/product-card';
 import {
   Carousel,
@@ -36,6 +36,85 @@ const OutOfStockOverlay = () => (
     </svg>
   </div>
 );
+
+/**
+ * NEURAL MAGNIFIER COMPONENT
+ * Handles coordinate-based magnification for technical module inspection.
+ */
+function ProductImageMagnifier({ 
+  src, 
+  alt, 
+  isGlobalOOS,
+  priority = false
+}: { 
+  src: string; 
+  alt: string; 
+  isGlobalOOS?: boolean;
+  priority?: boolean;
+}) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setPosition({ x, y });
+    setCursorPosition({ x: e.clientX - left, y: e.clientY - top });
+  };
+
+  return (
+    <div 
+      className="relative w-full h-full cursor-crosshair overflow-hidden group"
+      onMouseEnter={() => !isGlobalOOS && setShowMagnifier(true)}
+      onMouseLeave={() => setShowMagnifier(false)}
+      onMouseMove={handleMouseMove}
+    >
+      <Image 
+        src={src} 
+        alt={alt} 
+        fill 
+        className={cn(
+          "object-cover transition-all duration-700 ease-in-out group-hover:scale-105", 
+          isGlobalOOS && "opacity-40 grayscale"
+        )} 
+        unoptimized 
+        priority={priority}
+      />
+      
+      {showMagnifier && !isGlobalOOS && (
+        <div 
+          className="absolute pointer-events-none border border-white/20 bg-black/60 backdrop-blur-xl overflow-hidden z-40 hidden md:block"
+          style={{
+            width: '240px',
+            height: '240px',
+            left: `${cursorPosition.x - 120}px`,
+            top: `${cursorPosition.y - 120}px`,
+            boxShadow: '0 0 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.1)'
+          }}
+        >
+          <div 
+            className="absolute"
+            style={{
+              backgroundImage: `url(${src})`,
+              backgroundSize: '400%', // 4x Zoom calibration
+              backgroundPosition: `${position.x}% ${position.y}%`,
+              width: '100%',
+              height: '100%',
+              backgroundRepeat: 'no-repeat'
+            }}
+          />
+          {/* Viewfinder Reticle */}
+          <div className="absolute inset-0 border border-white/10 flex items-center justify-center opacity-30">
+            <div className="w-4 h-px bg-white"></div>
+            <div className="h-4 w-px bg-white"></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -262,20 +341,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 {displayImages.map((url: string, idx: number) => (
                   <CarouselItem key={url + idx}>
                     <div className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 group">
-                      <Image 
+                      <ProductImageMagnifier 
                         src={url} 
                         alt={product.name} 
-                        fill 
-                        className={cn(
-                          "object-cover transition-all duration-700 ease-in-out group-hover:scale-110", 
-                          isGlobalOOS && "opacity-40 grayscale"
-                        )} 
-                        unoptimized 
-                        priority={idx === 0} 
+                        isGlobalOOS={isGlobalOOS} 
+                        priority={idx === 0}
                       />
                       
                       {isGlobalOOS && (
-                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                           <div className="bg-black/80 border border-white/20 px-8 py-4 backdrop-blur-xl">
                             <span className="text-xs font-black tracking-[0.8em] text-white uppercase">OUT OF STOCK</span>
                           </div>
