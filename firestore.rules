@@ -11,7 +11,8 @@ service cloud.firestore {
       return isSignedIn() && (
         request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
         (request.auth.token.email != null &&
-         request.auth.token.email.lower() == 'voidwear26@gmail.com')
+         request.auth.token.email.lower() == 'voidwear26@gmail.com') ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN'
       );
     }
 
@@ -31,7 +32,7 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    // ✅ CollectionGroup support for reviews
+    // CollectionGroup support for reviews
     match /{path=**}/reviews/{reviewId} {
       allow read, get, list: if true;
       allow create: if isSignedIn();

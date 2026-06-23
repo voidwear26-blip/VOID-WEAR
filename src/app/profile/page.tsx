@@ -5,7 +5,7 @@ import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,6 +36,13 @@ export default function ProfilePage() {
   }, [db, user]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (!user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, profile]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -115,8 +122,6 @@ export default function ProfilePage() {
       console.error(e);
     }
   };
-
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
 
   if (isUserLoading || (user && isProfileLoading)) {
     return (
@@ -405,7 +410,7 @@ function ReviewDialog({ productId, productName, userId, userName, db }: { produc
                value={comment}
                onChange={(e) => setComment(e.target.value)}
                placeholder="INPUT DATA..."
-               className="bg-white/[0.02] border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+               className="bg-white/[0.02] border-white/10 rounded-none min-h-[120px] text-[10px] tracking-widest focus:border-white/40 text-white uppercase placeholder:text-white/5"
              />
           </div>
           <Button disabled={submitting || !comment.trim()} onClick={handleReviewSubmit} className="w-full bg-white text-black hover:bg-white/90 h-14 text-[10px] font-black tracking-[0.5em] rounded-none">

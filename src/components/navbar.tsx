@@ -4,11 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingBag, User, Heart, ShieldCheck, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 export function Navbar() {
@@ -18,7 +18,19 @@ export function Navbar() {
   const { user } = useUser();
   const db = useFirestore();
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile } = useDoc(userRef);
+
+  const isAdmin = useMemo(() => {
+    if (!user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, profile]);
 
   const cartQuery = useMemoFirebase(() => {
     if (!db || !user) return null;

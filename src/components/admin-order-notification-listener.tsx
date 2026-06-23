@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useUser, useFirestore } from '@/firebase';
-import { collectionGroup, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { useEffect, useRef, useMemo } from 'react';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collectionGroup, query, onSnapshot, orderBy, limit, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingBag, Zap } from 'lucide-react';
 
@@ -17,7 +17,19 @@ export function AdminOrderNotificationListener() {
   const { toast } = useToast();
   const mountTime = useRef(new Date().toISOString());
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (!user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, profile]);
 
   useEffect(() => {
     if (!db || !isAdmin) return;
@@ -46,10 +58,10 @@ export function AdminOrderNotificationListener() {
                 </div>
               ),
             });
-            // Play a subtle notification tone if needed
+            // Play a subtle notification tone
             try {
                const audio = new Audio('/notification.mp3');
-               audio.play().catch(() => {}); // Handle browser block
+               audio.play().catch(() => {});
             } catch (e) {}
           }
         }
