@@ -1,9 +1,10 @@
 'use client';
 
 /**
- * VOID WEAR // INVOICE GENERATOR V2.2
+ * VOID WEAR // INVOICE GENERATOR V2.3
  * Generates a cinematic PDF transmission log with QR verification.
  * Optimized for Next.js with dynamic imports to prevent SSR crashes.
+ * Added Slogan and GSTIN nodes.
  */
 export async function generateInvoicePDF(order: any) {
   if (!order || !order.items) {
@@ -30,51 +31,57 @@ export async function generateInvoicePDF(order: any) {
   try {
     // 1. Header / Branding
     doc.setFillColor(primaryColor);
-    doc.rect(0, 0, 100, 25, 'F');
+    doc.rect(0, 0, 100, 32, 'F'); // Increased height for slogan and GST
     
     doc.setTextColor('#FFFFFF');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('VOID WEAR', 10, 12);
+    doc.text('VOID WEAR', 10, 10);
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('EMBRACE THE UNKNOWN', 10, 15); // Added Slogan
+    
+    doc.setFontSize(5);
+    doc.text('GSTIN 27ABCDE1234F1Z5', 10, 20); // Added GSTIN
     
     doc.setFontSize(6);
-    doc.setFont('helvetica', 'normal');
-    doc.text('SYSTEM MANIFESTO // TRANSMISSION LOG', 10, 17);
-    doc.text('EST. 2026 /  VELLORE - INDIA', 10, 20);
+    doc.text('SYSTEM MANIFESTO // TRANSMISSION LOG', 10, 25);
+    doc.text('EST. 2026 /  VELLORE - INDIA', 10, 28);
 
     // 2. Order Metadata
     doc.setTextColor(primaryColor);
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
-    doc.text('TRANSMISSION_UID:', 10, 35);
+    doc.text('TRANSMISSION_UID:', 10, 38);
     doc.setFont('helvetica', 'normal');
-    doc.text((order.order_ID || order.id || 'INTERNAL').toString(), 40, 35);
+    doc.text((order.order_ID || order.id || 'INTERNAL').toString(), 40, 38);
 
     doc.setFont('helvetica', 'bold');
-    doc.text('DATE:', 10, 40);
+    doc.text('DATE:', 10, 43);
     doc.setFont('helvetica', 'normal');
     const displayDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString() : new Date().toLocaleDateString();
-    doc.text(displayDate, 40, 40);
+    doc.text(displayDate, 40, 43);
 
     // 3. Entity Details
     doc.setDrawColor(accentColor);
-    doc.line(10, 45, 90, 45);
+    doc.line(10, 48, 90, 48);
 
     doc.setFont('helvetica', 'bold');
-    doc.text('RECIPIENT:', 10, 52);
+    doc.text('RECIPIENT:', 10, 55);
     doc.setFont('helvetica', 'normal');
-    doc.text((order.displayName || 'UNIDENTIFIED OPERATOR').toUpperCase(), 10, 56);
+    doc.text((order.displayName || 'UNIDENTIFIED OPERATOR').toUpperCase(), 10, 59);
     
     doc.setFontSize(6);
     doc.setTextColor(secondaryColor);
     const address = `${order.addressLine1 || 'N/A'}, ${order.city || ''}, ${order.stateProvince || ''} - ${order.postalCode || ''}`;
     const splitAddress = doc.splitTextToSize(address.toUpperCase(), 80);
-    doc.text(splitAddress, 10, 60);
+    doc.text(splitAddress, 10, 63);
 
     doc.setFont('helvetica', 'bold');
-    doc.text('UPLINK MODULE (MOBILE):', 10, 68);
+    doc.text('UPLINK MODULE (MOBILE):', 10, 71);
     doc.setFont('helvetica', 'normal');
-    doc.text((order.mobileNumber || 'NOT LOGGED').toString(), 45, 68);
+    doc.text((order.mobileNumber || 'REQUIRED_NODE_MISSING').toString(), 45, 71);
 
     // 4. Module Table (Products)
     const tableData = order.items.map((item: any) => [
@@ -85,7 +92,7 @@ export async function generateInvoicePDF(order: any) {
     ]);
 
     autoTable(doc, {
-      startY: 75,
+      startY: 78,
       head: [['MODULE', 'SZ', 'QTY', 'VAL']],
       body: tableData,
       theme: 'plain',

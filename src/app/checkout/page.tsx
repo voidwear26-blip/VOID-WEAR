@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -72,6 +71,35 @@ export default function CheckoutPage() {
   }, [user, profile]);
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
+
+  const validateShippingNodes = () => {
+    const { displayName, email, mobileNumber, addressLine1, city, stateProvince, postalCode } = formData;
+    if (!displayName || !email || !mobileNumber || !addressLine1 || !city || !stateProvince || !postalCode) {
+      toast({
+        variant: "destructive",
+        title: "LOGISTICS_INCOMPLETE",
+        description: "ALL DATA NODES, INCLUDING MOBILE UPLINK, ARE MANDATORY.",
+      });
+      return false;
+    }
+    
+    if (mobileNumber.length < 10) {
+      toast({
+        variant: "destructive",
+        title: "INVALID_UPLINK",
+        description: "MOBILE NUMBER MUST BE AT LEAST 10 DIGITS.",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleProceedToAudit = () => {
+    if (validateShippingNodes()) {
+      setStep('review');
+    }
+  };
 
   const finalizeOrderInFirestore = async (paymentId: string) => {
     if (!user || !db || !cartItems) return;
@@ -245,7 +273,7 @@ export default function CheckoutPage() {
                   <div className="grid md:grid-cols-2 gap-8">
                      <Field label="IDENTIFIER (NAME)" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} />
                      <Field label="COMM-CHANNEL (EMAIL)" value={formData.email} onChange={v => setFormData({...formData, email: v})} />
-                     <Field label="UPLINK (MOBILE)" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} />
+                     <Field label="UPLINK (MOBILE) *" value={formData.mobileNumber} onChange={v => setFormData({...formData, mobileNumber: v})} placeholder="MANDATORY NODE" />
                      <Field label="CITY" value={formData.city} onChange={v => setFormData({...formData, city: v})} />
                      <Field label="STATE" value={formData.stateProvince} onChange={v => setFormData({...formData, stateProvince: v})} />
                      <Field label="PIN CODE" value={formData.postalCode} onChange={v => setFormData({...formData, postalCode: v})} />
@@ -254,7 +282,7 @@ export default function CheckoutPage() {
                         <Field label="LANDMARK" value={formData.landmark} onChange={v => setFormData({...formData, landmark: v})} placeholder="NEAR ..." />
                      </div>
                   </div>
-                  <Button onClick={() => setStep('review')} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
+                  <Button onClick={handleProceedToAudit} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
                     PROCEED TO AUDIT <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
@@ -268,6 +296,7 @@ export default function CheckoutPage() {
                       <p className="text-[10px] tracking-widest text-white/40 uppercase leading-relaxed">
                          DESTINATION: <span className="text-white font-bold">{formData.addressLine1}, {formData.landmark ? `${formData.landmark}, ` : ''}{formData.city}, {formData.stateProvince} - {formData.postalCode}</span>
                       </p>
+                      <p className="text-[10px] tracking-widest text-white/40 uppercase">UPLINK: <span className="text-white font-bold">{formData.mobileNumber}</span></p>
                    </div>
                    <Button onClick={() => setStep('payment')} className="w-full h-16 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
                     FINALIZE UPLINK <ArrowRight className="ml-3 w-4 h-4" />
