@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
-import { sendAdminOrderNotification } from '@/app/actions/admin-notifications';
+import { sendOrderConfirmationNotifications } from '@/app/actions/order-notifications';
 
 type CheckoutStep = 'shipping' | 'review' | 'payment' | 'success';
 type PaymentMethod = 'card' | 'upi' | 'wallet';
@@ -187,8 +187,8 @@ export default function CheckoutPage() {
         transaction.set(orderRef, newOrder);
       });
 
-      // 5. TRIGGER ADMIN NOTIFICATIONS (Neural Relay)
-      sendAdminOrderNotification(newOrder);
+      // 5. TRIGGER DUAL NOTIFICATIONS (Neural Relay for Admin & Customer)
+      sendOrderConfirmationNotifications(newOrder);
 
       setOrderObject(newOrder);
       setFinalOrderId(orderId);
