@@ -26,11 +26,11 @@ export default function AdminDashboard() {
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
   const isAdmin = useMemo(() => {
-    if (isUserLoading || !user) return false;
+    if (isUserLoading || !user || isProfileLoading) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
            profile?.role === 'ADMIN';
-  }, [user, isUserLoading, profile]);
+  }, [user, isUserLoading, profile, isProfileLoading]);
 
   const productsQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -39,7 +39,6 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    // Limit added to align with security rule requirements
     return query(collectionGroup(db, 'orders'), limit(100));
   }, [db, isAdmin]);
 
@@ -91,7 +90,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAdmin) return null;
+  if (!isAdmin && !isProfileLoading) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">

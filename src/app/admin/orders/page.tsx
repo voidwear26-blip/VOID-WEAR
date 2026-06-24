@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -30,11 +29,11 @@ export default function AdminOrdersPage() {
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
   const isAdmin = useMemo(() => {
-    if (isUserLoading || !user) return false;
+    if (isUserLoading || !user || isProfileLoading) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
            profile?.role === 'ADMIN';
-  }, [user, isUserLoading, profile]);
+  }, [user, isUserLoading, profile, isProfileLoading]);
 
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
@@ -100,11 +99,11 @@ export default function AdminOrdersPage() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isProfileLoading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center gap-6 bg-black text-white">
         <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-black">ACCESS DENIED // MASTER ONLY</p>
-        <Link href="/admin" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO CENTER</Link>
+        <Link href="/admin" className="text-[10px] tracking-widest border-b border-white/20 pb-2 uppercase">RETURN TO CENTER</Link>
       </div>
     );
   }
