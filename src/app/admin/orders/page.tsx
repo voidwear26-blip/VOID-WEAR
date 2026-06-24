@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collectionGroup, query, limit, updateDoc, doc } from 'firebase/firestore';
-import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap, Search, X } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap, Search, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +39,6 @@ export default function AdminOrdersPage() {
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
     try {
-      // Limit slightly increased for better view, but keeps security handshake snappy
       return query(collectionGroup(db, 'orders'), limit(150));
     } catch (e) {
       console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
@@ -120,9 +120,17 @@ export default function AdminOrdersPage() {
             </Link>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Transmissions</h1>
           </div>
-          <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
-            <ShieldAlert className="w-4 h-4 text-white/60" />
-            <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">LOGISTICS MODULE ACTIVE</span>
+          <div className="flex items-center gap-4">
+            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+              <Link href="/admin/orders/new">
+                <Plus className="w-4 h-4 mr-3" />
+                NEW TRANSMISSION
+              </Link>
+            </Button>
+            <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md hidden md:flex">
+              <ShieldAlert className="w-4 h-4 text-white/60" />
+              <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">LOGISTICS MODULE ACTIVE</span>
+            </div>
           </div>
         </div>
 
