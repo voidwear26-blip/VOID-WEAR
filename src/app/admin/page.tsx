@@ -6,7 +6,7 @@ import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, L
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, collectionGroup, doc } from 'firebase/firestore';
+import { collection, collectionGroup, doc, query, limit } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
@@ -39,7 +39,7 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    return collectionGroup(db, 'orders');
+    return query(collectionGroup(db, 'orders'), limit(100));
   }, [db, isAdmin]);
 
   const usersQuery = useMemoFirebase(() => {

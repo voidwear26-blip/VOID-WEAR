@@ -12,7 +12,8 @@ service cloud.firestore {
         request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
         (request.auth.token.email != null &&
          request.auth.token.email.lower() == 'voidwear26@gmail.com') ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN')
       );
     }
 
@@ -80,7 +81,7 @@ service cloud.firestore {
     // --- COLLECTION GROUP: ORDERS ---
     match /{path=**}/orders/{orderId} {
       allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100);
-      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow get: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
     }
 
     // --- ADMIN CATCH-ALL ---
