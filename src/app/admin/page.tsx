@@ -39,6 +39,7 @@ export default function AdminDashboard() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
+    // Limit added to align with security rule requirements
     return query(collectionGroup(db, 'orders'), limit(100));
   }, [db, isAdmin]);
 

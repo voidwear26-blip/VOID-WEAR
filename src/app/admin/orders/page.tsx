@@ -28,14 +28,17 @@ export default function AdminOrdersPage() {
 
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
+    // Master ID check + Role check
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
            profile?.role === 'ADMIN';
   }, [user, isUserLoading, profile]);
 
   const allOrdersQuery = useMemoFirebase(() => {
+    // Only initialize the global query once isAdmin is confirmed
     if (!db || !mounted || !isAdmin) return null;
     try {
+      // Ensure limit is within the security rule threshold
       return query(collectionGroup(db, 'orders'), limit(100));
     } catch (e) {
       console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
@@ -108,7 +111,7 @@ export default function AdminOrdersPage() {
                 <span className="text-[10px] font-black tracking-widest uppercase">UPLINK_PERMISSIONS_DENIED</span>
              </div>
              <p className="text-[9px] text-white/40 tracking-[0.2em] leading-relaxed uppercase max-w-2xl">
-                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED.
+                THE SECURITY LAYER HAS REJECTED THE GLOBAL AUDIT REQUEST. ENSURE YOUR MASTER IDENTITY IS LINKED AND PROFILE ROLE IS SYNCED.
              </p>
           </div>
         )}
@@ -126,7 +129,7 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {isLoading ? (
+                {(isLoading || isProfileLoading) ? (
                   [1, 2, 3].map(i => (
                     <tr key={i} className="animate-pulse">
                       <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />

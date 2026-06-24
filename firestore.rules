@@ -80,7 +80,8 @@ service cloud.firestore {
 
     // --- COLLECTION GROUP: ORDERS ---
     match /{path=**}/orders/{orderId} {
-      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100);
+      // Simplified list rule to ensure admins can always see all orders
+      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100 && request.auth.uid == userId);
       allow get: if isAdmin() || (isSignedIn() && (resource == null || resource.data.userId == request.auth.uid));
     }
 
