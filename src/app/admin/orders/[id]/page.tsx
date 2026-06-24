@@ -6,7 +6,7 @@ import { ChevronLeft, ShoppingBag, User as UserIcon, Calendar, CreditCard, Truck
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams, useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,7 +21,7 @@ export default function OrderDetailsPage() {
   const orderId = params.id as string;
   const userId = searchParams.get('user');
   
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   
@@ -29,9 +29,22 @@ export default function OrderDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-                  currentUser?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+  // 1. Fetch current operator profile to verify role-based access
+  const currentProfileRef = useMemoFirebase(() => {
+    if (!db || !currentUser) return null;
+    return doc(db, 'users', currentUser.uid);
+  }, [db, currentUser]);
 
+  const { data: currentProfile, isLoading: isProfileLoading } = useDoc(currentProfileRef);
+
+  const isAdmin = useMemo(() => {
+    if (!currentUser) return false;
+    return currentUser.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           currentUser.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           currentProfile?.role === 'ADMIN';
+  }, [currentUser, currentProfile]);
+
+  // 2. Fetch the specific transmission (order) log
   const orderRef = useMemoFirebase(() => {
     if (!db || !userId || !orderId || !isAdmin) return null;
     return doc(db, 'users', userId, 'orders', orderId);
@@ -39,6 +52,7 @@ export default function OrderDetailsPage() {
 
   const { data: order, isLoading } = useDoc(orderRef);
 
+  // 3. Fetch the customer's identity dossier
   const entityRef = useMemoFirebase(() => {
     if (!db || !userId || !isAdmin) return null;
     return doc(db, 'users', userId);
@@ -110,7 +124,6 @@ export default function OrderDetailsPage() {
       const updateData = {
         ...editForm,
         totalAmount: Number(editForm.totalAmount),
-        // Ensure ISO format for date if edited
         orderDate: editForm.orderDate.includes('T') ? editForm.orderDate : `${editForm.orderDate}T00:00:00.000Z`,
         updatedAt: new Date().toISOString()
       };
@@ -145,8 +158,21 @@ export default function OrderDetailsPage() {
     }
   };
 
+  if (isUserLoading || isProfileLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+      </div>
+    );
+  }
+
   if (!isAdmin) {
-    return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase">Authenticating Protocol...</div>;
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-6">
+        <p className="text-[10px] tracking-[1em] uppercase text-white/40 font-black">ACCESS DENIED // MASTER ONLY</p>
+        <Link href="/admin" className="text-[10px] tracking-widest text-white border-b border-white/20 pb-2 font-bold uppercase">Back to Center</Link>
+      </div>
+    );
   }
 
   if (isLoading) {

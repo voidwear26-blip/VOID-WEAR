@@ -38,7 +38,8 @@ export default function AdminOrdersPage() {
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
     try {
-      return query(collectionGroup(db, 'orders'), limit(100));
+      // Limit slightly increased for better view, but keeps security handshake snappy
+      return query(collectionGroup(db, 'orders'), limit(150));
     } catch (e) {
       console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
       return null;
@@ -99,7 +100,14 @@ export default function AdminOrdersPage() {
     );
   }
 
-  if (!isAdmin) return null;
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-6 bg-black text-white">
+        <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-black">ACCESS DENIED // MASTER ONLY</p>
+        <Link href="/admin" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO CENTER</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
