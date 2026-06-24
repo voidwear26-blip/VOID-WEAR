@@ -180,11 +180,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return keys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   }, [product]);
 
-  const allDefinedColors = useMemo(() => {
-    if (!product?.stockMatrix || !selectedSize) return [];
-    const colors = product.stockMatrix[selectedSize] || {};
-    return Object.keys(colors);
-  }, [product, selectedSize]);
+  const allUniqueColors = useMemo(() => {
+    if (!product?.stockMatrix) return [];
+    const colorsSet = new Set<string>();
+    Object.values(product.stockMatrix).forEach((sizeMap: any) => {
+      Object.keys(sizeMap).forEach(c => colorsSet.add(c));
+    });
+    return Array.from(colorsSet);
+  }, [product]);
 
   const displayImages = useMemo(() => {
     if (!product) return ['https://picsum.photos/seed/void-placeholder/800/1000'];
@@ -210,6 +213,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const colors = product.stockMatrix[size] || {};
     const colorValues = Object.values(colors) as number[];
     return colorValues.every((qty: number) => qty <= 0);
+  }, [product]);
+
+  const isColorGlobalOOS = useCallback((color: string) => {
+    if (!product?.stockMatrix) return false;
+    return Object.values(product.stockMatrix).every((sizeMap: any) => (sizeMap[color] || 0) <= 0);
   }, [product]);
 
   const isSelectedVariantOOS = useMemo(() => {
@@ -458,7 +466,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         key={size} 
                         onClick={() => { 
                           setSelectedSize(size); 
-                          setSelectedColor(null); 
                           if (isOOS) toast({ title: "OFFLINE", description: "SIZE OUT OF STOCK" });
                         }}
                         className={cn(
@@ -475,54 +482,55 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              {selectedSize && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
-                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 border-b border-white/10 pb-4">02. SELECT COLOR</h4>
-                  <div className="flex flex-wrap gap-4">
-                    {allDefinedColors.map(color => {
-                      const isOOS = isVariantOOS(selectedSize, color) || isGlobalOOS;
-                      const colorThumbnail = product.colorImages?.[color]?.[0] || product.imageUrls?.[0] || 'https://picsum.photos/seed/void-placeholder/100/130';
-                      
-                      return (
-                        <button 
-                          key={color} 
-                          onClick={() => {
-                            setSelectedColor(color);
-                            if (isOOS) toast({ title: "OFFLINE", description: "OUT OF STOCK" });
-                          }}
-                          title={color}
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 border-b border-white/10 pb-4">02. SELECT COLOR</h4>
+                <div className="flex flex-wrap gap-4">
+                  {allUniqueColors.map(color => {
+                    const isOOS = selectedSize 
+                      ? isVariantOOS(selectedSize, color) 
+                      : isColorGlobalOOS(color);
+                    
+                    const colorThumbnail = product.colorImages?.[color]?.[0] || product.imageUrls?.[0] || 'https://picsum.photos/seed/void-placeholder/100/130';
+                    
+                    return (
+                      <button 
+                        key={color} 
+                        onClick={() => {
+                          setSelectedColor(color);
+                          if (isOOS) toast({ title: "OFFLINE", description: "OUT OF STOCK" });
+                        }}
+                        title={color}
+                        className={cn(
+                          "relative w-16 h-20 border transition-all overflow-hidden group backdrop-blur-sm",
+                          selectedColor === color ? "border-white ring-1 ring-white/50" : "border-white/10 hover:border-white/40 bg-white/[0.01]",
+                          isOOS && "opacity-40"
+                        )}
+                      >
+                        <Image 
+                          src={colorThumbnail} 
+                          alt={color} 
+                          fill 
                           className={cn(
-                            "relative w-16 h-20 border transition-all overflow-hidden group backdrop-blur-sm",
-                            selectedColor === color ? "border-white ring-1 ring-white/50" : "border-white/10 hover:border-white/40 bg-white/[0.01]",
-                            isOOS && "opacity-40"
+                            "object-cover transition-transform duration-500 group-hover:scale-110",
+                            isOOS && "grayscale"
                           )}
-                        >
-                          <Image 
-                            src={colorThumbnail} 
-                            alt={color} 
-                            fill 
-                            className={cn(
-                              "object-cover transition-transform duration-500 group-hover:scale-110",
-                              isOOS && "grayscale"
-                            )}
-                            unoptimized
-                          />
-                          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-1">
-                            <p className="text-[7px] font-black tracking-widest uppercase text-white text-center truncate px-1">{color}</p>
+                          unoptimized
+                        />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-1">
+                          <p className="text-[7px] font-black tracking-widest uppercase text-white text-center truncate px-1">{color}</p>
+                        </div>
+                        {isOOS && <OutOfStockOverlay />}
+                        {selectedColor === color && (
+                          <div className="absolute top-1 right-1">
+                            <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
                           </div>
-                          {isOOS && <OutOfStockOverlay />}
-                          {selectedColor === color && (
-                            <div className="absolute top-1 right-1">
-                              <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
 
               <div className="grid gap-4 pt-4">
                 <Button 
