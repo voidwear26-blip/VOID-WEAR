@@ -26,15 +26,23 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const isAdmin = !isUserLoading && (
-    user?.email === 'voidwear26@gmail.com' || 
-    user?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2'
-  );
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   useEffect(() => {
     setMounted(true);
-    if (mounted && !isUserLoading && !isAdmin) router.push('/');
-  }, [mounted, isUserLoading, isAdmin, router]);
+  }, []);
 
   const productRef = useMemoFirebase(() => {
     if (!db || !id || !isAdmin) return null;
@@ -207,7 +215,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     }
   };
 
-  if (isUserLoading || !mounted || productLoading) {
+  if (isUserLoading || !mounted || isProfileLoading || productLoading) {
     return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-10 h-10 animate-spin text-white/20" /></div>;
   }
 

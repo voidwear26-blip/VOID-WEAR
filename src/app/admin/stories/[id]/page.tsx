@@ -1,10 +1,11 @@
+
 "use client"
 
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Save, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,12 +24,23 @@ export default function EditStoryPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   useEffect(() => {
     setMounted(true);
-    if (mounted && !isUserLoading && !isAdmin) router.push('/');
-  }, [mounted, isUserLoading, isAdmin, router]);
+  }, []);
 
   const storyRef = useMemoFirebase(() => {
     if (!db || !storyId || !isAdmin) return null;
@@ -97,7 +109,7 @@ export default function EditStoryPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  if (!mounted || isUserLoading || storyLoading) {
+  if (!mounted || isUserLoading || isProfileLoading || storyLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <Loader2 className="w-8 h-8 animate-spin text-white/20" />
@@ -115,7 +127,7 @@ export default function EditStoryPage({ params }: { params: Promise<{ id: string
             <ChevronLeft className="w-3 h-3" />
             BACK TO STORIES
           </Link>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Edit Narrative</h1>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Edit Narrative</h1>
           <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest">STORY_UID: {storyId}</p>
         </div>
 

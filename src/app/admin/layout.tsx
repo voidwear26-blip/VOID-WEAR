@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AdminOrderNotificationListener } from '@/components/admin-order-notification-listener';
@@ -31,6 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
+    // Primary gatekeeper: only redirect if loading is finished AND user is definitely not admin
     if (mounted && !isUserLoading && !isProfileLoading && !isAdmin) {
       router.push('/');
     }

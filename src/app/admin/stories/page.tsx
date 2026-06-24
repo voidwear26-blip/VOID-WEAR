@@ -1,10 +1,11 @@
+
 "use client"
 
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, doc, deleteDoc } from 'firebase/firestore';
 import { Plus, Trash2, Edit2, ChevronLeft, Loader2, MessageSquare, Megaphone } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -20,13 +21,19 @@ export default function AdminStoriesPage() {
     setMounted(true);
   }, []);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
 
-  useEffect(() => {
-    if (mounted && !isUserLoading && !isAdmin) {
-      router.push('/');
-    }
-  }, [mounted, isUserLoading, isAdmin, router]);
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   const storiesQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
@@ -48,10 +55,18 @@ export default function AdminStoriesPage() {
     }
   };
 
-  if (!mounted || isUserLoading || !isAdmin) return null;
+  if (!mounted || isUserLoading || isProfileLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">

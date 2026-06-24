@@ -1,10 +1,11 @@
+
 "use client"
 
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, addDoc, doc } from 'firebase/firestore';
 import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,12 +23,23 @@ export default function NewStoryPage() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   useEffect(() => {
     setMounted(true);
-    if (!isUserLoading && !isAdmin) router.push('/');
-  }, [isUserLoading, isAdmin, router]);
+  }, []);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -79,10 +91,11 @@ export default function NewStoryPage() {
     }
   };
 
-  if (!mounted || isUserLoading || !isAdmin) return null;
+  if (!mounted || isUserLoading || isProfileLoading) return null;
+  if (!isAdmin) return null;
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
       <div className="container mx-auto px-6 max-w-4xl">
         <div className="space-y-4 mb-16">
           <Link href="/admin/stories" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4">

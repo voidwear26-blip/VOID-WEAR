@@ -1,8 +1,8 @@
 
 "use client"
 
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, addDoc, doc } from 'firebase/firestore';
 import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, ZapOff, Link as LinkIcon, Palette, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
@@ -31,14 +31,23 @@ export default function NewProductPage() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || !user) return false;
+    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile]);
 
   useEffect(() => {
     setMounted(true);
-    if (!isUserLoading && !isAdmin) {
-      router.push('/');
-    }
-  }, [isUserLoading, isAdmin, router]);
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -191,7 +200,8 @@ export default function NewProductPage() {
       });
   };
 
-  if (!mounted || isUserLoading || !isAdmin) return null;
+  if (!mounted || isUserLoading || isProfileLoading) return null;
+  if (!isAdmin) return null;
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen">
