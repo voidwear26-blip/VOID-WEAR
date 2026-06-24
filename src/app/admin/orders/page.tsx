@@ -2,9 +2,10 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collectionGroup, query, limit, updateDoc, doc } from 'firebase/firestore';
-import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo, useEffect } from 'react';
@@ -14,6 +15,7 @@ export default function AdminOrdersPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -28,17 +30,14 @@ export default function AdminOrdersPage() {
 
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
-    // Master ID check + Role check
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
            profile?.role === 'ADMIN';
   }, [user, isUserLoading, profile]);
 
   const allOrdersQuery = useMemoFirebase(() => {
-    // Only initialize the global query once isAdmin is confirmed
     if (!db || !mounted || !isAdmin) return null;
     try {
-      // Ensure limit is within the security rule threshold
       return query(collectionGroup(db, 'orders'), limit(100));
     } catch (e) {
       console.error('[AdminOrdersPage] QUERY_INIT_FAILURE:', e);
@@ -48,12 +47,27 @@ export default function AdminOrdersPage() {
 
   const { data: rawOrders, isLoading, error: queryError } = useCollection(allOrdersQuery);
 
-  const orders = useMemo(() => {
+  const filteredOrders = useMemo(() => {
     if (!rawOrders) return [];
-    return [...rawOrders].sort((a, b) => 
+    
+    let result = [...rawOrders];
+
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter(order => 
+        (order.order_ID || '').toLowerCase().includes(search) ||
+        (order.id || '').toLowerCase().includes(search) ||
+        (order.displayName || '').toLowerCase().includes(search) ||
+        (order.email || '').toLowerCase().includes(search) ||
+        (order.transition_ID || '').toLowerCase().includes(search) ||
+        (order.paymentProviderId || '').toLowerCase().includes(search)
+      );
+    }
+
+    return result.sort((a, b) => 
       new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime()
     );
-  }, [rawOrders]);
+  }, [rawOrders, searchTerm]);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: string) => {
     if (!db || !userId) return;
@@ -104,6 +118,26 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
+        <div className="mb-12">
+          <div className="relative max-w-xl group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white transition-colors" />
+            <Input 
+              placeholder="SEARCH BY ORDER_ID, ENTITY, EMAIL OR TRANS_ID..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white/5 border-white/10 h-14 pl-12 pr-12 rounded-none text-[10px] tracking-[0.2em] focus-visible:ring-0 focus-visible:border-white/40 font-bold text-white uppercase placeholder:text-white/20 transition-all"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {queryError && (
           <div className="mb-12 p-10 border border-red-500/20 bg-red-500/5 backdrop-blur-xl">
              <div className="flex items-center gap-4 text-red-500 mb-4">
@@ -135,8 +169,8 @@ export default function AdminOrdersPage() {
                       <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />
                     </tr>
                   ))
-                ) : orders && orders.length > 0 ? (
-                  orders.map((order) => (
+                ) : filteredOrders && filteredOrders.length > 0 ? (
+                  filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="space-y-1">
@@ -189,7 +223,9 @@ export default function AdminOrdersPage() {
                     <td colSpan={5} className="px-10 py-32 text-center opacity-40">
                       <div className="flex flex-col items-center gap-6">
                         <ShoppingBag className="w-12 h-12 stroke-[0.5px] text-white" />
-                        <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO SYSTEM LOGS FOUND</p>
+                        <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">
+                          {searchTerm ? 'NO TRANSMISSIONS MATCH YOUR SEARCH' : 'NO SYSTEM LOGS FOUND'}
+                        </p>
                       </div>
                     </td>
                   </tr>
