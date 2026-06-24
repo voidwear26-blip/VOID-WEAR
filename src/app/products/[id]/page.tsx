@@ -481,6 +481,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <div className="flex flex-wrap gap-4">
                     {allDefinedColors.map(color => {
                       const isOOS = isVariantOOS(selectedSize, color) || isGlobalOOS;
+                      const colorThumbnail = product.colorImages?.[color]?.[0] || product.imageUrls?.[0] || 'https://picsum.photos/seed/void-placeholder/100/130';
+                      
                       return (
                         <button 
                           key={color} 
@@ -488,14 +490,33 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             setSelectedColor(color);
                             if (isOOS) toast({ title: "OFFLINE", description: "OUT OF STOCK" });
                           }}
+                          title={color}
                           className={cn(
-                            "relative px-6 h-12 border flex items-center justify-center text-[9px] font-black tracking-[0.3em] uppercase transition-all backdrop-blur-sm",
-                            selectedColor === color ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
-                            isOOS && "border-red-500/20 text-red-500/30"
+                            "relative w-16 h-20 border transition-all overflow-hidden group backdrop-blur-sm",
+                            selectedColor === color ? "border-white ring-1 ring-white/50" : "border-white/10 hover:border-white/40 bg-white/[0.01]",
+                            isOOS && "opacity-40"
                           )}
                         >
-                          {color}
+                          <Image 
+                            src={colorThumbnail} 
+                            alt={color} 
+                            fill 
+                            className={cn(
+                              "object-cover transition-transform duration-500 group-hover:scale-110",
+                              isOOS && "grayscale"
+                            )}
+                            unoptimized
+                          />
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-1">
+                            <p className="text-[7px] font-black tracking-widest uppercase text-white text-center truncate px-1">{color}</p>
+                          </div>
                           {isOOS && <OutOfStockOverlay />}
+                          {selectedColor === color && (
+                            <div className="absolute top-1 right-1">
+                              <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
+                            </div>
+                          )}
                         </button>
                       );
                     })}
