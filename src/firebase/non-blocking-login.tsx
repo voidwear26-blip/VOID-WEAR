@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   sendEmailVerification,
   signOut,
+  updateProfile,
   UserCredential,
   User,
 } from 'firebase/auth';
@@ -21,6 +22,11 @@ export function initiateAnonymousSignIn(authInstance: Auth): Promise<UserCredent
 /** Initiate email/password sign-up (non-blocking). */
 export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): Promise<UserCredential> {
   return createUserWithEmailAndPassword(authInstance, email, password);
+}
+
+/** Updates the display name and photo on the Firebase Auth user object. */
+export function updateAuthProfile(user: User, data: { displayName?: string; photoURL?: string }): Promise<void> {
+  return updateProfile(user, data);
 }
 
 /** Initiate email verification for a specific user. */

@@ -8,13 +8,14 @@ import {
   initiateGoogleSignIn, 
   initiatePasswordReset, 
   initiateEmailVerification,
-  initiateSignOut 
+  initiateSignOut,
+  updateAuthProfile
 } from '@/firebase/non-blocking-login';
 import { saveUserToFirestore } from '@/firebase/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Chrome, Eye, EyeOff, ShieldAlert, MailCheck, RotateCcw } from 'lucide-react';
+import { Loader2, Chrome, Eye, EyeOff, ShieldAlert, MailCheck, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -72,9 +73,16 @@ export default function LoginPage() {
     try {
       if (mode === 'signup') {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
-        // Dispatch verification packet
+        
+        // 1. SYNC AUTH PROFILE: Required for template tags like %DISPLAY_NAME% to work
+        await updateAuthProfile(cred.user, { displayName });
+        
+        // 2. DISPATCH VERIFICATION PACKET
         await initiateEmailVerification(cred.user);
+        
+        // 3. INITIALIZE DOSSIER
         await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
+        
         toast({ title: "IDENTITY INITIALIZED", description: "VERIFICATION LINK TRANSMITTED TO YOUR COMM-CHANNEL." });
         setMode('verify');
       } else {
@@ -170,6 +178,14 @@ export default function LoginPage() {
                   <p className="text-[10px] tracking-[0.2em] text-white/40 leading-relaxed uppercase font-medium">
                     A verification link has been transmitted to <span className="text-white">{user?.email}</span>. Please authorize this link to activate your system uplink.
                   </p>
+                  
+                  {/* SPAM ADVISORY PROTOCOL */}
+                  <div className="p-4 border border-red-500/20 bg-red-500/5 flex items-center gap-3">
+                     <AlertTriangle className="w-4 h-4 text-red-500/60 shrink-0" />
+                     <p className="text-[8px] tracking-[0.2em] text-red-500/80 uppercase font-black text-left leading-relaxed">
+                        SYSTEM_ADVISORY: IF TRANSMISSION IS NOT DETECTED WITHIN 60s, AUDIT YOUR SPAM OR JUNK FOLDERS.
+                     </p>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-4">
                   <Button onClick={handleResendVerification} disabled={loading} variant="outline" className="h-14 border-white/10 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
