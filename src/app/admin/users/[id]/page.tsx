@@ -99,13 +99,18 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
 
   const handlePurge = async () => {
     if (!db || !userId || !isAdmin) return;
-    if (!confirm('INITIATE TOTAL DATA PURGE FOR THIS ENTITY?')) return;
+    if (!confirm('INITIATE TOTAL DATA PURGE FOR THIS ENTITY? THIS WILL PERMANENTLY REMOVE THE DOSSIER FROM THE NETWORK.')) return;
     try {
       await deleteDoc(doc(db, 'users', userId));
-      toast({ title: "ENTITY PURGED", description: "ALL LOGS SEVERED." });
+      toast({ title: "ENTITY PURGED", description: "DOSSIER SUCCESSFULLY SEVERED FROM ARCHIVE." });
       router.push('/admin/users');
     } catch (e) {
-      console.error(e);
+      console.error('[PURGE_FAILURE]', e);
+      toast({ 
+        variant: "destructive", 
+        title: "PURGE_FAILURE",
+        description: "SECURITY LAYER REJECTED THE DELETION TRANSMISSION."
+      });
     }
   };
 

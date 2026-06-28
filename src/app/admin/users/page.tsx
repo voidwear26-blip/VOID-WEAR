@@ -101,21 +101,21 @@ export default function AdminUsersPage() {
   };
 
   const deleteUserRecord = async (userId: string) => {
-    if (!db) return;
-    if (!confirm('CONFIRM PERMANENT DESTRUCTION OF ENTITY LOGS? THIS ACTION IS IRREVERSIBLE.')) return;
+    if (!db || !isAdmin) return;
+    if (!confirm('CONFIRM PERMANENT DESTRUCTION OF ENTITY LOGS? THIS ACTION IS IRREVERSIBLE AND WILL SEVER ALL SYSTEM LINKS.')) return;
     
     try {
       await deleteDoc(doc(db, 'users', userId));
       toast({
         title: "ENTITY PURGED",
-        description: "LOGS SUCCESSFULLY REMOVED FROM ARCHIVE.",
+        description: "LOGS SUCCESSFULLY REMOVED FROM THE VOID.",
       });
     } catch (e) {
-      console.error(e);
+      console.error('[PURGE_FAILURE]', e);
       toast({
         variant: "destructive",
         title: "PURGE FAILED",
-        description: "SYSTEM ERROR DURING DELETION SEQUENCE.",
+        description: "SECURITY LAYER REJECTED DELETION REQUEST.",
       });
     }
   };
