@@ -1,19 +1,25 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { initiateEmailSignIn, initiateEmailSignUp, initiateGoogleSignIn, initiatePasswordReset } from '@/firebase/non-blocking-login';
+import { 
+  initiateEmailSignIn, 
+  initiateEmailSignUp, 
+  initiateGoogleSignIn, 
+  initiatePasswordReset, 
+  initiateEmailVerification,
+  initiateSignOut 
+} from '@/firebase/non-blocking-login';
 import { saveUserToFirestore } from '@/firebase/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
-import { Loader2, Chrome, Eye, EyeOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, Chrome, Eye, EyeOff, ShieldAlert, MailCheck, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 
-type AuthMode = 'login' | 'signup' | 'reset';
+type AuthMode = 'login' | 'signup' | 'reset' | 'verify';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -32,8 +38,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      // SUCCESSFUL UPLINK: REDIRECT TO HOMEPAGE
-      router.push('/');
+      if (user.emailVerified || user.providerData[0]?.providerId === 'google.com') {
+        // SUCCESSFUL AUTHENTICATED UPLINK: REDIRECT TO HOMEPAGE
+        router.push('/');
+      } else {
+        // ENTITY UNVERIFIED: REQUIRE NEURAL HANDSHAKE
+        setMode('verify');
+      }
     }
   }, [user, isUserLoading, router]);
 
@@ -61,12 +72,20 @@ export default function LoginPage() {
     try {
       if (mode === 'signup') {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
+        // Dispatch verification packet
+        await initiateEmailVerification(cred.user);
         await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
-        toast({ title: "IDENTITY INITIALIZED", description: "YOUR ENTITY HAS BEEN LOGGED IN THE VOID." });
+        toast({ title: "IDENTITY INITIALIZED", description: "VERIFICATION LINK TRANSMITTED TO YOUR COMM-CHANNEL." });
+        setMode('verify');
       } else {
         const cred = await initiateEmailSignIn(auth, email.trim(), password);
-        await saveUserToFirestore(db, cred.user);
-        toast({ title: "LINK ESTABLISHED", description: "WELCOME BACK, OPERATOR." });
+        if (!cred.user.emailVerified) {
+          setMode('verify');
+          toast({ variant: "destructive", title: "IDENTITY UNVERIFIED", description: "PLEASE AUTHENTICATE YOUR COMM-CHANNEL." });
+        } else {
+          await saveUserToFirestore(db, cred.user);
+          toast({ title: "LINK ESTABLISHED", description: "WELCOME BACK, OPERATOR." });
+        }
       }
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
@@ -78,6 +97,24 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResendVerification = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      await initiateEmailVerification(user);
+      toast({ title: "PACKET RE-TRANSMITTED", description: "CHECK YOUR INBOX FOR THE NEURAL HANDSHAKE." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "TRANSMISSION_FAILED" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await initiateSignOut(auth);
+    setMode('login');
   };
 
   const handleGoogleSignIn = async () => {
@@ -102,64 +139,88 @@ export default function LoginPage() {
         <div className="text-center space-y-6">
            <Image src="/logo.png" alt="VOID WEAR" width={80} height={80} className="mx-auto brightness-200 grayscale" unoptimized />
            <p className="text-[10px] tracking-[0.8em] text-white/40 uppercase font-black">
-             {mode === 'login' ? 'AUTHENTICATION' : mode === 'signup' ? 'INITIALIZATION' : 'RECOVERY'}
+             {mode === 'login' ? 'AUTHENTICATION' : mode === 'signup' ? 'INITIALIZATION' : mode === 'reset' ? 'RECOVERY' : 'VERIFICATION'}
            </p>
         </div>
 
         <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
-          <form onSubmit={handleAuth} className="space-y-6">
-            {mode === 'signup' && (
-              <div className="space-y-6">
-                <Field label="ENTITY NAME" value={displayName} onChange={setDisplayName} placeholder="IDENTIFIER" />
-                <Field label="CONTACT MODULE" value={mobileNumber} onChange={setMobileNumber} placeholder="+91..." />
-              </div>
-            )}
-            
-            <Field label="COMM-CHANNEL / EMAIL" value={email} onChange={setEmail} type="email" placeholder="ID@NETWORK.COM" />
-            
-            {mode !== 'reset' && (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY</label>
-                  {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-white/20 hover:text-white transition-colors font-black">FORGOT?</button>}
+          <AnimatePresence mode="wait">
+            {mode === 'verify' ? (
+              <motion.div key="verify" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 text-center py-6">
+                <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                  <MailCheck className="w-8 h-8 text-white/60 animate-pulse" />
                 </div>
-                <div className="relative">
-                  <Input 
-                    type={showPassword ? 'text' : 'password'} 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white font-mono pr-12" 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors focus:outline-none"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-white">NEURAL HANDSHAKE REQUIRED</h3>
+                  <p className="text-[10px] tracking-[0.2em] text-white/40 leading-relaxed uppercase font-medium">
+                    A verification link has been transmitted to <span className="text-white">{user?.email}</span>. Please authorize this link to activate your system uplink.
+                  </p>
                 </div>
-              </div>
+                <div className="flex flex-col gap-4">
+                  <Button onClick={handleResendVerification} disabled={loading} variant="outline" className="h-14 border-white/10 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
+                    {loading ? <Loader2 className="animate-spin" /> : <><RotateCcw className="mr-3 w-3.5 h-3.5" /> RE-TRANSMIT PACKET</>}
+                  </Button>
+                  <button onClick={handleLogout} className="text-[8px] tracking-[0.4em] text-white/20 hover:text-white uppercase font-black">SEVER CURRENT SESSION</button>
+                </div>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleAuth} className="space-y-6">
+                {mode === 'signup' && (
+                  <div className="space-y-6">
+                    <Field label="ENTITY NAME" value={displayName} onChange={setDisplayName} placeholder="IDENTIFIER" />
+                    <Field label="CONTACT MODULE" value={mobileNumber} onChange={setMobileNumber} placeholder="+91..." />
+                  </div>
+                )}
+                
+                <Field label="COMM-CHANNEL / EMAIL" value={email} onChange={setEmail} type="email" placeholder="ID@NETWORK.COM" />
+                
+                {mode !== 'reset' && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY</label>
+                      {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-white/20 hover:text-white transition-colors font-black">FORGOT?</button>}
+                    </div>
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? 'text' : 'password'} 
+                        value={password} 
+                        onChange={e => setPassword(e.target.value)} 
+                        className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white font-mono pr-12" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <Button disabled={loading} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-black tracking-[0.5em] rounded-none">
+                  {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'INITIALIZE' : mode === 'reset' ? 'RECOVER' : 'ESTABLISH LINK')}
+                </Button>
+                
+                {mode === 'login' && (
+                  <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={loading} className="w-full border-white/10 h-14 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
+                    <Chrome className="mr-3 w-4 h-4" /> GOOGLE UPLINK
+                  </Button>
+                )}
+              </form>
             )}
-
-            <Button disabled={loading} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-black tracking-[0.5em] rounded-none">
-              {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'INITIALIZE' : mode === 'reset' ? 'RECOVER' : 'ESTABLISH LINK')}
-            </Button>
-          </form>
-
-          {mode !== 'reset' && (
-             <Button variant="outline" onClick={handleGoogleSignIn} disabled={loading} className="w-full border-white/10 h-14 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
-                <Chrome className="mr-3 w-4 h-4" /> GOOGLE UPLINK
-             </Button>
-          )}
+          </AnimatePresence>
 
           {mode === 'reset' && (
              <button onClick={() => setMode('login')} className="w-full text-[8px] tracking-[0.4em] text-white/20 hover:text-white uppercase font-black">BACK TO UPLINK</button>
           )}
         </div>
 
-        <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-white/40 hover:text-white border-b border-white/5 pb-1 uppercase font-black">
-          {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
-        </button>
+        {mode !== 'verify' && (
+          <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-white/40 hover:text-white border-b border-white/5 pb-1 uppercase font-black">
+            {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
+          </button>
+        )}
       </motion.div>
     </div>
   );

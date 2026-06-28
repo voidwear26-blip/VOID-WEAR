@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Auth,
@@ -8,8 +7,10 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   UserCredential,
+  User,
 } from 'firebase/auth';
 
 /** Initiate anonymous sign-in (non-blocking). */
@@ -20,6 +21,11 @@ export function initiateAnonymousSignIn(authInstance: Auth): Promise<UserCredent
 /** Initiate email/password sign-up (non-blocking). */
 export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): Promise<UserCredential> {
   return createUserWithEmailAndPassword(authInstance, email, password);
+}
+
+/** Initiate email verification for a specific user. */
+export function initiateEmailVerification(user: User): Promise<void> {
+  return sendEmailVerification(user);
 }
 
 /** Initiate email/password sign-in (non-blocking). */
