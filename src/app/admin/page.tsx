@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star, Activity, Cpu } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
           <StatCard 
             href="/admin/orders"
             icon={<ShoppingBag className="w-5 h-5" />} 
-            label="TRANSMISSIONS" 
+            label="ORDERS" 
             value={ordersLoading ? "..." : (orders?.length.toString() || "0")} 
           />
           <StatCard 
@@ -154,48 +154,89 @@ export default function AdminDashboard() {
           <StatCard 
             href="/admin/reviews"
             icon={<Star className="w-5 h-5" />} 
-            label="FEEDBACK" 
+            label="REVIEWS" 
             value={reviewsLoading ? "..." : (reviews?.length.toString() || "0")} 
           />
           <StatCard 
             href="/admin/products"
             icon={<Package className="w-5 h-5" />} 
-            label="INVENTORY" 
+            label="STOCK" 
             value={productsLoading ? "..." : totalInventoryUnits.toString()} 
           />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
-            <div className="flex justify-between items-center border-b border-white/5 pb-6">
-              <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">COMMAND MODULES</h3>
-            </div>
-            <div className="grid gap-4">
-              <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="Configure product database." icon={<Package className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/stories" label="STORY PROTOCOL" description="Edit or add content to Trends page." icon={<Megaphone className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="Monitor customer orders." icon={<ShoppingBag className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/users" label="ENTITY ARCHIVE" description="Manage customer profiles." icon={<Users className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/messages" label="INCOMING MESSAGES" description="Audit customer inquiries." icon={<MessageSquare className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/reviews" label="FEEDBACK AUDIT" description="Moderate customer field reports." icon={<Star className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/system" label="SYSTEM ARCHIVE" description="Generate mission audit logs." icon={<Database className="w-4 h-4" />} />
-              <QuickActionButton href="/admin/content" label="BRAND OVERRIDE" description="Homepage content control." icon={<Settings className="w-4 h-4" />} />
+        <div className="grid lg:grid-cols-3 gap-12">
+          {/* COMMAND MODULES - Primary Section */}
+          <div className="lg:col-span-2 space-y-12">
+            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
+              <div className="flex justify-between items-center border-b border-white/5 pb-6">
+                <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">COMMAND MODULES</h3>
+                <Cpu className="w-4 h-4 text-white/20" />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <QuickActionButton href="/admin/products" label="MANAGE ASSEMBLAGES" description="CONFIGURE PRODUCT DATABASE" icon={<Package className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/stories" label="STORY PROTOCOL" description="EDIT TRENDS AND NARRATIVES" icon={<Megaphone className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/orders" label="TRACK TRANSMISSIONS" description="MONITOR CUSTOMER ORDERS" icon={<ShoppingBag className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/users" label="ENTITY ARCHIVE" description="MANAGE CUSTOMER PROFILES" icon={<Users className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/messages" label="INCOMING MESSAGES" description="AUDIT CUSTOMER INQUIRIES" icon={<MessageSquare className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/reviews" label="REVIEW CURATION" description="MANAGE FIELD REPORTS" icon={<Star className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/system" label="SYSTEM ARCHIVE" description="GENERATE MISSION AUDIT LOGS" icon={<Database className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/content" label="BRAND OVERRIDE" description="HOMEPAGE CONTENT CONTROL" icon={<Settings className="w-4 h-4" />} />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
-            <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">SYSTEM ANALYTICS</h3>
-            <div className="space-y-6">
-               <div className="flex justify-between items-center text-[10px] text-white/60 tracking-widest uppercase">
-                  <span>DATABASE UPTIME</span>
-                  <span className="font-mono text-white/80">99.99%</span>
-               </div>
-               <div className="w-full h-1 bg-white/5 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: "99.99%" }} transition={{ duration: 2 }} className="h-full bg-white shadow-[0_0_10px_white]" />
-               </div>
-            </div>
-            <div className="pt-6 border-t border-white/5 flex items-center gap-2 text-white/40">
-               <Zap className="w-3 h-3 text-white/80" />
-               <span className="text-[8px] tracking-[0.5em] uppercase font-bold text-white/60">SYSTEM RUNNING STABLE</span>
+          {/* SYSTEM ANALYTICS - Sidebar Section */}
+          <div className="space-y-12">
+            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-10 backdrop-blur-xl h-full">
+              <div className="flex justify-between items-center border-b border-white/5 pb-6">
+                <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">SYSTEM ANALYTICS</h3>
+                <Activity className="w-4 h-4 text-white/20" />
+              </div>
+              
+              <div className="space-y-10">
+                 <div className="space-y-4">
+                    <div className="flex justify-between items-center text-[10px] text-white/60 tracking-widest uppercase font-bold">
+                       <span>DATABASE UPTIME</span>
+                       <span className="font-mono text-white/80">99.99%</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 overflow-hidden">
+                       <motion.div initial={{ width: 0 }} animate={{ width: "99.99%" }} transition={{ duration: 2 }} className="h-full bg-white shadow-[0_0_10px_white]" />
+                    </div>
+                 </div>
+
+                 <div className="space-y-4">
+                    <div className="flex justify-between items-center text-[10px] text-white/60 tracking-widest uppercase font-bold">
+                       <span>CPU CALIBRATION</span>
+                       <span className="font-mono text-white/80">0.12ms</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 overflow-hidden">
+                       <motion.div initial={{ width: 0 }} animate={{ width: "40%" }} transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }} className="h-full bg-white/40 shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
+                    </div>
+                 </div>
+
+                 <div className="pt-10 space-y-6">
+                    <div className="flex items-start gap-4">
+                       <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1 animate-pulse" />
+                       <div className="space-y-1">
+                          <p className="text-[9px] font-black tracking-widest uppercase text-white/80">NEURAL LINK STABLE</p>
+                          <p className="text-[8px] tracking-widest uppercase text-white/40 font-bold">ENCRYPTION LAYER ACTIVE (AES-256)</p>
+                       </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                       <div className="w-1.5 h-1.5 rounded-full bg-white/20 mt-1" />
+                       <div className="space-y-1">
+                          <p className="text-[9px] font-black tracking-widest uppercase text-white/60">COLLECTION_SYNC: OK</p>
+                          <p className="text-[8px] tracking-widest uppercase text-white/20 font-bold">FIRESTORE CLUSTER BALANCED</p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="pt-10 border-t border-white/5 flex items-center gap-3 text-white/40">
+                 <Zap className="w-3 h-3 text-white/60" />
+                 <span className="text-[8px] tracking-[0.5em] uppercase font-black">SYSTEM_PROTOCOL_v12.4</span>
+              </div>
             </div>
           </div>
         </div>

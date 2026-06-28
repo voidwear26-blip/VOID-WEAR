@@ -1,10 +1,11 @@
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, query, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
-import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package } from 'lucide-react';
+import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package, CheckCircle2, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -60,6 +61,26 @@ export default function AdminReviewsPage() {
     }
   };
 
+  const toggleFeatured = async (reviewId: string, currentStatus: boolean) => {
+    if (!db) return;
+    try {
+      await updateDoc(doc(db, 'reviews', reviewId), {
+        isFeatured: !currentStatus,
+        updatedAt: new Date().toISOString()
+      });
+      toast({
+        title: !currentStatus ? "REPORT CURATED" : "REPORT DE-LISTED",
+        description: !currentStatus ? "FIELD REPORT PUSHED TO HOME FEED." : "REPORT REMOVED FROM HOME FEED.",
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "SYNC_FAILURE",
+      });
+    }
+  };
+
   if (isUserLoading || !mounted || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white bg-black">
@@ -100,6 +121,7 @@ export default function AdminReviewsPage() {
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-center">HOME_FEED</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE_ID</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CALIBRATION</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">NARRATIVE</th>
@@ -110,7 +132,7 @@ export default function AdminReviewsPage() {
                 {isLoading ? (
                   [1, 2, 3].map(i => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />
+                      <td colSpan={6} className="px-10 py-12 bg-white/[0.01]" />
                     </tr>
                   ))
                 ) : reviews && reviews.length > 0 ? (
@@ -121,6 +143,18 @@ export default function AdminReviewsPage() {
                           <span className="text-[10px] font-bold tracking-widest text-white/80 uppercase">{review.userName || 'Anonymous'}</span>
                           <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold font-mono">{review.userId.slice(0, 12)}...</p>
                         </div>
+                      </td>
+                      <td className="px-10 py-8 text-center">
+                         <div className="flex flex-col items-center gap-2">
+                           <Switch 
+                             checked={!!review.isFeatured} 
+                             onCheckedChange={() => toggleFeatured(review.id, !!review.isFeatured)}
+                             className="data-[state=checked]:bg-white"
+                           />
+                           {review.isFeatured && (
+                             <span className="text-[6px] tracking-widest font-black text-white/40 uppercase">FEATURED</span>
+                           )}
+                         </div>
                       </td>
                       <td className="px-10 py-8">
                          <div className="flex items-center gap-2 text-[10px] text-white/40 tracking-widest font-bold">
@@ -152,7 +186,7 @@ export default function AdminReviewsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-10 py-32 text-center opacity-20">
+                    <td colSpan={6} className="px-10 py-32 text-center opacity-20">
                       <div className="flex flex-col items-center gap-6">
                         <MessageSquare className="w-12 h-12 stroke-[0.5px]" />
                         <p className="text-[10px] tracking-[1em] uppercase font-bold">NO FEEDBACK LOGS DETECTED</p>
