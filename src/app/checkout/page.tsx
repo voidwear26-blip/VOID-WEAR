@@ -72,6 +72,9 @@ export default function CheckoutPage() {
   }, [user, profile]);
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
+  const taxAmount = subtotal * 0.05;
+  const shippingFee = subtotal > 0 ? 60 : 0;
+  const totalAmount = subtotal + taxAmount + shippingFee;
 
   const validateShippingNodes = () => {
     const { displayName, email, mobileNumber, addressLine1, city, stateProvince, postalCode } = formData;
@@ -119,7 +122,10 @@ export default function CheckoutPage() {
       email: formData.email,
       mobileNumber: formData.mobileNumber,
       items: cartItems,
-      totalAmount: Number(subtotal), 
+      subtotal: subtotal,
+      taxAmount: taxAmount,
+      shippingFee: shippingFee,
+      totalAmount: Number(totalAmount), 
       orderDate: new Date().toISOString(),
       shippingStatus: 'processing',
       paymentStatus: 'paid',
@@ -215,7 +221,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          amount: Number(subtotal),
+          amount: Number(totalAmount),
           notes: { operator_name: formData.displayName, user_uid: user.uid }
         }),
       });
@@ -389,9 +395,24 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                </div>
-               <div className="pt-8 border-t border-white/10 flex justify-between items-center">
-                  <span className="text-[10px] font-black uppercase text-white/60">TOTAL</span>
-                  <span className="text-2xl font-black glow-text text-white">₹{subtotal}</span>
+               
+               <div className="pt-8 border-t border-white/10 space-y-4">
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                     <span className="text-white/40">SUBTOTAL</span>
+                     <span className="text-white">₹{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                     <span className="text-white/40">ESTIMATED TAX (5%)</span>
+                     <span className="text-white">₹{taxAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                     <span className="text-white/40">SHIPPING FEE</span>
+                     <span className="text-white">₹{shippingFee.toFixed(2)}</span>
+                  </div>
+                  <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                     <span className="text-[11px] font-black uppercase text-white/60">TOTAL VALUATION</span>
+                     <span className="text-2xl font-black glow-text text-white">₹{totalAmount.toFixed(2)}</span>
+                  </div>
                </div>
             </div>
           </div>

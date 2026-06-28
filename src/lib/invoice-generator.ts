@@ -1,10 +1,9 @@
 'use client';
 
 /**
- * VOID WEAR // INVOICE GENERATOR V2.4
+ * VOID WEAR // INVOICE GENERATOR V2.5
  * Generates a cinematic PDF transmission log.
- * Optimized for Next.js with dynamic imports to prevent SSR crashes.
- * Refinement: Removed system manifesto text and QR code nodes.
+ * Includes detailed financial breakdown (Tax & Shipping).
  */
 export async function generateInvoicePDF(order: any) {
   if (!order || !order.items) {
@@ -12,15 +11,13 @@ export async function generateInvoicePDF(order: any) {
     return;
   }
 
-  // DYNAMIC IMPORTS: Shielding SSR from browser-only libraries
   const { jsPDF } = await import('jspdf');
   const { default: autoTable } = await import('jspdf-autotable');
 
-  // Dimensions: 3.93in x 5.90in = ~100mm x 150mm
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: [100, 150]
+    format: [100, 160] // Adjusted height for additional lines
   });
 
   const primaryColor = '#000000';
@@ -114,24 +111,44 @@ export async function generateInvoicePDF(order: any) {
       }
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const tableFinalY = (doc as any).lastAutoTable.finalY;
+    
+    // Financial Breakdown Calculation
+    const subtotal = order.subtotal || order.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+    const tax = order.taxAmount || (subtotal * 0.05);
+    const shipping = order.shippingFee !== undefined ? order.shippingFee : 60;
+    const finalTotal = order.totalAmount || (subtotal + tax + shipping);
 
-    // 5. Total
+    // 5. Summary Lines
+    doc.setFontSize(6);
+    doc.setTextColor(secondaryColor);
+    doc.setFont('helvetica', 'normal');
+    
+    doc.text('SUBTOTAL:', 60, tableFinalY + 6);
+    doc.text(`INR ${subtotal.toFixed(2)}`, 90, tableFinalY + 6, { align: 'right' });
+    
+    doc.text('EST. TAX (5%):', 60, tableFinalY + 10);
+    doc.text(`INR ${tax.toFixed(2)}`, 90, tableFinalY + 10, { align: 'right' });
+    
+    doc.text('SHIPPING FEE:', 60, tableFinalY + 14);
+    doc.text(`INR ${shipping.toFixed(2)}`, 90, tableFinalY + 14, { align: 'right' });
+
+    // 6. Total Box
     doc.setFillColor(primaryColor);
-    doc.rect(55, finalY - 5, 35, 8, 'F');
+    doc.rect(55, tableFinalY + 18, 35, 8, 'F');
     doc.setTextColor('#FFFFFF');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.text(`TOTAL: INR ${order.totalAmount || 0}`, 58, finalY);
+    doc.text(`TOTAL: INR ${finalTotal.toFixed(2)}`, 58, tableFinalY + 23);
 
-    // 6. Footer / Compliance
+    // 7. Footer / Compliance
     doc.setTextColor(secondaryColor);
     doc.setFontSize(5);
     doc.setFont('helvetica', 'italic');
-    doc.text('THIS IS A SECURE DIGITAL TRANSMISSION LOG. ALL RIGHTS RESERVED.', 10, 140);
-    doc.text('VOID WEAR INC // LOGISTICS PROTOCOL 2026', 10, 143);
+    doc.text('THIS IS A SECURE DIGITAL TRANSMISSION LOG. ALL RIGHTS RESERVED.', 10, 150);
+    doc.text('VOID WEAR INC // LOGISTICS PROTOCOL 2026', 10, 153);
 
-    // 7. Save Protocol
+    // 8. Save Protocol
     const fileName = `VOID_INVOICE_${order.order_ID || order.id || Date.now()}.pdf`;
     doc.save(fileName);
     
