@@ -1,51 +1,25 @@
 'use server';
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend('re_43Qt9Sqs_KMkjukPTvcYxkFEmCsLXwhzC');
 
 /**
  * ADMIN NOTIFICATION RELAY
- * Dispatches a high-priority email to the admin upon successful order completion.
+ * Dispatches a high-priority email to the admin via Resend upon successful order completion.
  */
 export async function sendAdminOrderNotification(orderData: any) {
   const adminEmail = 'voidwear26@gmail.com';
-  const appPassword = process.env.GMAIL_APP_PASSWORD;
-
-  if (!appPassword) {
-    console.error('[NOTIFICATION_FAILURE] GMAIL_APP_PASSWORD not configured.');
-    return { success: false };
-  }
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: adminEmail,
-        pass: appPassword,
-      },
-    });
-
     const itemsSummary = orderData.items.map((item: any) => 
       `- ${item.name} (SZ: ${item.size}, QTY: ${item.quantity})`
     ).join('\n');
 
-    const mailOptions = {
-      from: `"VOID WEAR SYSTEM" <${adminEmail}>`,
+    await resend.emails.send({
+      from: 'VOID WEAR SYSTEM <onboarding@resend.dev>',
       to: adminEmail,
       subject: `[NEW_TRANSMISSION] ${orderData.order_ID}`,
-      text: `
-NEW ACQUISITION DETECTED
-
-ORDER_ID: ${orderData.order_ID}
-VALUATION: ₹${orderData.totalAmount}
-ENTITY: ${orderData.displayName} (${orderData.email})
-CONTACT: ${orderData.mobileNumber}
-
-MODULES:
-${itemsSummary}
-
-DESTINATION:
-${orderData.addressLine1}, ${orderData.city}, ${orderData.stateProvince}
-      `,
       html: `
         <div style="background-color: #000; color: #fff; padding: 40px; font-family: 'Space Grotesk', sans-serif; border: 1px solid #333;">
           <h1 style="border-bottom: 1px solid #333; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">NEW TRANSMISSION DETECTED</h1>
@@ -68,12 +42,11 @@ ${orderData.addressLine1}, ${orderData.city}, ${orderData.stateProvince}
           </div>
         </div>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
     return { success: true };
   } catch (error) {
-    console.error('[NOTIFICATION_FAILURE]', error);
+    console.error('[NOTIFICATION_FAILURE] Resend failed:', error);
     return { success: false };
   }
 }

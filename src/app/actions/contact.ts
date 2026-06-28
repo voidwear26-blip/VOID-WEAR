@@ -1,10 +1,12 @@
 'use server';
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend('re_43Qt9Sqs_KMkjukPTvcYxkFEmCsLXwhzC');
 
 /**
  * UPLINK TRANSMISSION: Contact Form Action
- * Relays message data to the primary administrator via SMTP.
+ * Relays message data to the primary administrator via Resend.
  */
 export async function sendContactEmail(prevState: any, formData: FormData) {
   const name = formData.get('name') as string;
@@ -16,42 +18,18 @@ export async function sendContactEmail(prevState: any, formData: FormData) {
     return { success: false, message: 'MISSING_DATA_NODES' };
   }
 
-  const appPassword = process.env.GMAIL_APP_PASSWORD;
-
-  if (!appPassword) {
-    console.error('[UPLINK_FAILURE] GMAIL_APP_PASSWORD is not configured in environment.');
-    return { success: false, message: 'SYSTEM_CONFIG_ERROR' };
-  }
-
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'voidwear26@gmail.com',
-        pass: appPassword,
-      },
-    });
-
     /**
      * TRANSMISSION PROTOCOL:
-     * We send FROM the authenticated user to avoid spoofing rejections.
-     * We set replyTo to the operator's email so the admin can respond directly.
+     * Using Resend for high-reliability message delivery.
      */
-    const mailOptions = {
-      from: `"VOID WEAR UPLINK" <voidwear26@gmail.com>`,
+    const { data, error } = await resend.emails.send({
+      from: 'VOID WEAR UPLINK <onboarding@resend.dev>',
       to: 'voidwear26@gmail.com',
       replyTo: email,
       subject: `[VOID_WEAR_UPLINK] ${subject.toUpperCase()}`,
-      text: `
-ENTITY IDENTITY: ${name}
-CONTACT CHANNEL: ${email}
-TOPIC: ${subject}
-
-TRANSMISSION CONTENT:
-${message}
-      `,
       html: `
-        <div style="background-color: #00; color: #fff; padding: 40px; font-family: 'Helvetica', sans-serif; border: 1px solid #333;">
+        <div style="background-color: #000; color: #fff; padding: 40px; font-family: 'Helvetica', sans-serif; border: 1px solid #333;">
           <h1 style="color: #fff; border-bottom: 1px solid #333; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.2em; text-transform: uppercase;">INCOMING TRANSMISSION</h1>
           <div style="margin-top: 20px;">
             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">ENTITY_NAME</p>
@@ -72,12 +50,16 @@ ${message}
           </div>
         </div>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error('[UPLINK_FAILURE] Resend error:', error);
+      return { success: false, message: 'UPLINK_RELAY_ERROR' };
+    }
+
     return { success: true, message: 'TRANSMISSION_SECURED' };
   } catch (error: any) {
-    console.error('[UPLINK_FAILURE]', error);
+    console.error('[UPLINK_FAILURE] Critical crash:', error);
     return { success: false, message: 'UPLINK_SERVER_ERROR' };
   }
 }

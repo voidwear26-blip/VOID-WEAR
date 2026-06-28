@@ -1,31 +1,19 @@
 'use server';
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { generateNotificationContent } from '@/ai/flows/generate-notification-content';
 
+const resend = new Resend('re_43Qt9Sqs_KMkjukPTvcYxkFEmCsLXwhzC');
+
 /**
- * VOID WEAR // DUAL-UPLINK NOTIFICATION RELAY
- * Dispatches cinematic transmissions to both the Admin and the Operator (Customer).
+ * VOID WEAR // RESEND DUAL-UPLINK RELAY
+ * Dispatches cinematic transmissions via Resend to both Admin and Operator.
  */
 export async function sendOrderConfirmationNotifications(orderData: any) {
   const adminEmail = 'voidwear26@gmail.com';
   const customerEmail = orderData.email;
-  const appPassword = process.env.GMAIL_APP_PASSWORD;
-
-  if (!appPassword) {
-    console.error('[UPLINK_FAILURE] GMAIL_APP_PASSWORD not configured.');
-    return { success: false };
-  }
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: adminEmail,
-        pass: appPassword,
-      },
-    });
-
     // 1. Generate Neural Content for the Operator
     const neuralContent = await generateNotificationContent({
       productName: orderData.items?.[0]?.name || 'ASSEMBLAGE MODULE',
@@ -38,8 +26,8 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
     ).join('\n');
 
     // 2. TRANSMISSION A: Operator Confirmation (Customer)
-    const customerMailOptions = {
-      from: `"VOID WEAR SYSTEM" <${adminEmail}>`,
+    const customerMailPromise = resend.emails.send({
+      from: 'VOID WEAR <onboarding@resend.dev>',
       to: customerEmail,
       subject: `[TRANSMISSION_SECURED] ${orderData.order_ID}`,
       html: `
@@ -62,11 +50,11 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
           </div>
         </div>
       `
-    };
+    });
 
     // 3. TRANSMISSION B: System Alert (Admin)
-    const adminMailOptions = {
-      from: `"VOID WEAR SYSTEM" <${adminEmail}>`,
+    const adminMailPromise = resend.emails.send({
+      from: 'VOID WEAR SYSTEM <onboarding@resend.dev>',
       to: adminEmail,
       subject: `[NEW_ACQUISITION] ${orderData.order_ID}`,
       html: `
@@ -91,17 +79,14 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
           </div>
         </div>
       `
-    };
+    });
 
-    // Parallel Dispatch
-    await Promise.all([
-      transporter.sendMail(customerMailOptions),
-      transporter.sendMail(adminMailOptions)
-    ]);
+    // Parallel Dispatch via Resend
+    await Promise.all([customerMailPromise, adminMailPromise]);
 
     return { success: true };
   } catch (error) {
-    console.error('[NOTIFICATION_FAILURE]', error);
+    console.error('[UPLINK_FAILURE] Resend transmission failed:', error);
     return { success: false };
   }
 }
