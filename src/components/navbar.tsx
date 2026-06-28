@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -14,6 +15,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { user } = useUser();
   const db = useFirestore();
@@ -76,7 +78,7 @@ export function Navbar() {
           <div className="flex items-center gap-4 md:gap-16">
             {/* Mobile Menu Trigger */}
             <div className="lg:hidden">
-              <Sheet>
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-none w-10 h-10">
                     <Menu className="w-5 h-5" />
@@ -86,12 +88,23 @@ export function Navbar() {
                   <div className="p-10 space-y-16 pt-24">
                     <SheetTitle className="sr-only">NAVIGATION_MENU</SheetTitle>
                     <div className="space-y-4">
+                       {/* BRAND LINK INSIDE MOBILE MENU: CLOSES DRAWER ON CLICK */}
+                       <Link 
+                         href="/" 
+                         onClick={() => setIsMobileMenuOpen(false)}
+                         className="flex items-center gap-4 mb-12 group"
+                       >
+                         <Image src="/logo.png" alt="VOID WEAR" width={32} height={32} className="h-6 w-auto object-contain brightness-200 grayscale" unoptimized />
+                         <span className="text-lg font-black tracking-[0.4em] uppercase text-white glow-text font-header">VOID WEAR</span>
+                       </Link>
+
                        <span className="text-[8px] font-black tracking-[0.5em] text-white/20 uppercase">SYSTEM_NODES</span>
                        <div className="flex flex-col gap-8">
                          {navLinks.map((link) => (
                            <Link 
                              key={link.name} 
                              href={link.href}
+                             onClick={() => setIsMobileMenuOpen(false)}
                              className="text-lg font-black tracking-[0.4em] hover:text-white transition-all uppercase font-header"
                            >
                              {link.name}

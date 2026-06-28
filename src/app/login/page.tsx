@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -31,7 +32,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      router.push('/profile');
+      // SUCCESSFUL UPLINK: REDIRECT TO HOMEPAGE
+      router.push('/');
     }
   }, [user, isUserLoading, router]);
 
