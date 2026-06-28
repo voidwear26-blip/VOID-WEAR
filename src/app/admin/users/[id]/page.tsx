@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
@@ -14,11 +13,21 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function UserDossierPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: userId } = use(params);
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isUserLoading: isAuthLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com';
+
+  const currentProfileRef = useMemoFirebase(() => {
+    if (!db || !currentUser) return null;
+    return doc(db, 'users', currentUser.uid);
+  }, [db, currentUser]);
+
+  const { data: currentProfile, isLoading: isProfileLoading } = useDoc(currentProfileRef);
+
+  const isAdmin = currentUser?.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+                  currentUser?.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+                  currentProfile?.role === 'ADMIN';
 
   const userRef = useMemoFirebase(() => {
     if (!db || !userId || !isAdmin) return null;
@@ -31,7 +40,7 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
     if (!db || !userId || !isAdmin) return null;
     return query(
       collection(db, 'users', userId, 'orders'),
-      orderBy('createdAt', 'desc')
+      orderBy('orderDate', 'desc')
     );
   }, [db, userId, isAdmin]);
 
@@ -71,11 +80,10 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !userId) return;
+    if (!db || !userId || !isAdmin) return;
     setSaving(true);
     try {
-      // Optimistic non-blocking save
-      setDoc(doc(db, 'users', userId), {
+      await setDoc(doc(db, 'users', userId), {
         ...formData,
         updatedAt: new Date().toISOString()
       }, { merge: true });
@@ -90,7 +98,7 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
   };
 
   const handlePurge = async () => {
-    if (!db || !userId) return;
+    if (!db || !userId || !isAdmin) return;
     if (!confirm('INITIATE TOTAL DATA PURGE FOR THIS ENTITY?')) return;
     try {
       await deleteDoc(doc(db, 'users', userId));
@@ -101,8 +109,17 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  if (!isAdmin) {
+  if (isAuthLoading || isProfileLoading) {
     return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase text-white">Authenticating Protocol...</div>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-6">
+        <p className="text-[10px] tracking-[1em] uppercase text-white/40 font-black">ACCESS DENIED // MASTER ONLY</p>
+        <Link href="/admin" className="text-[10px] tracking-widest text-white border-b border-white/20 pb-2 font-bold uppercase">Back to Center</Link>
+      </div>
+    );
   }
 
   if (isEntityLoading) {

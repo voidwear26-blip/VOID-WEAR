@@ -1,7 +1,7 @@
 "use client"
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collectionGroup, query, limit } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collectionGroup, query, limit, doc } from 'firebase/firestore';
 import { ChevronLeft, TrendingUp, Loader2, Info, ArrowDownWideNarrow } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
@@ -25,21 +25,28 @@ export default function RevenueDetailsPage() {
     setMounted(true);
   }, []);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
   const isAdmin = useMemo(() => {
-    if (isUserLoading || !user) return false;
+    if (isUserLoading || !user || isProfileLoading) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
-  }, [user, isUserLoading]);
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile, isProfileLoading]);
 
   useEffect(() => {
-    if (mounted && !isUserLoading && !isAdmin) {
+    if (mounted && !isUserLoading && !isProfileLoading && !isAdmin) {
       router.push('/');
     }
-  }, [mounted, isUserLoading, isAdmin, router]);
+  }, [mounted, isUserLoading, isProfileLoading, isAdmin, router]);
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !isAdmin) return null;
-    // Simple query to bypass composite index requirement
     return query(collectionGroup(db, 'orders'), limit(1000));
   }, [db, isAdmin]);
 
@@ -125,7 +132,7 @@ export default function RevenueDetailsPage() {
     }), { totalRevenue: 0, totalUnits: 0, uniqueModules: 0 });
   }, [revenueBreakdown]);
 
-  if (!mounted || isUserLoading) {
+  if (!mounted || isUserLoading || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <Loader2 className="w-10 h-10 animate-spin text-white/20" />
@@ -204,7 +211,7 @@ export default function RevenueDetailsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {isLoading ? (
+                {(isLoading || isProfileLoading) ? (
                   [1, 2, 3, 4, 5].map(i => (
                     <tr key={i} className="animate-pulse">
                       <td colSpan={4} className="px-10 py-12 bg-white/[0.01]" />
@@ -252,7 +259,7 @@ export default function RevenueDetailsPage() {
                   </tr>
                 )}
               </tbody>
-              {!isLoading && revenueBreakdown.length > 0 && (
+              {!isLoading && !isProfileLoading && revenueBreakdown.length > 0 && (
                 <tfoot className="border-t-2 border-white/10 bg-white/[0.03]">
                    <tr>
                       <td className="px-10 py-12">

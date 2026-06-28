@@ -1,6 +1,6 @@
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package } from 'lucide-react';
 import Link from 'next/link';
@@ -18,11 +18,19 @@ export default function AdminReviewsPage() {
     setMounted(true);
   }, []);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
   const isAdmin = useMemo(() => {
-    if (isUserLoading || !user) return false;
+    if (isUserLoading || !user || isProfileLoading) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
-  }, [user, isUserLoading]);
+           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           profile?.role === 'ADMIN';
+  }, [user, isUserLoading, profile, isProfileLoading]);
 
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
@@ -52,7 +60,7 @@ export default function AdminReviewsPage() {
     }
   };
 
-  if (isUserLoading || !mounted) {
+  if (isUserLoading || !mounted || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white bg-black">
         Authenticating Protocol...
