@@ -89,10 +89,25 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
+      
+      let errorTitle = "ACCESS_DENIED";
+      let errorDesc = "INVALID IDENTITY CREDENTIALS.";
+
+      if (err.code === 'auth/email-already-in-use') {
+        errorTitle = "IDENTITY_ALREADY_LINKED";
+        errorDesc = "THIS COMM-CHANNEL IS ALREADY ANCHORED TO THE NETWORK.";
+      } else if (err.code === 'auth/weak-password') {
+        errorTitle = "SECURITY_THREAT";
+        errorDesc = "ACCESS KEY IS TOO FRAGILE. INCREASE COMPLEXITY.";
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        errorTitle = "UPLINK_FAILURE";
+        errorDesc = "CREDENTIALS DO NOT MATCH ANY ACTIVE DOSSIER.";
+      }
+
       toast({
         variant: "destructive",
-        title: "ACCESS_DENIED",
-        description: err.message || "INVALID IDENTITY CREDENTIALS.",
+        title: errorTitle,
+        description: errorDesc,
       });
     } finally {
       setLoading(false);
