@@ -27,26 +27,30 @@ export function Hero() {
   const { data: config } = useDoc(configRef);
   const { data: profile } = useDoc(profileRef);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
+  // Rules of Hooks: All hooks must be called before any early returns.
   // Prioritize Profile Display Name, then Auth Display Name, then Email Prefix, finally 'OPERATOR'
   const greeting = useMemo(() => {
     if (!user) return 'OPERATOR';
     const profileName = profile?.displayName;
     const authName = user.displayName;
-    const emailPrefix = user.email?.split('@')[0].toUpperCase();
-    return (profileName || authName || emailPrefix || 'OPERATOR').toUpperCase();
+    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'OPERATOR';
+    
+    // Explicit priority: Firestore Dossier > Auth Profile > Email Artifact
+    return (profileName || authName || emailPrefix).toUpperCase();
   }, [user, profile]);
   
-  const content = {
+  const content = useMemo(() => ({
     title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
     tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
-  };
+  }), [config, greeting]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Early return placed after all hooks to prevent "Rules of Hooks" violations.
+  if (!mounted) return null;
 
   return (
     <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
