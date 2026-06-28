@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -19,7 +19,13 @@ export function Hero() {
     return doc(db, 'app_config', 'global');
   }, [db]);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
   const { data: config } = useDoc(configRef);
+  const { data: profile } = useDoc(profileRef);
 
   useEffect(() => {
     setMounted(true);
@@ -27,9 +33,14 @@ export function Hero() {
 
   if (!mounted) return null;
 
-  const greeting = user 
-    ? (user.email?.split('@')[0].toUpperCase() || 'OPERATOR') 
-    : 'OPERATOR';
+  // Prioritize Profile Display Name, then Auth Display Name, then Email Prefix, finally 'OPERATOR'
+  const greeting = useMemo(() => {
+    if (!user) return 'OPERATOR';
+    const profileName = profile?.displayName;
+    const authName = user.displayName;
+    const emailPrefix = user.email?.split('@')[0].toUpperCase();
+    return (profileName || authName || emailPrefix || 'OPERATOR').toUpperCase();
+  }, [user, profile]);
   
   const content = {
     title: config?.heroTitle || "VOID WEAR",
