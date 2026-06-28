@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * VOID WEAR // INVOICE GENERATOR V2.5
+ * VOID WEAR // INVOICE GENERATOR V2.6
  * Generates a cinematic PDF transmission log.
- * Includes detailed financial breakdown (Tax & Shipping).
+ * Includes detailed financial breakdown with support for Free Shipping logic.
  */
 export async function generateInvoicePDF(order: any) {
   if (!order || !order.items) {
@@ -17,7 +17,7 @@ export async function generateInvoicePDF(order: any) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: [100, 160] // Adjusted height for additional lines
+    format: [100, 160] 
   });
 
   const primaryColor = '#000000';
@@ -116,7 +116,7 @@ export async function generateInvoicePDF(order: any) {
     // Financial Breakdown Calculation
     const subtotal = order.subtotal || order.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
     const tax = order.taxAmount || (subtotal * 0.05);
-    const shipping = order.shippingFee !== undefined ? order.shippingFee : 60;
+    const shipping = order.shippingFee !== undefined ? order.shippingFee : 0;
     const finalTotal = order.totalAmount || (subtotal + tax + shipping);
 
     // 5. Summary Lines
@@ -131,7 +131,8 @@ export async function generateInvoicePDF(order: any) {
     doc.text(`INR ${tax.toFixed(2)}`, 90, tableFinalY + 10, { align: 'right' });
     
     doc.text('SHIPPING FEE:', 60, tableFinalY + 14);
-    doc.text(`INR ${shipping.toFixed(2)}`, 90, tableFinalY + 14, { align: 'right' });
+    const shippingText = shipping === 0 ? 'FREE' : `INR ${shipping.toFixed(2)}`;
+    doc.text(shippingText, 90, tableFinalY + 14, { align: 'right' });
 
     // 6. Total Box
     doc.setFillColor(primaryColor);

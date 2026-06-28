@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -73,8 +72,10 @@ export default function CheckoutPage() {
   }, [user, profile]);
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
+  const totalUnits = cartItems?.reduce((acc, item) => acc + Number(item.quantity), 0) || 0;
   const taxAmount = subtotal * 0.05;
-  const shippingFee = subtotal > 0 ? 60 : 0;
+  // FREE SHIPPING PROTOCOL: Free for 2 or more units.
+  const shippingFee = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
   const totalAmount = subtotal + taxAmount + shippingFee;
 
   const validateShippingNodes = () => {
@@ -413,7 +414,10 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
                      <span className="text-white/40">SHIPPING FEE</span>
-                     <span className="text-white">₹{shippingFee.toFixed(2)}</span>
+                     <div className="flex items-center gap-2">
+                        {totalUnits >= 2 && <span className="line-through text-white/30">₹60.00</span>}
+                        <span className="text-white">{shippingFee === 0 ? 'FREE' : `₹${shippingFee.toFixed(2)}`}</span>
+                     </div>
                   </div>
                   <div className="pt-4 border-t border-white/5 flex justify-between items-center">
                      <span className="text-[11px] font-black uppercase text-white/60">TOTAL VALUATION</span>
