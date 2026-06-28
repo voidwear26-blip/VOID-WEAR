@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -388,9 +389,14 @@ export default function CheckoutPage() {
                           <Image src={item.image} alt={item.name} fill className="object-cover grayscale" unoptimized />
                        </div>
                        <div className="flex-1 space-y-1">
-                          <p className="text-[10px] font-bold tracking-widest uppercase truncate">{item.name}</p>
+                          <p className="text-[10px] font-bold tracking-widest uppercase truncate max-w-[150px]">{item.name}</p>
                           <p className="text-[8px] text-white/40 uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
-                          <p className="text-[9px] text-white font-bold">₹{item.price * item.quantity}</p>
+                          <div className="flex items-center gap-2">
+                             {item.originalPrice && item.originalPrice > item.price && (
+                               <span className="text-[8px] line-through text-white/30 tracking-widest">₹{item.originalPrice * item.quantity}</span>
+                             )}
+                             <p className="text-[9px] text-white font-bold">₹{item.price * item.quantity}</p>
+                          </div>
                        </div>
                     </div>
                   ))}

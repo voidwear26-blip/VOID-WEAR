@@ -13,7 +13,7 @@ import { FirestorePermissionError } from './errors';
 export async function addToCart(
   db: Firestore, 
   userId: string, 
-  product: { id: string, name: string, basePrice: number, imageUrls: string[], color?: string },
+  product: { id: string, name: string, basePrice: number, originalPrice?: number, imageUrls: string[], color?: string },
   size: string,
   quantity: number = 1
 ) {
@@ -32,6 +32,7 @@ export async function addToCart(
 
   // Extract clean metadata
   const price = Number(product.basePrice) || 0;
+  const originalPrice = Number(product.originalPrice) || price;
   const image = product.imageUrls?.[0] || 'https://picsum.photos/seed/void/400/600';
   const color = product.color || 'UNSPECIFIED';
 
@@ -40,6 +41,7 @@ export async function addToCart(
     const updateData = {
       quantity: currentQty + quantity,
       price: price,
+      originalPrice: originalPrice,
       image: image,
       color: color,
       updatedAt: new Date().toISOString()
@@ -59,6 +61,7 @@ export async function addToCart(
       productId: product.id,
       name: product.name,
       price: price,
+      originalPrice: originalPrice,
       image: image,
       size: size,
       color: color,

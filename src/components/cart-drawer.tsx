@@ -115,7 +115,12 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                           <span className="text-[9px] font-mono w-4 text-center">{item.quantity}</span>
                           <button onClick={() => updateQuantity(item.id, 1)} className="text-white/40 hover:text-white"><Plus className="w-3 h-3" /></button>
                         </div>
-                        <p className="text-[10px] font-bold tracking-widest">₹{(Number(item.price) || 0) * (Number(item.quantity) || 0)}</p>
+                        <div className="text-right">
+                           {item.originalPrice && item.originalPrice > item.price && (
+                             <p className="text-[8px] line-through text-white/30 tracking-widest">₹{Number(item.originalPrice) * Number(item.quantity)}</p>
+                           )}
+                           <p className="text-[10px] font-bold tracking-widest">₹{(Number(item.price) || 0) * (Number(item.quantity) || 0)}</p>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
