@@ -12,9 +12,11 @@ import { useRef, useEffect, useState } from 'react';
 export default function Home() {
   const db = useFirestore();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const reviewScrollRef = useRef<HTMLDivElement>(null);
   
   const [isPaused, setIsPaused] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -31,7 +33,7 @@ export default function Home() {
     return query(
       collection(db, 'reviews'),
       where('isFeatured', '==', true),
-      limit(6)
+      limit(10)
     );
   }, [db]);
 
@@ -44,18 +46,22 @@ export default function Home() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      // containerWidth is half the scrollable content because we duplicated the items
       setContainerWidth(scrollRef.current.scrollWidth / 2);
     }
   }, [latestProducts]);
 
-  // Persistent motion value for x position
+  useEffect(() => {
+    if (reviewScrollRef.current && featuredReviews) {
+      setReviewContainerWidth(reviewScrollRef.current.scrollWidth - reviewScrollRef.current.offsetWidth);
+    }
+  }, [featuredReviews]);
+
+  // Persistent motion value for x position (Modules)
   const x = useMotionValue(0);
 
-  // NEURAL DRIFT ENGINE: Infinite auto-scroll that supports manual drag offsets
+  // NEURAL DRIFT ENGINE: Infinite auto-scroll for modules
   useAnimationFrame((time, delta) => {
     if (!latestLoading && containerWidth > 0) {
-      // 1. CONSTANT WRAP: Ensure the offset stays within the duplicated bounds
       let currentX = x.get();
       if (currentX <= -containerWidth) {
         x.set(currentX + containerWidth);
@@ -63,9 +69,8 @@ export default function Home() {
         x.set(currentX - containerWidth);
       }
 
-      // 2. DRIFT RESUMPTION: Continue motion from current position if not paused
       if (!isPaused) {
-        const pixelsPerSecond = 40; // Calibrated drift speed
+        const pixelsPerSecond = 40; 
         const moveBy = (pixelsPerSecond * delta) / 1000;
         x.set(x.get() - moveBy);
       }
@@ -83,7 +88,7 @@ export default function Home() {
       "https://www.facebook.com/share/1DbtMjAWYh/",
       "https://x.com/voidwearoff_26"
     ],
-    "description": "Premium futuristic technical shells for the digital migration. Designed in the void, crafted for the world.",
+    "description": "Premium futuristic technical shells for the digital migration. Designed in the void, crafted for the world."
   };
 
   return (
@@ -175,7 +180,6 @@ export default function Home() {
           <motion.div 
             ref={scrollRef}
             drag="x"
-            // High constraints to allow free-flowing infinite drag wrap
             dragConstraints={{ left: -containerWidth * 1.5, right: containerWidth * 0.5 }}
             dragElastic={0.05}
             style={{ x }}
@@ -208,10 +212,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Reviews Section */}
+      {/* Featured Reviews Section - Recalibrated for Draggable Navigation */}
       <section className="py-32 md:py-48 bg-white/[0.01] border-y border-white/5 overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-24">
+        <div className="container mx-auto px-6 mb-24">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
              <div className="space-y-6">
                 <span className="text-[10px] font-bold tracking-[1.2em] text-white/30 uppercase">FIELD REPORTS</span>
                 <h2 className="text-4xl md:text-7xl font-black tracking-tight glow-text uppercase leading-none">OPERATOR <br /> FEEDBACK</h2>
@@ -221,19 +225,27 @@ export default function Home() {
                 <span className="text-[9px] tracking-[0.3em] font-bold uppercase">AUDITED TRANSMISSIONS</span>
              </div>
           </div>
+        </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="relative overflow-hidden cursor-grab active:cursor-grabbing px-6 md:px-0">
+          <motion.div 
+            ref={reviewScrollRef}
+            drag="x"
+            dragConstraints={{ right: 0, left: -reviewContainerWidth }}
+            dragElastic={0.1}
+            className="flex gap-8 md:container md:mx-auto"
+          >
              {reviewsLoading ? (
-               [1, 2, 3].map(i => <div key={i} className="h-64 bg-white/5 animate-pulse border border-white/10" />)
+               [1, 2, 3].map(i => <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-white/5 animate-pulse border border-white/10" />)
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
                  <motion.div 
                    key={review.id}
-                   initial={{ opacity: 0, y: 20 }}
-                   whileInView={{ opacity: 1, y: 0 }}
+                   initial={{ opacity: 0, x: 20 }}
+                   whileInView={{ opacity: 1, x: 0 }}
                    transition={{ delay: idx * 0.1 }}
                    viewport={{ once: true }}
-                   className="p-10 border border-white/5 bg-white/[0.005] space-y-8 backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group"
+                   className="min-w-[320px] md:min-w-[400px] p-10 border border-white/5 bg-white/[0.005] space-y-8 backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group select-none"
                  >
                     <div className="flex justify-between items-start">
                        <div className="flex items-center gap-4">
@@ -261,11 +273,16 @@ export default function Home() {
                  </motion.div>
                ))
              ) : (
-               <div className="col-span-full py-24 text-center opacity-20 border border-dashed border-white/5">
+               <div className="w-full py-24 text-center opacity-20 border border-dashed border-white/5">
                   <p className="text-[10px] tracking-[1em] uppercase font-bold">AWAITING FIELD DATA</p>
                </div>
              )}
-          </div>
+          </motion.div>
+        </div>
+
+        <div className="mt-16 container mx-auto px-6 flex items-center gap-6 text-white/20">
+           <div className="text-[8px] tracking-[0.6em] uppercase font-black">NEURAL FEED // DRAG TO NAVIGATE REPORTS</div>
+           <div className="flex-1 h-[1px] bg-white/10"></div>
         </div>
       </section>
 
