@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -122,7 +123,7 @@ export default function AdminReviewsPage() {
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-center">HOME_FEED</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE_ID</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CALIBRATION</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">NARRATIVE</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">ACTION</th>
@@ -157,9 +158,12 @@ export default function AdminReviewsPage() {
                          </div>
                       </td>
                       <td className="px-10 py-8">
-                         <div className="flex items-center gap-2 text-[10px] text-white/40 tracking-widest font-bold">
-                            <Package className="w-3 h-3" />
-                            {review.productId.slice(0, 12)}...
+                         <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-[10px] text-white tracking-widest font-bold uppercase">
+                               <Package className="w-3 h-3 text-white/40" />
+                               {review.productName || 'UNKNOWN MODULE'}
+                            </div>
+                            <span className="text-[7px] text-white/20 font-mono">UID: {review.productId.slice(0, 12)}...</span>
                          </div>
                       </td>
                       <td className="px-10 py-8">

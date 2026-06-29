@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -71,6 +72,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
     try {
       await submitReview(db, {
         productId,
+        productName,
         userId: user.uid,
         userName: user.displayName || user.email?.split('@')[0].toUpperCase() || 'OPERATOR',
         rating,
@@ -126,8 +128,6 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
               <p className="text-[9px] tracking-[0.3em] text-white/40 uppercase font-bold">Verifying Acquisition...</p>
             </div>
           ) : !hasPurchased ? (
-            // User requested to remove the "Verification Required" box. 
-            // We return null to leave the space empty for future review capability.
             null
           ) : (
             <div className="space-y-8">

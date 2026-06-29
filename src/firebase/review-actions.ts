@@ -7,12 +7,14 @@ import { FirestorePermissionError } from './errors';
 
 export interface ReviewData {
   productId: string;
+  productName: string;
   userId: string;
   userName: string;
   orderId: string;
   rating: number;
   comment: string;
   createdAt: string;
+  isFeatured?: boolean;
 }
 
 /**

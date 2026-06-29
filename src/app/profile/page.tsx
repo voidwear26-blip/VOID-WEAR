@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
@@ -320,6 +321,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
     try {
       await submitReview(db, {
         productId,
+        productName,
         userId,
         userName: userName,
         rating: reviewRating,

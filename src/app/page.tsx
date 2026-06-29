@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -212,7 +213,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Reviews Section - Recalibrated for Draggable Navigation */}
+      {/* Featured Reviews Section */}
       <section className="py-32 md:py-48 bg-white/[0.01] border-y border-white/5 overflow-hidden">
         <div className="container mx-auto px-6 mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -239,38 +240,47 @@ export default function Home() {
                [1, 2, 3].map(i => <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-white/5 animate-pulse border border-white/10" />)
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
-                 <motion.div 
-                   key={review.id}
-                   initial={{ opacity: 0, x: 20 }}
-                   whileInView={{ opacity: 1, x: 0 }}
-                   transition={{ delay: idx * 0.1 }}
-                   viewport={{ once: true }}
-                   className="min-w-[320px] md:min-w-[400px] p-10 border border-white/5 bg-white/[0.005] space-y-8 backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group select-none"
-                 >
-                    <div className="flex justify-between items-start">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-white/5">
-                             <User className="w-4 h-4 text-white/40" />
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black tracking-widest uppercase text-white">{review.userName}</p>
-                             <p className="text-[8px] tracking-widest text-white/20 uppercase font-bold">VERIFIED_OPERATOR</p>
-                          </div>
-                       </div>
-                       <div className="flex gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-white fill-current' : 'text-white/10'}`} />
-                          ))}
-                       </div>
-                    </div>
-                    <p className="text-[11px] tracking-widest leading-relaxed uppercase text-white/60 font-medium line-clamp-4 group-hover:text-white/80 transition-colors">
-                       "{review.comment}"
-                    </p>
-                    <div className="pt-4 border-t border-white/5 flex items-center justify-between opacity-40 group-hover:opacity-100 transition-opacity">
-                       <span className="text-[7px] font-black tracking-widest uppercase">{new Date(review.createdAt).toLocaleDateString()}</span>
-                       <Zap className="w-2.5 h-2.5" />
-                    </div>
-                 </motion.div>
+                 <Link key={review.id} href={`/products/${review.productId}`}>
+                   <motion.div 
+                     initial={{ opacity: 0, x: 20 }}
+                     whileInView={{ opacity: 1, x: 0 }}
+                     transition={{ delay: idx * 0.1 }}
+                     viewport={{ once: true }}
+                     className="min-w-[320px] md:min-w-[400px] p-10 border border-white/5 bg-white/[0.005] space-y-8 backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group select-none h-full"
+                   >
+                      <div className="flex justify-between items-start">
+                         <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-white/5">
+                               <User className="w-4 h-4 text-white/40" />
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black tracking-widest uppercase text-white">{review.userName}</p>
+                               <p className="text-[8px] tracking-widest text-white/20 uppercase font-bold">VERIFIED_OPERATOR</p>
+                            </div>
+                         </div>
+                         <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-white fill-current' : 'text-white/10'}`} />
+                            ))}
+                         </div>
+                      </div>
+
+                      <div className="space-y-4">
+                         <div className="flex items-center gap-3 text-white/20">
+                            <span className="text-[8px] font-black tracking-[0.4em] uppercase">MODULE_TARGET:</span>
+                            <span className="text-[8px] font-black tracking-[0.4em] uppercase text-white/60 group-hover:text-white transition-colors">{review.productName || 'ASSEMBLAGE'}</span>
+                         </div>
+                         <p className="text-[11px] tracking-widest leading-relaxed uppercase text-white/60 font-medium line-clamp-4 group-hover:text-white/80 transition-colors">
+                            "{review.comment}"
+                         </p>
+                      </div>
+
+                      <div className="pt-4 border-t border-white/5 flex items-center justify-between opacity-40 group-hover:opacity-100 transition-opacity">
+                         <span className="text-[7px] font-black tracking-widest uppercase">{new Date(review.createdAt).toLocaleDateString()}</span>
+                         <Zap className="w-2.5 h-2.5" />
+                      </div>
+                   </motion.div>
+                 </Link>
                ))
              ) : (
                <div className="w-full py-24 text-center opacity-20 border border-dashed border-white/5">
