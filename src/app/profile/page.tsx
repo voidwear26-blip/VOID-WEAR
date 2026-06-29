@@ -21,6 +21,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { useRouter } from 'next/navigation';
 import { submitReview } from '@/firebase/review-actions';
+import { cn } from '@/lib/utils';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -98,7 +99,6 @@ export default function ProfilePage() {
       updatedAt: new Date().toISOString()
     };
 
-    // Use a transactional approach to sync both Firestore and Auth Profile
     Promise.all([
       setDoc(userRef, updateData, { merge: true }),
       updateAuthProfile(user, { displayName: formData.displayName })
@@ -224,26 +224,26 @@ export default function ProfilePage() {
                     <div className="grid md:grid-cols-3 gap-10">
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CITY</label>
-                        <Input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" />
+                        <Input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">STATE</label>
-                        <Input value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" />
+                        <Input value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
-                        <Input value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white" />
+                        <Input value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
-                        <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" />
+                        <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">LANDMARK</label>
-                        <Input value={formData.landmark} onChange={e => setFormData({ ...formData, landmark: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest text-white uppercase" placeholder="E.G. NEAR ORBITAL TOWER" />
+                        <Input value={formData.landmark} onChange={e => setFormData({ ...formData, landmark: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" placeholder="E.G. NEAR ORBITAL TOWER" />
                       </div>
                     </div>
 
@@ -286,4 +286,157 @@ export default function ProfilePage() {
     </div>
   );
 }
-// ... rest of the file remains same
+
+function EmptyState({ icon, message }: { icon: React.ReactNode, message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-32 text-center space-y-8 opacity-20 border border-dashed border-white/10">
+      <div className="w-16 h-16 stroke-[0.5px]">
+        {icon}
+      </div>
+      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">{message}</p>
+    </div>
+  );
+}
+
+function OrderCard({ order, userId, userName, db }: { order: any, userId: string, userName: string, db: any }) {
+  const { toast } = useToast();
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const handleDownload = () => {
+    generateInvoicePDF(order);
+    toast({ title: "LOG GENERATED", description: "TRANSMISSION BILL DOWNLOADED." });
+  };
+
+  const handleReviewSubmit = async (productId: string, productName: string) => {
+    if (!db || !userId) return;
+    if (!reviewComment.trim()) {
+      toast({ variant: "destructive", title: "REPORT_INCOMPLETE" });
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      await submitReview(db, {
+        productId,
+        userId,
+        userName: userName,
+        rating: reviewRating,
+        comment: reviewComment,
+        createdAt: new Date().toISOString(),
+        orderId: order.id
+      });
+      toast({ title: "REPORT TRANSMITTED", description: `FIELD DATA LOGGED FOR ${productName.toUpperCase()}.` });
+      setReviewComment('');
+      setReviewOpen(false);
+    } catch (e) {
+      toast({ variant: "destructive", title: "TRANSMISSION_FAILURE" });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  return (
+    <div className="bg-white/[0.02] border border-white/10 p-8 md:p-10 space-y-8 backdrop-blur-xl group hover:border-white/20 transition-all duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-white/5 pb-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Hash className="w-4 h-4 text-white/40" />
+            <span className="text-[11px] font-black tracking-widest text-white uppercase">{order.order_ID || order.id}</span>
+          </div>
+          <div className="flex flex-wrap gap-8">
+             <div className="space-y-1">
+                <p className="text-[8px] tracking-widest text-white/30 uppercase font-bold">CYCLE_DATE</p>
+                <p className="text-[10px] text-white/70 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
+             </div>
+             <div className="space-y-1">
+                <p className="text-[8px] tracking-widest text-white/30 uppercase font-bold">VALUATION</p>
+                <p className="text-[10px] text-white font-black">₹{order.totalAmount}</p>
+             </div>
+             <div className="space-y-1">
+                <p className="text-[8px] tracking-widest text-white/30 uppercase font-bold">STATUS</p>
+                <div className="flex items-center gap-2">
+                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : 'bg-white/40')} />
+                   <p className="text-[10px] text-white uppercase tracking-widest font-black">{order.shippingStatus || 'PROCESSING'}</p>
+                </div>
+             </div>
+          </div>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={handleDownload}
+          className="h-12 border-white/10 bg-white/5 hover:bg-white hover:text-black rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all shrink-0"
+        >
+          DOWNLOAD LOG <Download className="ml-3 w-3.5 h-3.5" />
+        </Button>
+      </div>
+
+      <div className="space-y-6">
+        {order.items?.map((item: any, idx: number) => (
+          <div key={idx} className="flex items-center justify-between group/item">
+            <div className="flex items-center gap-6">
+              <div className="relative w-12 h-16 bg-white/5 border border-white/10 overflow-hidden shrink-0">
+                <Image src={item.image || 'https://picsum.photos/seed/void/200/300'} alt={item.name} fill className="object-cover grayscale" unoptimized />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold tracking-widest uppercase text-white">{item.name}</p>
+                <p className="text-[8px] text-white/40 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
+              </div>
+            </div>
+            
+            {order.shippingStatus === 'delivered' && (
+              <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-white/30 hover:text-white uppercase transition-all">
+                    LOG FIELD REPORT <MessageSquare className="ml-2 w-3 h-3" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-black border border-white/10 p-10 max-w-lg">
+                  <DialogHeader className="space-y-4 mb-8">
+                    <DialogTitle className="text-xl font-black tracking-tight glow-text uppercase">Field Report Protocol</DialogTitle>
+                    <DialogDescription className="text-[9px] tracking-widest uppercase text-white/40 leading-relaxed font-bold">
+                      INPUT OPERATIONAL PERFORMANCE DATA FOR THE {item.name.toUpperCase()} MODULE.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-10">
+                    <div className="space-y-4">
+                      <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">AESTHETIC CALIBRATION</label>
+                      <div className="flex gap-4">
+                        {[1,2,3,4,5].map((s) => (
+                          <button key={s} onClick={() => setReviewRating(s)} className="transition-transform hover:scale-125">
+                            <Star className={cn("w-5 h-5", reviewRating >= s ? "text-white fill-current" : "text-white/10")} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">NARRATIVE CONTENT</label>
+                      <Textarea 
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        placeholder="INPUT PERFORMANCE DATA..."
+                        className="bg-white/5 border-white/10 rounded-none h-32 text-[10px] tracking-widest focus:border-white/40 text-white uppercase placeholder:text-white/5"
+                      />
+                    </div>
+                    
+                    <Button 
+                      disabled={submittingReview}
+                      onClick={() => handleReviewSubmit(item.productId, item.name)}
+                      className="w-full h-14 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
+                    >
+                      {submittingReview ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT LOG <Zap className="ml-3 w-4 h-4" /></>}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
