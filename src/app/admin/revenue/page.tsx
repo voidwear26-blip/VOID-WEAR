@@ -3,15 +3,14 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collectionGroup, query, limit, doc } from 'firebase/firestore';
-import { ChevronLeft, TrendingUp, Loader2, Info, ArrowDownWideNarrow } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Loader2, Info, ArrowDownWideNarrow, Hash, User as UserIcon, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Image from 'next/image';
 
-type RevenueSortOption = 'valuation-desc' | 'valuation-asc' | 'quantity-desc' | 'quantity-asc' | 'name-asc' | 'date-newest';
+type RevenueSortOption = 'total-desc' | 'total-asc' | 'date-newest' | 'date-oldest' | 'tax-desc' | 'shipping-desc';
 
 export default function RevenueDetailsPage() {
   const { user, isUserLoading } = useUser();
@@ -20,7 +19,7 @@ export default function RevenueDetailsPage() {
   const [mounted, setMounted] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [sortBy, setSortBy] = useState<RevenueSortOption>('valuation-desc');
+  const [sortBy, setSortBy] = useState<RevenueSortOption>('date-newest');
 
   useEffect(() => {
     setMounted(true);
@@ -53,100 +52,52 @@ export default function RevenueDetailsPage() {
 
   const { data: orders, isLoading } = useCollection(ordersQuery);
 
-  const revenueBreakdown = useMemo(() => {
+  const processedOrders = useMemo(() => {
     if (!orders) return [];
     
-    let filteredOrders = [...orders];
+    let filtered = [...orders];
 
     if (startDate) {
-      filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) >= new Date(startDate));
+      filtered = filtered.filter(o => new Date(o.orderDate) >= new Date(startDate));
     }
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) <= end);
+      filtered = filtered.filter(o => new Date(o.orderDate) <= end);
     }
 
-    const productMap = new Map<string, { 
-      name: string; 
-      quantity: number; 
-      totalRevenue: number; 
-      price: number;
-      image: string;
-      lastSold: string;
-    }>();
+    filtered.sort((a, b) => {
+      const valA = Number(a.totalAmount) || 0;
+      const valB = Number(b.totalAmount) || 0;
+      const taxA = Number(a.taxAmount) || 0;
+      const taxB = Number(b.taxAmount) || 0;
+      const shipA = Number(a.shippingFee) || 0;
+      const shipB = Number(b.shippingFee) || 0;
+      const dateA = new Date(a.orderDate).getTime();
+      const dateB = new Date(b.orderDate).getTime();
 
-    filteredOrders.forEach(order => {
-      if (order.items && Array.isArray(order.items)) {
-        order.items.forEach((item: any) => {
-          const name = item.name || 'UNIDENTIFIED MODULE';
-          const existing = productMap.get(name) || { 
-            name, 
-            quantity: 0, 
-            totalRevenue: 0, 
-            price: Number(item.price) || 0,
-            image: item.image || (item.imageUrls && item.imageUrls[0]) || 'https://picsum.photos/seed/void/200/300',
-            lastSold: order.orderDate
-          };
-          
-          const qty = Number(item.quantity) || 1;
-          const price = Number(item.price) || 0;
-
-          const currentLastSold = new Date(existing.lastSold).getTime();
-          const orderDate = new Date(order.orderDate).getTime();
-          const latestSold = orderDate > currentLastSold ? order.orderDate : existing.lastSold;
-
-          productMap.set(name, {
-            name,
-            quantity: existing.quantity + qty,
-            totalRevenue: existing.totalRevenue + (qty * price),
-            price: price,
-            image: existing.image,
-            lastSold: latestSold
-          });
-        });
-      }
-    });
-
-    const result = Array.from(productMap.values());
-
-    result.sort((a, b) => {
       switch (sortBy) {
-        case 'valuation-asc': return a.totalRevenue - b.totalRevenue;
-        case 'quantity-desc': return b.quantity - a.quantity;
-        case 'quantity-asc': return a.quantity - b.quantity;
-        case 'name-asc': return a.name.localeCompare(b.name);
-        case 'date-newest': return new Date(b.lastSold).getTime() - new Date(a.lastSold).getTime();
-        case 'valuation-desc':
-        default: return b.totalRevenue - a.totalRevenue;
+        case 'total-asc': return valA - valB;
+        case 'total-desc': return valB - valA;
+        case 'tax-desc': return taxB - taxA;
+        case 'shipping-desc': return shipB - shipA;
+        case 'date-oldest': return dateA - dateB;
+        case 'date-newest':
+        default: return dateB - dateA;
       }
     });
 
-    return result;
+    return filtered;
   }, [orders, startDate, endDate, sortBy]);
 
-  const summary = useMemo(() => {
-    if (!orders) return { totalRevenue: 0, totalUnits: 0, uniqueModules: 0, productRevenue: 0 };
-    
-    let filteredOrders = [...orders];
-    if (startDate) filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) >= new Date(startDate));
-    if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) <= end);
-    }
-
-    const actualRevenue = filteredOrders.reduce((acc, order) => acc + (Number(order.totalAmount) || 0), 0);
-    const prodRevenue = revenueBreakdown.reduce((acc, item) => acc + item.totalRevenue, 0);
-    const totalUnits = revenueBreakdown.reduce((acc, item) => acc + item.quantity, 0);
-
-    return { 
-      totalRevenue: actualRevenue, 
-      productRevenue: prodRevenue,
-      totalUnits: totalUnits, 
-      uniqueModules: revenueBreakdown.length 
-    };
-  }, [orders, revenueBreakdown, startDate, endDate]);
+  const totals = useMemo(() => {
+    return processedOrders.reduce((acc, order) => ({
+      subtotal: acc.subtotal + (Number(order.subtotal) || 0),
+      tax: acc.tax + (Number(order.taxAmount) || 0),
+      shipping: acc.shipping + (Number(order.shippingFee) || 0),
+      total: acc.total + (Number(order.totalAmount) || 0)
+    }), { subtotal: 0, tax: 0, shipping: 0, total: 0 });
+  }, [processedOrders]);
 
   if (!mounted || isUserLoading || isProfileLoading) {
     return (
@@ -160,7 +111,7 @@ export default function RevenueDetailsPage() {
 
   return (
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="container mx-auto px-6 max-w-7xl">
         <div className="space-y-4 mb-16">
           <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/40 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
             <ChevronLeft className="w-3 h-3" />
@@ -173,7 +124,7 @@ export default function RevenueDetailsPage() {
             </div>
             <div className="bg-white/5 border border-white/10 px-8 py-4 flex flex-col items-end gap-1 backdrop-blur-md">
                <span className="text-[9px] tracking-[0.3em] font-bold text-white/40 uppercase">FILTERED TOTAL REVENUE</span>
-               <span className="text-3xl font-black glow-text">₹{summary.totalRevenue.toLocaleString()}</span>
+               <span className="text-3xl font-black glow-text">₹{totals.total.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -204,12 +155,11 @@ export default function RevenueDetailsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-white/20 text-white rounded-none">
-                  <SelectItem value="valuation-desc" className="text-[10px] tracking-widest">VALUATION: HIGH TO LOW</SelectItem>
-                  <SelectItem value="valuation-asc" className="text-[10px] tracking-widest">VALUATION: LOW TO HIGH</SelectItem>
-                  <SelectItem value="quantity-desc" className="text-[10px] tracking-widest">UNITS: MOST SOLD</SelectItem>
-                  <SelectItem value="quantity-asc" className="text-[10px] tracking-widest">UNITS: LEAST SOLD</SelectItem>
-                  <SelectItem value="date-newest" className="text-[10px] tracking-widest">RECENT ACQUISITIONS</SelectItem>
-                  <SelectItem value="name-asc" className="text-[10px] tracking-widest">MODULE: A - Z</SelectItem>
+                  <SelectItem value="date-newest" className="text-[10px] tracking-widest uppercase">RECENT TRANSMISSIONS</SelectItem>
+                  <SelectItem value="total-desc" className="text-[10px] tracking-widest uppercase">VALUATION: HIGH TO LOW</SelectItem>
+                  <SelectItem value="total-asc" className="text-[10px] tracking-widest uppercase">VALUATION: LOW TO HIGH</SelectItem>
+                  <SelectItem value="tax-desc" className="text-[10px] tracking-widest uppercase">HIGHEST TAX YIELD</SelectItem>
+                  <SelectItem value="shipping-desc" className="text-[10px] tracking-widest uppercase">HIGHEST SHIPPING FEES</SelectItem>
                 </SelectContent>
               </Select>
            </div>
@@ -220,53 +170,61 @@ export default function RevenueDetailsPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">MODULE IDENTITY</th>
-                  <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-center">UNITS SOLD</th>
-                  <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-center">UNIT PRICE</th>
-                  <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">MODULE REVENUE</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_UID</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">OPERATOR</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">SUBTOTAL</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">TAX (5%)</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">SHIPPING</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">TOTAL VALUATION</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {(isLoading || isProfileLoading) ? (
                   [1, 2, 3, 4, 5].map(i => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={4} className="px-10 py-12 bg-white/[0.01]" />
+                      <td colSpan={6} className="px-8 py-12 bg-white/[0.01]" />
                     </tr>
                   ))
-                ) : revenueBreakdown.length > 0 ? (
-                  revenueBreakdown.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="px-10 py-10">
-                        <div className="flex items-center gap-6">
-                           <div className="relative w-12 h-16 bg-white/5 border border-white/10 overflow-hidden">
-                              <Image 
-                                src={item.image} 
-                                alt={item.name} 
-                                fill 
-                                className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-                                unoptimized
-                              />
-                           </div>
+                ) : processedOrders.length > 0 ? (
+                  processedOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-8 py-8">
+                        <div className="flex items-center gap-4">
+                           <Hash className="w-3.5 h-3.5 text-white/20" />
                            <div className="space-y-1">
-                              <span className="text-[11px] font-black tracking-widest text-white uppercase">{item.name}</span>
-                              <p className="text-[8px] text-white/30 tracking-widest uppercase">LAST_SOLD: {new Date(item.lastSold).toLocaleDateString()}</p>
+                              <span className="text-[10px] font-mono tracking-widest text-white font-black">{order.order_ID || order.id}</span>
+                              <p className="text-[8px] text-white/30 tracking-widest uppercase">{new Date(order.orderDate).toLocaleDateString()}</p>
                            </div>
                         </div>
                       </td>
-                      <td className="px-10 py-10 text-center">
-                         <span className="text-[11px] font-mono tracking-widest text-white/80">{item.quantity}</span>
+                      <td className="px-8 py-8">
+                        <div className="flex items-center gap-3">
+                           <UserIcon className="w-3 h-3 text-white/20" />
+                           <div className="space-y-0.5">
+                              <p className="text-[10px] font-black tracking-widest text-white/80 uppercase">{order.displayName || 'OPERATOR'}</p>
+                              <p className="text-[8px] font-mono text-white/20">{order.email}</p>
+                           </div>
+                        </div>
                       </td>
-                      <td className="px-10 py-10 text-center">
-                         <span className="text-[11px] font-mono tracking-widest text-white/40">₹{item.price.toLocaleString()}</span>
+                      <td className="px-8 py-8 text-right">
+                         <span className="text-[10px] font-mono tracking-widest text-white/40">₹{(Number(order.subtotal) || 0).toLocaleString()}</span>
                       </td>
-                      <td className="px-10 py-10 text-right">
-                         <span className="text-[11px] font-black tracking-widest text-white glow-text">₹{item.totalRevenue.toLocaleString()}</span>
+                      <td className="px-8 py-8 text-right">
+                         <span className="text-[10px] font-mono tracking-widest text-white/40">₹{(Number(order.taxAmount) || 0).toLocaleString()}</span>
+                      </td>
+                      <td className="px-8 py-8 text-right">
+                         <span className={`text-[10px] font-mono tracking-widest ${Number(order.shippingFee) === 0 ? 'text-green-500/40' : 'text-white/40'}`}>
+                           {Number(order.shippingFee) === 0 ? 'FREE' : `₹${(Number(order.shippingFee) || 0).toLocaleString()}`}
+                         </span>
+                      </td>
+                      <td className="px-8 py-8 text-right">
+                         <span className="text-[11px] font-black tracking-widest text-white glow-text">₹{(Number(order.totalAmount) || 0).toLocaleString()}</span>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-10 py-32 text-center opacity-40">
+                    <td colSpan={6} className="px-8 py-32 text-center opacity-40">
                       <div className="flex flex-col items-center gap-6">
                         <TrendingUp className="w-12 h-12 stroke-[0.5px]" />
                         <p className="text-[10px] tracking-[1em] uppercase font-bold">NO SALES DETECTED IN THIS CYCLE</p>
@@ -275,34 +233,40 @@ export default function RevenueDetailsPage() {
                   </tr>
                 )}
               </tbody>
-              {!isLoading && !isProfileLoading && revenueBreakdown.length > 0 && (
+              {!isLoading && !isProfileLoading && processedOrders.length > 0 && (
                 <tfoot className="border-t-2 border-white/10 bg-white/[0.03]">
                    <tr>
-                      <td className="px-10 py-12">
+                      <td colSpan={2} className="px-8 py-10">
                          <div className="flex items-center gap-4">
                             <Info className="w-4 h-4 text-white/30" />
                             <div className="space-y-1">
                                <p className="text-[10px] font-black tracking-[0.4em] text-white uppercase">SYSTEM_TOTALS</p>
-                               <p className="text-[8px] text-white/40 tracking-[0.2em] uppercase font-bold">{summary.uniqueModules} UNIQUE MODULES LOGGED</p>
+                               <p className="text-[8px] text-white/40 tracking-[0.2em] uppercase font-bold">{processedOrders.length} TRANSMISSIONS ANALYZED</p>
                             </div>
                          </div>
                       </td>
-                      <td className="px-10 py-12 text-center">
+                      <td className="px-8 py-10 text-right">
                          <div className="space-y-1">
-                            <p className="text-[14px] font-black text-white tracking-widest">{summary.totalUnits}</p>
-                            <p className="text-[7px] font-bold text-white/30 tracking-widest uppercase">AGGREGATED UNITS</p>
+                            <p className="text-[11px] font-black text-white/60 tracking-widest">₹{totals.subtotal.toLocaleString()}</p>
+                            <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">AGGREGATED SUBTOTAL</p>
                          </div>
                       </td>
-                      <td className="px-10 py-12 text-center">
+                      <td className="px-8 py-10 text-right">
                          <div className="space-y-1">
-                           <p className="text-[10px] font-black text-white/40 tracking-widest">₹{(summary.totalRevenue - summary.productRevenue).toLocaleString()}</p>
-                           <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">TAX & SHIPPING</p>
+                            <p className="text-[11px] font-black text-white/60 tracking-widest">₹{totals.tax.toLocaleString()}</p>
+                            <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">TOTAL TAX (5%)</p>
                          </div>
                       </td>
-                      <td className="px-10 py-12 text-right">
+                      <td className="px-8 py-10 text-right">
                          <div className="space-y-1">
-                            <p className="text-[18px] font-black text-white glow-text tracking-widest">₹{summary.totalRevenue.toLocaleString()}</p>
-                            <p className="text-[7px] font-bold text-white/30 tracking-widest uppercase">TOTAL VALUATION</p>
+                            <p className="text-[11px] font-black text-white/60 tracking-widest">₹{totals.shipping.toLocaleString()}</p>
+                            <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">TOTAL LOGISTICS</p>
+                         </div>
+                      </td>
+                      <td className="px-8 py-10 text-right">
+                         <div className="space-y-1">
+                            <p className="text-[14px] font-black text-white glow-text tracking-widest">₹{totals.total.toLocaleString()}</p>
+                            <p className="text-[7px] font-bold text-white/30 tracking-widest uppercase">GLOBAL VALUATION</p>
                          </div>
                       </td>
                    </tr>
@@ -315,10 +279,10 @@ export default function RevenueDetailsPage() {
         <div className="mt-12 p-8 border border-white/5 bg-white/[0.01] flex flex-col md:flex-row items-center justify-between gap-6">
            <div className="flex items-center gap-4 text-white/40">
               <ArrowDownWideNarrow className="w-4 h-4" />
-              <span className="text-[9px] tracking-[0.4em] uppercase font-bold">SORT_PROTOCOL: {sortBy.replace('-', '_').toUpperCase()}</span>
+              <span className="text-[9px] tracking-[0.4em] uppercase font-bold">AUDIT_PROTOCOL: {sortBy.replace('-', '_').toUpperCase()}</span>
            </div>
            <p className="text-[8px] tracking-[0.2em] text-white/20 uppercase font-black italic text-center md:text-right">
-              REVENUE DATA IS AGGREGATED IN REAL-TIME FROM ALL CONFIRMED TRANSMISSIONS. FILTERING APPLIES TO THE CURRENT ACTIVE CYCLE.
+              REVENUE DATA IS AGGREGATED FROM ALL CONFIRMED TRANSMISSION PACKETS. THIS VIEW PROVIDES DIRECT VISIBILITY INTO TAXES AND LOGISTICS FEES COLLECTED PER TRANSACTION.
            </p>
         </div>
       </div>
