@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -125,12 +126,27 @@ export default function RevenueDetailsPage() {
   }, [orders, startDate, endDate, sortBy]);
 
   const summary = useMemo(() => {
-    return revenueBreakdown.reduce((acc, item) => ({
-      totalRevenue: acc.totalRevenue + item.totalRevenue,
-      totalUnits: acc.totalUnits + item.quantity,
-      uniqueModules: acc.uniqueModules + 1
-    }), { totalRevenue: 0, totalUnits: 0, uniqueModules: 0 });
-  }, [revenueBreakdown]);
+    if (!orders) return { totalRevenue: 0, totalUnits: 0, uniqueModules: 0, productRevenue: 0 };
+    
+    let filteredOrders = [...orders];
+    if (startDate) filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) >= new Date(startDate));
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filteredOrders = filteredOrders.filter(o => new Date(o.orderDate) <= end);
+    }
+
+    const actualRevenue = filteredOrders.reduce((acc, order) => acc + (Number(order.totalAmount) || 0), 0);
+    const prodRevenue = revenueBreakdown.reduce((acc, item) => acc + item.totalRevenue, 0);
+    const totalUnits = revenueBreakdown.reduce((acc, item) => acc + item.quantity, 0);
+
+    return { 
+      totalRevenue: actualRevenue, 
+      productRevenue: prodRevenue,
+      totalUnits: totalUnits, 
+      uniqueModules: revenueBreakdown.length 
+    };
+  }, [orders, revenueBreakdown, startDate, endDate]);
 
   if (!mounted || isUserLoading || isProfileLoading) {
     return (
@@ -156,7 +172,7 @@ export default function RevenueDetailsPage() {
               <p className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">Global Acquisition Audit</p>
             </div>
             <div className="bg-white/5 border border-white/10 px-8 py-4 flex flex-col items-end gap-1 backdrop-blur-md">
-               <span className="text-[9px] tracking-[0.3em] font-bold text-white/40 uppercase">FILTERED REVENUE</span>
+               <span className="text-[9px] tracking-[0.3em] font-bold text-white/40 uppercase">FILTERED TOTAL REVENUE</span>
                <span className="text-3xl font-black glow-text">₹{summary.totalRevenue.toLocaleString()}</span>
             </div>
           </div>
@@ -207,7 +223,7 @@ export default function RevenueDetailsPage() {
                   <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">MODULE IDENTITY</th>
                   <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-center">UNITS SOLD</th>
                   <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-center">UNIT PRICE</th>
-                  <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">TOTAL VALUATION</th>
+                  <th className="px-10 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">MODULE REVENUE</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -278,7 +294,10 @@ export default function RevenueDetailsPage() {
                          </div>
                       </td>
                       <td className="px-10 py-12 text-center">
-                         <span className="text-white/20">---</span>
+                         <div className="space-y-1">
+                           <p className="text-[10px] font-black text-white/40 tracking-widest">₹{(summary.totalRevenue - summary.productRevenue).toLocaleString()}</p>
+                           <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">TAX & SHIPPING</p>
+                         </div>
                       </td>
                       <td className="px-10 py-12 text-right">
                          <div className="space-y-1">

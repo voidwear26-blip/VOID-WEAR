@@ -27,6 +27,9 @@ export default function NewTransmissionPage() {
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
   
   const [orderMetadata, setOrderMetadata] = useState({
+    subtotal: 0,
+    taxAmount: 0,
+    shippingFee: 0,
     totalAmount: 0,
     orderDate: new Date().toISOString().split('T')[0],
     transition_ID: `VOID-MANUAL-${Date.now()}`,
@@ -90,7 +93,6 @@ export default function NewTransmissionPage() {
 
   // 4. Handle Item Management
   const addItem = (product: any) => {
-    // Default to first available size/color from matrix if possible
     const size = Object.keys(product.stockMatrix || {})[0] || 'N/A';
     const color = product.stockMatrix?.[size] ? Object.keys(product.stockMatrix[size])[0] : 'DEFAULT';
     
@@ -116,10 +118,20 @@ export default function NewTransmissionPage() {
     setSelectedItems(prev => prev.map((item, i) => i === idx ? { ...item, ...updates } : item));
   };
 
-  // 5. Calculate Valuation
+  // 5. Calculate Valuation Protocol
   useEffect(() => {
-    const total = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    setOrderMetadata(prev => ({ ...prev, totalAmount: total }));
+    const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const totalUnits = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
+    const tax = subtotal * 0.05;
+    const shipping = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
+    
+    setOrderMetadata(prev => ({ 
+      ...prev, 
+      subtotal: subtotal,
+      taxAmount: tax,
+      shippingFee: shipping,
+      totalAmount: subtotal + tax + shipping 
+    }));
   }, [selectedItems]);
 
   // 6. Submit Protocol
@@ -180,10 +192,7 @@ export default function NewTransmissionPage() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-12">
-          {/* LEFT COLUMN: Selection Area */}
           <div className="lg:col-span-8 space-y-12">
-            
-            {/* 01. ENTITY SELECTION */}
             <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">01. LINK OPERATOR</h3>
@@ -218,7 +227,6 @@ export default function NewTransmissionPage() {
               </div>
             </div>
 
-            {/* 02. MODULE ASSEMBLY */}
             <div className="bg-white/[0.02] border border-white/10 p-10 space-y-8 backdrop-blur-xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">02. ASSEMBLE MODULES</h3>
@@ -293,7 +301,6 @@ export default function NewTransmissionPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Metadata Area */}
           <div className="lg:col-span-4 space-y-12 lg:sticky lg:top-40 h-fit">
             <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/10 p-10 space-y-10 backdrop-blur-3xl">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -302,8 +309,23 @@ export default function NewTransmissionPage() {
               </div>
 
               <div className="space-y-6">
+                <div className="space-y-4 bg-black/40 p-6 border border-white/5">
+                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                      <span className="text-white/40">SUBTOTAL</span>
+                      <span className="text-white">₹{orderMetadata.subtotal.toFixed(2)}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                      <span className="text-white/40">TAX (5%)</span>
+                      <span className="text-white">₹{orderMetadata.taxAmount.toFixed(2)}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
+                      <span className="text-white/40">SHIPPING</span>
+                      <span className="text-white">{orderMetadata.shippingFee === 0 ? 'FREE' : `₹${orderMetadata.shippingFee.toFixed(2)}`}</span>
+                   </div>
+                </div>
+
                 <div className="space-y-2">
-                   <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">VALUATION (₹)</label>
+                   <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">TOTAL VALUATION (₹)</label>
                    <Input 
                       type="number" 
                       value={orderMetadata.totalAmount} 
@@ -336,7 +358,7 @@ export default function NewTransmissionPage() {
                         <SelectTrigger className="bg-black/60 border-white/10 rounded-none h-12 text-[9px] uppercase">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-black border-white/10 text-white rounded-none">
+                        <SelectContent className="bg-black border-white/20 text-white rounded-none">
                            <SelectItem value="paid" className="text-[9px]">PAID</SelectItem>
                            <SelectItem value="pending" className="text-[9px]">PENDING</SelectItem>
                         </SelectContent>
@@ -348,7 +370,7 @@ export default function NewTransmissionPage() {
                         <SelectTrigger className="bg-black/60 border-white/10 rounded-none h-12 text-[9px] uppercase">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-black border-white/10 text-white rounded-none">
+                        <SelectContent className="bg-black border-white/20 text-white rounded-none">
                            <SelectItem value="processing" className="text-[9px]">PROCESSING</SelectItem>
                            <SelectItem value="shipped" className="text-[9px]">SHIPPED</SelectItem>
                            <SelectItem value="delivered" className="text-[9px]">DELIVERED</SelectItem>

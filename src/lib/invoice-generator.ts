@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -114,9 +115,18 @@ export async function generateInvoicePDF(order: any) {
     const tableFinalY = (doc as any).lastAutoTable.finalY;
     
     // Financial Breakdown Calculation
+    // Priority: Persisted data > Calculated data
     const subtotal = order.subtotal || order.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
-    const tax = order.taxAmount || (subtotal * 0.05);
-    const shipping = order.shippingFee !== undefined ? order.shippingFee : 0;
+    const tax = order.taxAmount !== undefined ? order.taxAmount : (subtotal * 0.05);
+    
+    const totalUnits = order.items.reduce((acc: number, item: any) => acc + Number(item.quantity), 0);
+    let shipping = 0;
+    if (order.shippingFee !== undefined) {
+      shipping = order.shippingFee;
+    } else {
+      shipping = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
+    }
+
     const finalTotal = order.totalAmount || (subtotal + tax + shipping);
 
     // 5. Summary Lines
