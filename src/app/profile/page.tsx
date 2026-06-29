@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
@@ -390,7 +389,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
               <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-white/30 hover:text-white uppercase transition-all">
-                    LOG FIELD REPORT <MessageSquare className="ml-2 w-3 h-3" />
+                    SUBMIT MODULE REVIEW <MessageSquare className="ml-2 w-3 h-3" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-black border border-white/10 p-10 max-w-lg">
