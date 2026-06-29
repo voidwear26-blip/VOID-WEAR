@@ -1,11 +1,11 @@
-
-'use client';
+'use server';
 
 import { collection, addDoc, Firestore } from 'firebase/firestore';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 
 export interface ReviewData {
+  id?: string;
   productId: string;
   productName: string;
   userId: string;
@@ -15,15 +15,16 @@ export interface ReviewData {
   comment: string;
   createdAt: string;
   isFeatured?: boolean;
+  adminReply?: string;
 }
 
 /**
  * Submits a new product review.
  */
-export function submitReview(db: Firestore, reviewData: ReviewData) {
+export async function submitReview(db: Firestore, reviewData: ReviewData) {
   const reviewsCol = collection(db, 'reviews');
   
-  addDoc(reviewsCol, reviewData)
+  return addDoc(reviewsCol, reviewData)
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: reviewsCol.path,
@@ -31,5 +32,6 @@ export function submitReview(db: Firestore, reviewData: ReviewData) {
         requestResourceData: reviewData,
       });
       errorEmitter.emit('permission-error', permissionError);
+      throw serverError;
     });
 }

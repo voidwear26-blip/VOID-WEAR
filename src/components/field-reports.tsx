@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,7 +6,7 @@ import { collection, query, where, limit } from 'firebase/firestore';
 import { submitReview } from '@/firebase/review-actions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, MessageSquare, Loader2, Zap, User as UserIcon, ShieldAlert, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { Star, MessageSquare, Loader2, Zap, User as UserIcon, ShieldAlert, CheckCircle2, ShoppingBag, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -78,7 +77,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
         rating,
         comment,
         createdAt: new Date().toISOString(),
-        orderId: 'VERIFIED_TRANSMISSION' // Tagged as verified on purchase check
+        orderId: 'VERIFIED_TRANSMISSION' 
       } as any);
 
       setComment('');
@@ -128,7 +127,12 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
               <p className="text-[9px] tracking-[0.3em] text-white/40 uppercase font-bold">Verifying Acquisition...</p>
             </div>
           ) : !hasPurchased ? (
-            null
+            <div className="p-12 border border-white/10 bg-white/[0.02] space-y-6 backdrop-blur-xl">
+               <ShoppingBag className="w-10 h-10 text-white/10 mx-auto" />
+               <p className="text-[9px] tracking-[0.3em] text-white/40 uppercase font-black text-center leading-relaxed">
+                 ONLY OPERATORS WHO HAVE SUCCESSFULLY TRANSMITTED THIS MODULE TO THEIR DOSSIER ARE ELIGIBLE TO SUBMIT PERFORMANCE DATA.
+               </p>
+            </div>
           ) : (
             <div className="space-y-8">
               <form onSubmit={handleSubmit} className="bg-white/[0.02] border border-white/10 p-12 space-y-10 backdrop-blur-xl">
@@ -167,16 +171,6 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                   {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <>TRANSMIT REPORT <Zap className="ml-3 w-4 h-4" /></>}
                 </Button>
               </form>
-
-              <div className="p-8 border border-white/5 bg-white/[0.01] space-y-4">
-                <div className="flex items-center gap-3 text-white/20">
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  <h4 className="text-[8px] font-black tracking-[0.4em] uppercase">VERIFIED STATUS</h4>
-                </div>
-                <p className="text-[9px] text-white/30 tracking-[0.2em] leading-relaxed uppercase font-medium italic">
-                  IDENTITY AUTHENTICATED. YOU ARE ELIGIBLE TO LOG PERFORMANCE DATA FOR THIS MODULE BASED ON YOUR ACQUISITION HISTORY.
-                </p>
-              </div>
             </div>
           )}
         </div>
@@ -190,62 +184,69 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
           ) : reports && reports.length > 0 ? (
             <div className="grid gap-12">
               <AnimatePresence>
-                {reports.map((report, idx) => {
-                  const isVerified = report.orderId !== 'INTERNAL_UPLINK';
-                  return (
-                    <motion.div
-                      key={report.id}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.1, duration: 0.8 }}
-                      className="bg-white/[0.01] border border-white/5 p-12 space-y-8 hover:bg-white/[0.02] transition-all group relative overflow-hidden backdrop-blur-sm"
-                    >
-                      {isVerified && (
-                        <div className="absolute top-0 right-0 px-4 py-1.5 bg-white/5 border-l border-b border-white/10 flex items-center gap-2">
-                           <CheckCircle2 className="w-2.5 h-2.5 text-green-500" />
-                           <span className="text-[7px] font-black tracking-[0.3em] text-white/40 uppercase">VERIFIED TRANSMISSION</span>
-                        </div>
-                      )}
+                {reports.map((report, idx) => (
+                  <motion.div
+                    key={report.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1, duration: 0.8 }}
+                    className="bg-white/[0.01] border border-white/5 p-12 space-y-8 hover:bg-white/[0.02] transition-all group relative overflow-hidden backdrop-blur-sm"
+                  >
+                    <div className="absolute top-0 right-0 px-4 py-1.5 bg-white/5 border-l border-b border-white/10 flex items-center gap-2">
+                       <CheckCircle2 className="w-2.5 h-2.5 text-green-500" />
+                       <span className="text-[7px] font-black tracking-[0.3em] text-white/40 uppercase">VERIFIED TRANSMISSION</span>
+                    </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-white/5 pb-8">
-                        <div className="flex items-center gap-6">
-                          <div className="w-14 h-14 border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/40 transition-colors">
-                            <UserIcon className="w-6 h-6 text-white/20" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[12px] font-black tracking-[0.3em] text-white uppercase">{report.userName}</p>
-                            <div className="flex items-center gap-4 text-[8px] text-white/30 tracking-widest font-bold uppercase">
-                               <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                               <span className="w-1 h-1 bg-white/10 rounded-full" />
-                               <span className="font-mono">{report.userId.slice(0, 8)}...</span>
-                            </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-white/5 pb-8">
+                      <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/40 transition-colors">
+                          <UserIcon className="w-6 h-6 text-white/20" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[12px] font-black tracking-[0.3em] text-white uppercase">{report.userName}</p>
+                          <div className="flex items-center gap-4 text-[8px] text-white/30 tracking-widest font-bold uppercase">
+                             <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                             <span className="w-1 h-1 bg-white/10 rounded-full" />
+                             <span className="font-mono">{report.userId.slice(0, 8)}...</span>
                           </div>
                         </div>
-                        <div className="flex gap-1.5">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-3 h-3 ${i < report.rating ? 'text-white' : 'text-white/5'}`} fill={i < report.rating ? 'currentColor' : 'none'} />
-                          ))}
-                        </div>
                       </div>
-                      
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-white/10">
-                           <Zap className="w-3 h-3" />
-                           <span className="text-[7px] font-black tracking-[0.5em] uppercase">TRANSMISSION_DATA</span>
-                        </div>
-                        <p className="text-sm text-white/70 tracking-widest leading-relaxed uppercase whitespace-pre-wrap font-light group-hover:text-white transition-colors duration-700">
-                          {report.comment}
-                        </p>
+                      <div className="flex gap-1.5">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < report.rating ? 'text-white' : 'text-white/5'}`} fill={i < report.rating ? 'currentColor' : 'none'} />
+                        ))}
                       </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 text-white/10">
+                         <Zap className="w-3 h-3" />
+                         <span className="text-[7px] font-black tracking-[0.5em] uppercase">TRANSMISSION_DATA</span>
+                      </div>
+                      <p className="text-sm text-white/70 tracking-widest leading-relaxed uppercase whitespace-pre-wrap font-light group-hover:text-white transition-colors duration-700">
+                        {report.comment}
+                      </p>
+                    </div>
 
-                      <div className="pt-4 flex justify-end opacity-20 group-hover:opacity-60 transition-opacity">
-                         <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10 mr-4 self-center" />
-                         <span className="text-[7px] tracking-[1em] font-black uppercase">VOID WEAR FIELD DATA</span>
+                    {report.adminReply && (
+                      <div className="p-8 bg-white/[0.02] border border-white/10 space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
+                         <div className="flex items-center gap-3 text-green-500/80">
+                            <Heart className="w-4 h-4 fill-current" />
+                            <span className="text-[8px] font-black tracking-[0.5em] uppercase">SYSTEM_RESPONSE</span>
+                         </div>
+                         <p className="text-[11px] text-white/50 tracking-[0.2em] leading-relaxed uppercase italic font-bold">
+                           "{report.adminReply}"
+                         </p>
                       </div>
-                    </motion.div>
-                  )
-                })}
+                    )}
+
+                    <div className="pt-4 flex justify-end opacity-20 group-hover:opacity-60 transition-opacity">
+                       <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10 mr-4 self-center" />
+                       <span className="text-[7px] tracking-[1em] font-black uppercase">VOID WEAR FIELD DATA</span>
+                    </div>
+                  </motion.div>
+                ))}
               </AnimatePresence>
             </div>
           ) : (

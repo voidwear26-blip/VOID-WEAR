@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Hero } from '@/components/hero';
@@ -6,7 +5,7 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where, orderBy } from 'firebase/firestore';
-import { Package, ArrowRight, ShieldCheck, Zap, Globe, FileText, Star, MessageSquare, User } from 'lucide-react';
+import { Package, ArrowRight, ShieldCheck, Zap, Globe, FileText, Star, MessageSquare, User, Heart } from 'lucide-react';
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
@@ -240,44 +239,59 @@ export default function Home() {
                [1, 2, 3].map(i => <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-white/5 animate-pulse border border-white/10" />)
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
-                 <Link key={review.id} href={`/products/${review.productId}`}>
+                 <Link key={review.id} href={`/products/${review.productId}`} className="min-w-[320px] md:min-w-[420px] block">
                    <motion.div 
                      initial={{ opacity: 0, x: 20 }}
                      whileInView={{ opacity: 1, x: 0 }}
                      transition={{ delay: idx * 0.1 }}
                      viewport={{ once: true }}
-                     className="min-w-[320px] md:min-w-[400px] p-10 border border-white/5 bg-white/[0.005] space-y-8 backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group select-none h-full"
+                     className="p-10 border border-white/5 bg-white/[0.005] flex flex-col justify-between h-[380px] backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group select-none"
                    >
-                      <div className="flex justify-between items-start">
-                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-white/5">
-                               <User className="w-4 h-4 text-white/40" />
-                            </div>
-                            <div>
-                               <p className="text-[10px] font-black tracking-widest uppercase text-white">{review.userName}</p>
-                               <p className="text-[8px] tracking-widest text-white/20 uppercase font-bold">VERIFIED_OPERATOR</p>
-                            </div>
-                         </div>
-                         <div className="flex gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-white fill-current' : 'text-white/10'}`} />
-                            ))}
-                         </div>
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-start">
+                           <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 border border-white/10 flex items-center justify-center bg-white/5">
+                                 <User className="w-4 h-4 text-white/40" />
+                              </div>
+                              <div>
+                                 <p className="text-[10px] font-black tracking-widest uppercase text-white">{review.userName}</p>
+                                 <p className="text-[8px] tracking-widest text-white/20 uppercase font-bold">VERIFIED_OPERATOR</p>
+                              </div>
+                           </div>
+                           <div className="flex gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-white fill-current' : 'text-white/10'}`} />
+                              ))}
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <div className="flex items-center gap-3 text-white/20">
+                              <span className="text-[8px] font-black tracking-[0.4em] uppercase">MODULE_TARGET:</span>
+                              <span className="text-[8px] font-black tracking-[0.4em] uppercase text-white/60 group-hover:text-white transition-colors truncate">{review.productName || 'ASSEMBLAGE'}</span>
+                           </div>
+                           <p className="text-[11px] tracking-widest leading-relaxed uppercase text-white/60 font-medium line-clamp-4 group-hover:text-white/80 transition-colors">
+                              "{review.comment}"
+                           </p>
+                        </div>
                       </div>
 
-                      <div className="space-y-4">
-                         <div className="flex items-center gap-3 text-white/20">
-                            <span className="text-[8px] font-black tracking-[0.4em] uppercase">MODULE_TARGET:</span>
-                            <span className="text-[8px] font-black tracking-[0.4em] uppercase text-white/60 group-hover:text-white transition-colors">{review.productName || 'ASSEMBLAGE'}</span>
-                         </div>
-                         <p className="text-[11px] tracking-widest leading-relaxed uppercase text-white/60 font-medium line-clamp-4 group-hover:text-white/80 transition-colors">
-                            "{review.comment}"
-                         </p>
-                      </div>
-
-                      <div className="pt-4 border-t border-white/5 flex items-center justify-between opacity-40 group-hover:opacity-100 transition-opacity">
-                         <span className="text-[7px] font-black tracking-widest uppercase">{new Date(review.createdAt).toLocaleDateString()}</span>
-                         <Zap className="w-2.5 h-2.5" />
+                      <div className="space-y-6">
+                        {review.adminReply && (
+                          <div className="p-4 bg-white/5 border border-white/5 space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                             <div className="flex items-center gap-2 text-[7px] text-green-500/60 font-black tracking-[0.4em] uppercase">
+                                <Heart className="w-2.5 h-2.5 fill-current" /> SYSTEM_GRATITUDE
+                             </div>
+                             <p className="text-[9px] text-white/40 tracking-widest uppercase font-medium line-clamp-2">
+                               {review.adminReply}
+                             </p>
+                          </div>
+                        )}
+                        
+                        <div className="pt-4 border-t border-white/5 flex items-center justify-between opacity-40 group-hover:opacity-100 transition-opacity">
+                           <span className="text-[7px] font-black tracking-widest uppercase">{new Date(review.createdAt).toLocaleDateString()}</span>
+                           <Zap className="w-2.5 h-2.5" />
+                        </div>
                       </div>
                    </motion.div>
                  </Link>

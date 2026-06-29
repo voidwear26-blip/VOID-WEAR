@@ -1,20 +1,24 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package, CheckCircle2, Zap } from 'lucide-react';
+import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package, CheckCircle2, Zap, Send, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function AdminReviewsPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [activeReviewId, setActiveActiveReviewId] = useState<string | null>(null);
+  const [sendingReply, setSendingReply] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -79,6 +83,27 @@ export default function AdminReviewsPage() {
         variant: "destructive",
         title: "SYNC_FAILURE",
       });
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!db || !activeReviewId || !replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      await updateDoc(doc(db, 'reviews', activeReviewId), {
+        adminReply: replyText,
+        updatedAt: new Date().toISOString()
+      });
+      toast({
+        title: "GRATITUDE TRANSMITTED",
+        description: "SYSTEM RESPONSE LOGGED SUCCESSFULLY.",
+      });
+      setReplyText('');
+      setActiveActiveReviewId(null);
+    } catch (e) {
+      toast({ variant: "destructive", title: "UPLINK_FAILURE" });
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -174,17 +199,73 @@ export default function AdminReviewsPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8 max-w-md">
-                        <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase line-clamp-2">{review.comment}</p>
+                        <div className="space-y-3">
+                          <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase line-clamp-2">{review.comment}</p>
+                          {review.adminReply && (
+                            <div className="flex items-center gap-2 text-[8px] text-green-500/80 font-black tracking-widest uppercase bg-green-500/5 px-3 py-1 w-fit border border-green-500/10">
+                               <Heart className="w-2.5 h-2.5 fill-current" /> REPLIED
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-10 py-8 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDelete(review.id)}
-                          className="text-white/20 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-4">
+                          <Dialog open={activeReviewId === review.id} onOpenChange={(open) => !open && setActiveActiveReviewId(null)}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => {
+                                  setActiveActiveReviewId(review.id);
+                                  setReplyText(review.adminReply || '');
+                                }}
+                                className="text-[9px] tracking-widest uppercase text-white/40 hover:text-white h-10 rounded-none border border-white/5 bg-white/5"
+                              >
+                                {review.adminReply ? 'EDIT REPLY' : 'REPLY'}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="bg-black border border-white/10 p-10 max-w-lg">
+                              <DialogHeader className="space-y-4 mb-8">
+                                <DialogTitle className="text-xl font-black tracking-tight glow-text uppercase">Gratitude Relay</DialogTitle>
+                                <DialogDescription className="text-[9px] tracking-widest uppercase text-white/40 font-bold">
+                                  TRANSMIT A SYSTEM RESPONSE TO OPERATOR {review.userName.toUpperCase()}.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-8">
+                                <div className="p-6 bg-white/5 border border-white/5 space-y-4">
+                                   <p className="text-[8px] tracking-[0.4em] text-white/30 uppercase font-black">ORIGINAL_NARRATIVE:</p>
+                                   <p className="text-[10px] text-white/60 tracking-widest uppercase italic leading-relaxed">"{review.comment}"</p>
+                                </div>
+                                <div className="space-y-4">
+                                  <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">GRATITUDE CONTENT</label>
+                                  <Textarea 
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    placeholder="INPUT SYSTEM RESPONSE..."
+                                    className="bg-white/5 border-white/10 rounded-none h-32 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter className="mt-8">
+                                <Button 
+                                  disabled={sendingReply}
+                                  onClick={handleSendReply}
+                                  className="w-full h-14 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
+                                >
+                                  {sendingReply ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT GRATITUDE <Send className="ml-3 w-4 h-4" /></>}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDelete(review.id)}
+                            className="text-white/20 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
