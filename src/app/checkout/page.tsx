@@ -409,7 +409,7 @@ export default function CheckoutPage() {
                      <span className="text-white">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                     <span className="text-white/40">ESTIMATED TAX (5%)</span>
+                     <span className="text-white/40">ESTIMATED TAX</span>
                      <span className="text-white">₹{taxAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">

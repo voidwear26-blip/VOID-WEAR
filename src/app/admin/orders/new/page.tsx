@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -165,7 +164,7 @@ export default function NewTransmissionPage() {
       console.error(e);
       toast({ variant: "destructive", title: "UPLINK_FAILURE" });
     } finally {
-      setLoading(false);
+      loading && setLoading(false);
     }
   };
 
@@ -315,7 +314,7 @@ export default function NewTransmissionPage() {
                       <span className="text-white">₹{orderMetadata.subtotal.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                      <span className="text-white/40">TAX (5%)</span>
+                      <span className="text-white/40">ESTIMATED TAX</span>
                       <span className="text-white">₹{orderMetadata.taxAmount.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">

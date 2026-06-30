@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -173,7 +172,7 @@ export default function RevenueDetailsPage() {
                   <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">ORDER_UID</th>
                   <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">OPERATOR</th>
                   <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">SUBTOTAL</th>
-                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">TAX (5%)</th>
+                  <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">ESTIMATED TAX</th>
                   <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">SHIPPING</th>
                   <th className="px-8 py-8 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">TOTAL VALUATION</th>
                 </tr>
@@ -254,7 +253,7 @@ export default function RevenueDetailsPage() {
                       <td className="px-8 py-10 text-right">
                          <div className="space-y-1">
                             <p className="text-[11px] font-black text-white/60 tracking-widest">₹{totals.tax.toLocaleString()}</p>
-                            <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">TOTAL TAX (5%)</p>
+                            <p className="text-[7px] font-bold text-white/20 tracking-widest uppercase">TOTAL ESTIMATED TAX</p>
                          </div>
                       </td>
                       <td className="px-8 py-10 text-right">

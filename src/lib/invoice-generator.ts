@@ -1,4 +1,3 @@
-
 'use client';
 
 /**
@@ -40,7 +39,7 @@ export async function generateInvoicePDF(order: any) {
     doc.text('EMBRACE THE UNKNOWN', 10, 15); 
     
     doc.setFontSize(5);
-    doc.text('GSTIN 27ABCDE1234F1Z5', 10, 20); 
+    doc.text('GSTIN 33ABCFV3162D1ZJ', 10, 20); 
     
     doc.setFontSize(6);
     doc.text('EST. 2026 /  VELLORE - INDIA', 10, 26);
@@ -137,7 +136,7 @@ export async function generateInvoicePDF(order: any) {
     doc.text('SUBTOTAL:', 60, tableFinalY + 6);
     doc.text(`INR ${subtotal.toFixed(2)}`, 90, tableFinalY + 6, { align: 'right' });
     
-    doc.text('EST. TAX (5%):', 60, tableFinalY + 10);
+    doc.text('ESTIMATED TAX:', 60, tableFinalY + 10);
     doc.text(`INR ${tax.toFixed(2)}`, 90, tableFinalY + 10, { align: 'right' });
     
     doc.text('SHIPPING FEE:', 60, tableFinalY + 14);
