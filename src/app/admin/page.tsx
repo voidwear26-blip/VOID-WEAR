@@ -6,17 +6,60 @@ import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, L
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, collectionGroup, doc, query, limit } from 'firebase/firestore';
+import { collection, collectionGroup, doc, query, limit, getCountFromServer } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
-  const router = useRouter();
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
+  
+  // Real-time collections (kept for dynamic updates, but limited for speed)
+  const productsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), limit(100));
+  }, [db]);
+
+  const ordersQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collectionGroup(db, 'orders'), limit(100));
+  }, [db]);
+
+  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
+
+  // High-Speed Metadata Counts
+  const [counts, setCounts] = useState({
+    users: 0,
+    messages: 0,
+    stories: 0,
+    reviews: 0
+  });
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (db) {
+       // Fire-and-forget metadata acquisition
+       const fetchMetadata = async () => {
+          try {
+             const [uSnap, mSnap, sSnap, rSnap] = await Promise.all([
+                getCountFromServer(collection(db, 'users')),
+                getCountFromServer(collection(db, 'contacts')),
+                getCountFromServer(collection(db, 'stories')),
+                getCountFromServer(collection(db, 'reviews'))
+             ]);
+             setCounts({
+                users: uSnap.data().count,
+                messages: mSnap.data().count,
+                stories: sSnap.data().count,
+                reviews: rSnap.data().count
+             });
+          } catch (e) {
+             console.error("[METADATA_UPLINK_FAILURE]", e);
+          }
+       };
+       fetchMetadata();
+    }
+  }, [db]);
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -31,43 +74,6 @@ export default function AdminDashboard() {
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
            profile?.role === 'ADMIN';
   }, [user, isUserLoading, profile, isProfileLoading]);
-
-  const productsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return collection(db, 'products');
-  }, [db, isAdmin]);
-
-  const ordersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return query(collectionGroup(db, 'orders'), limit(100));
-  }, [db, isAdmin]);
-
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return collection(db, 'users');
-  }, [db, isAdmin]);
-
-  const contactsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return collection(db, 'contacts');
-  }, [db, isAdmin]);
-
-  const storiesQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return collection(db, 'stories');
-  }, [db, isAdmin]);
-
-  const reviewsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return collection(db, 'reviews');
-  }, [db, isAdmin]);
-
-  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
-  const { data: orders, isLoading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
-  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
-  const { data: contacts, isLoading: contactsLoading } = useCollection(contactsQuery);
-  const { data: stories, isLoading: storiesLoading } = useCollection(storiesQuery);
-  const { data: reviews, isLoading: reviewsLoading } = useCollection(reviewsQuery);
 
   const totalRevenue = useMemo(() => {
     if (!orders) return 0;
@@ -137,25 +143,25 @@ export default function AdminDashboard() {
             href="/admin/users"
             icon={<Users className="w-5 h-5" />} 
             label="ENTITIES" 
-            value={usersLoading ? "..." : (users?.length.toString() || "0")} 
+            value={counts.users ? counts.users.toString() : "..."} 
           />
           <StatCard 
             href="/admin/stories"
             icon={<Megaphone className="w-5 h-5" />} 
             label="TRENDS" 
-            value={storiesLoading ? "..." : (stories?.length.toString() || "0")} 
+            value={counts.stories ? counts.stories.toString() : "..."} 
           />
           <StatCard 
             href="/admin/messages"
             icon={<MessageSquare className="w-5 h-5" />} 
             label="MESSAGES" 
-            value={contactsLoading ? "..." : (contacts?.length.toString() || "0")} 
+            value={counts.messages ? counts.messages.toString() : "..."} 
           />
           <StatCard 
             href="/admin/reviews"
             icon={<Star className="w-5 h-5" />} 
             label="REVIEWS" 
-            value={reviewsLoading ? "..." : (reviews?.length.toString() || "0")} 
+            value={counts.reviews ? counts.reviews.toString() : "..."} 
           />
           <StatCard 
             href="/admin/products"
@@ -166,7 +172,6 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-12">
-          {/* COMMAND MODULES - Primary Section */}
           <div className="lg:col-span-2 space-y-12">
             <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
               <div className="flex justify-between items-center border-b border-white/5 pb-6">
@@ -186,7 +191,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* SYSTEM ANALYTICS - Sidebar Section */}
           <div className="space-y-12">
             <div className="bg-white/[0.02] border border-white/5 p-10 space-y-10 backdrop-blur-xl h-full">
               <div className="flex justify-between items-center border-b border-white/5 pb-6">

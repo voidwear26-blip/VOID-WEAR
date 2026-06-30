@@ -1,9 +1,8 @@
-
 "use client"
 
 import { ProductCard } from '@/components/product-card';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, limit } from 'firebase/firestore';
 import { Loader2, Package, Search, SlidersHorizontal } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
@@ -16,9 +15,10 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
+  // Optimized: Limit initial fetch for faster first render
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return collection(db, 'products');
+    return query(collection(db, 'products'), limit(100));
   }, [db]);
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);
@@ -99,7 +99,7 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {isLoading ? (
+        {isLoading && !dbProducts ? (
           <div className="flex flex-col items-center justify-center py-48 opacity-80">
             <Loader2 className="w-10 h-10 animate-spin mb-8 text-white/60" />
             <p className="text-[10px] tracking-[1em] uppercase font-black text-white/40">Syncing Assemblages...</p>

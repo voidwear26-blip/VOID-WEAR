@@ -18,9 +18,10 @@ export default function Home() {
   const [containerWidth, setContainerWidth] = useState(0);
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
   
+  // Optimized: Strict limit for landing page performance
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), limit(10));
+    return query(collection(db, 'products'), limit(8));
   }, [db]);
 
   const topProductsQuery = useMemoFirebase(() => {
@@ -33,7 +34,7 @@ export default function Home() {
     return query(
       collection(db, 'reviews'),
       where('isFeatured', '==', true),
-      limit(10)
+      limit(6)
     );
   }, [db]);
 
@@ -41,7 +42,6 @@ export default function Home() {
   const { data: topProducts, isLoading: topLoading } = useCollection(topProductsQuery);
   const { data: featuredReviews, isLoading: reviewsLoading } = useCollection(featuredReviewsQuery);
 
-  // Duplicate items for seamless looping
   const displayProducts = latestProducts ? [...latestProducts, ...latestProducts] : [];
 
   useEffect(() => {
@@ -56,10 +56,8 @@ export default function Home() {
     }
   }, [featuredReviews]);
 
-  // Persistent motion value for x position (Modules)
   const x = useMotionValue(0);
 
-  // NEURAL DRIFT ENGINE: Infinite auto-scroll for modules
   useAnimationFrame((time, delta) => {
     if (!latestLoading && containerWidth > 0) {
       let currentX = x.get();
@@ -100,7 +98,6 @@ export default function Home() {
       
       <Hero />
 
-      {/* System Definition Section */}
       <section className="py-32 md:py-48 bg-white/[0.01] border-y border-white/5 relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
@@ -155,7 +152,6 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Seamless Loop Gallery Section */}
       <section className="py-32 md:py-48 bg-transparent relative overflow-hidden" aria-label="Latest Arrivals">
         <div className="container mx-auto px-6 mb-16 md:mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -187,7 +183,7 @@ export default function Home() {
             onDragStart={() => setIsPaused(true)}
             onDragEnd={() => setIsPaused(false)}
           >
-            {latestLoading ? (
+            {latestLoading && !latestProducts ? (
               [1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-white/5 animate-pulse border border-white/10" />
               ))
@@ -212,7 +208,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Reviews Section */}
       <section className="py-32 md:py-48 bg-white/[0.01] border-y border-white/5 overflow-hidden">
         <div className="container mx-auto px-6 mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -235,7 +230,7 @@ export default function Home() {
             dragElastic={0.1}
             className="flex gap-8 md:container md:mx-auto"
           >
-             {reviewsLoading ? (
+             {reviewsLoading && !featuredReviews ? (
                [1, 2, 3].map(i => <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-white/5 animate-pulse border border-white/10" />)
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
@@ -245,7 +240,7 @@ export default function Home() {
                      whileInView={{ opacity: 1, x: 0 }}
                      transition={{ delay: idx * 0.1 }}
                      viewport={{ once: true }}
-                     className="p-10 border border-white/5 bg-white/[0.005] flex flex-col justify-between h-[380px] backdrop-blur-3xl hover:border-white/20 transition-all duration-500 group select-none"
+                     className="p-10 border border-white/5 bg-white/[0.005] flex flex-col justify-between h-[380px] backdrop-blur-xl hover:border-white/20 transition-all duration-500 group select-none"
                    >
                       <div className="space-y-6">
                         <div className="flex justify-between items-start">
@@ -310,7 +305,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Top Purchased Section */}
       <section className="py-32 md:py-48 bg-transparent" aria-label="Top Modules">
         <div className="container mx-auto px-6">
           <div className="text-center space-y-8 mb-24 md:mb-32">
@@ -319,7 +313,7 @@ export default function Home() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
-            {topLoading ? (
+            {topLoading && !topProducts ? (
               [1, 2, 3].map(i => (
                 <div key={i} className="aspect-[3/4] bg-white/10 animate-pulse border border-white/10" />
               ))
@@ -349,11 +343,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Manifesto */}
       <section className="py-48 md:py-64 bg-transparent overflow-hidden" aria-label="Brand Manifesto">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
-            <span className="text-[10px] tracking-[1.5em] text-white/40 uppercase font-black">MANIFESTO</span>
+            <span className="text-[10px] tracking-widest text-white/40 uppercase font-black">MANIFESTO</span>
             <h3 className="text-2xl md:text-5xl font-light tracking-[0.1em] leading-relaxed uppercase">
               WE ARE THE SHELL <br /> FOR YOUR <span className="text-white font-black glow-text">DIGITAL MIGRATION</span>. 
               TECHNICAL APPAREL FOR COMPLEX IDENTITIES.
