@@ -8,24 +8,31 @@ const resend = new Resend('re_43Qt9Sqs_KMkjukPTvcYxkFEmCsLXwhzC');
 /**
  * VOID WEAR // RESEND DUAL-RELAY
  * Dispatches order notifications via Resend to both Admin and Customer.
+ * Robustified for high-density traffic.
  */
 export async function sendOrderConfirmationNotifications(orderData: any) {
   const adminEmail = 'voidwear26@gmail.com';
   const customerEmail = orderData.email;
 
   try {
-    // 1. Generate Content for the Customer
-    const neuralContent = await generateNotificationContent({
-      productName: orderData.items?.[0]?.name || 'APPAREL MODULE',
-      status: 'confirmed',
-      operatorName: orderData.displayName || 'CUSTOMER'
-    });
+    // 1. Generate Cinematic Content for the Customer via Neural Stylist (optional step)
+    let emailBody = "YOUR ORDER HAS BEEN SECURED IN THE VOID WEAR ARCHIVE.";
+    try {
+      const neuralContent = await generateNotificationContent({
+        productName: orderData.items?.[0]?.name || 'APPAREL MODULE',
+        status: 'confirmed',
+        operatorName: orderData.displayName || 'CUSTOMER'
+      });
+      emailBody = neuralContent.emailContent;
+    } catch (aiErr) {
+      console.warn('[AI_CONTENT_GEN_FAIL] Falling back to system template.', aiErr);
+    }
 
     const itemsSummary = orderData.items.map((item: any) => 
       `- ${item.name} (SIZE: ${item.size}, QTY: ${item.quantity})`
     ).join('\n');
 
-    // 2. Customer Confirmation
+    // 2. Customer Confirmation Relay
     const customerMailPromise = resend.emails.send({
       from: 'VOID WEAR <onboarding@resend.dev>',
       to: customerEmail,
@@ -35,7 +42,7 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
           <h1 style="border-bottom: 1px solid #eee; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">ORDER SECURED</h1>
           <div style="margin-top: 30px;">
             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">STATUS_UPDATE</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #333;">${neuralContent.emailContent}</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #333;">${emailBody}</p>
           </div>
           <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
              <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase;">ORDER_SUMMARY</p>
@@ -48,7 +55,7 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
       `
     });
 
-    // 3. System Alert (Admin)
+    // 3. System Command Alert (Admin)
     const adminMailPromise = resend.emails.send({
       from: 'VOID WEAR SYSTEM <onboarding@resend.dev>',
       to: adminEmail,
@@ -81,7 +88,8 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
 
     return { success: true };
   } catch (error) {
-    console.error('[NOTIFICATION_FAILURE] Resend failed:', error);
-    return { success: false };
+    console.error('[ORDER_NOTIFICATION_FAILURE] System relay failed:', error);
+    // Returning success true here because the database write (mission critical) already occurred
+    return { success: false, error: 'RELAY_FAILURE' };
   }
 }

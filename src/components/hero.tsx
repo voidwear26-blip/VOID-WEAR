@@ -41,7 +41,7 @@ export function Hero() {
   const content = useMemo(() => ({
     title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
-    tagline: config?.heroTagline || 'YOUR EVERYDAY UNIFORM'
+    tagline: config?.heroTagline || 'EMBRACE THE KNOWN'
   }), [config, greeting]);
 
   if (!mounted) return null;

@@ -143,8 +143,10 @@ export default function CheckoutPage() {
 
     try {
       await runTransaction(db, async (transaction) => {
+        // 1. Sync User Dossier
         transaction.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
+        // 2. Iterate Cart Items
         for (const item of cartItems) {
           const productRef = doc(db, 'products', item.productId);
           const productSnap = await transaction.get(productRef);
@@ -177,6 +179,7 @@ export default function CheckoutPage() {
             }
           }
 
+          // 3. Purge related nodes
           const wishlistRef = doc(db, 'users', user.uid, 'wishlist', item.productId);
           transaction.delete(wishlistRef);
           
@@ -184,21 +187,25 @@ export default function CheckoutPage() {
           transaction.delete(itemDocRef);
         }
 
+        // 4. Anchor Order Log
         transaction.set(orderRef, newOrder);
       });
 
-      sendOrderConfirmationNotifications(newOrder);
+      // 5. Trigger Notification Relay
+      sendOrderConfirmationNotifications(newOrder).catch(err => console.error('[NOTIF_RELAY_FAIL]', err));
 
+      // 6. Finalize Success State
       setOrderObject(newOrder);
       setFinalOrderId(orderId);
       setFinalTransitionId(paymentId);
       setStep('success');
+      toast({ title: "ORDER SECURED", description: "LOGISTICS PROTOCOLS INITIALIZED." });
     } catch (e) {
-      console.error('[TRANSACTION_FAILURE]', e);
+      console.error('[ORDER_TRANSACTION_FAILURE]', e);
       toast({
         variant: "destructive",
         title: "ORDER FAILED",
-        description: "COULD NOT FINALIZE YOUR PURCHASE.",
+        description: "COULD NOT FINALIZE YOUR PURCHASE. PLEASE CONTACT SUPPORT.",
       });
     } finally {
       setLoading(false);
@@ -240,12 +247,12 @@ export default function CheckoutPage() {
 
             if (verifyRes.ok) {
               await finalizeOrderInFirestore(response.razorpay_payment_id);
-              toast({ title: "ORDER SECURED", description: "PAYMENT VERIFIED SUCCESSFULLY." });
             } else {
               toast({ variant: "destructive", title: "VERIFICATION FAILURE" });
               setLoading(false);
             }
           } catch (err) {
+            console.error('[PAYMENT_VERIFY_EXCEPTION]', err);
             toast({ variant: "destructive", title: "CONNECTION TIMEOUT" });
             setLoading(false);
           }
@@ -261,6 +268,7 @@ export default function CheckoutPage() {
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
     } catch (e: any) {
+      console.error('[PAYMENT_UPLINK_EXCEPTION]', e);
       toast({ variant: "destructive", title: "GATEWAY ERROR", description: e.message });
       setLoading(false);
     }
