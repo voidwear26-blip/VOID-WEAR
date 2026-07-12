@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AdminOrderNotificationListener } from '@/components/admin-order-notification-listener';
@@ -32,7 +31,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    // Primary gatekeeper: only redirect if loading is finished AND user is definitely not admin
     if (mounted && !isUserLoading && !isProfileLoading && !isAdmin) {
       router.push('/');
     }
@@ -40,8 +38,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!mounted || isUserLoading || isProfileLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <div className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">Authenticating Protocol...</div>
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-[10px] tracking-[1em] uppercase font-bold text-black/40">Verifying Identity...</div>
       </div>
     );
   }

@@ -56,28 +56,20 @@ export default function AdminProductsPage() {
       const search = searchTerm.toLowerCase();
       return (
         (p.name || '').toLowerCase().includes(search) || 
-        (p.category || '').toLowerCase().includes(search) ||
-        (p.description || '').toLowerCase().includes(search)
+        (p.category || '').toLowerCase().includes(search)
       );
     });
 
     result.sort((a, b) => {
       switch (sortBy) {
-        case 'name-asc':
-          return (a.name || '').localeCompare(b.name || '');
-        case 'name-desc':
-          return (b.name || '').localeCompare(a.name || '');
-        case 'price-asc':
-          return (Number(a.basePrice) || 0) - (Number(b.basePrice) || 0);
-        case 'price-desc':
-          return (Number(b.basePrice) || 0) - (Number(a.basePrice) || 0);
-        case 'stock-asc':
-          return (Number(a.stockQuantity) || 0) - (Number(b.stockQuantity) || 0);
-        case 'stock-desc':
-          return (Number(b.stockQuantity) || 0) - (Number(a.stockQuantity) || 0);
+        case 'name-asc': return (a.name || '').localeCompare(b.name || '');
+        case 'name-desc': return (b.name || '').localeCompare(a.name || '');
+        case 'price-asc': return (Number(a.basePrice) || 0) - (Number(b.basePrice) || 0);
+        case 'price-desc': return (Number(b.basePrice) || 0) - (Number(a.basePrice) || 0);
+        case 'stock-asc': return (Number(a.stockQuantity) || 0) - (Number(b.stockQuantity) || 0);
+        case 'stock-desc': return (Number(b.stockQuantity) || 0) - (Number(a.stockQuantity) || 0);
         case 'newest':
-        default:
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        default: return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       }
     });
 
@@ -86,55 +78,17 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!db) return;
-    if (!confirm('CONFIRM DESTRUCTION OF PRODUCT MODULE?')) return;
-    
+    if (!confirm('DELETE THIS PRODUCT?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
-      toast({
-        title: "MODULE DELETED",
-        description: "CATALOGUE UPDATED.",
-      });
-    } catch (e: any) {
-      console.error('[PRODUCT_DELETE_ERROR]', e);
-    }
-  };
-
-  const handleDuplicate = async (product: any) => {
-    if (!db) return;
-    setDuplicating(product.id);
-    
-    try {
-      const { id, ...rest } = product;
-      const duplicatedData = {
-        ...rest,
-        name: `COPY OF ${product.name}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      await addDoc(collection(db, 'products'), duplicatedData);
-      toast({
-        title: "MODULE CLONED",
-        description: `CREATED REPLICA OF ${product.name}.`,
-      });
-    } catch (e) {
-      console.error('[DUPLICATION_FAILURE]', e);
-      toast({
-        variant: "destructive",
-        title: "CLONE FAILURE",
-      });
-    } finally {
-      setDuplicating(null);
-    }
+      toast({ title: "PRODUCT DELETED" });
+    } catch (e) { }
   };
 
   if (!mounted || isUserLoading || isProfileLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <div className="flex flex-col items-center gap-6">
-          <Loader2 className="w-10 h-10 animate-spin text-white/40" />
-          <div className="text-[10px] tracking-[1em] text-white/80 uppercase font-bold">Authenticating Protocol...</div>
-        </div>
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-black/20" />
       </div>
     );
   }
@@ -142,166 +96,79 @@ export default function AdminProductsPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-black font-body">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/80 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none">Assemblages</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Products</h1>
           </div>
-          <div className="flex gap-4">
-            <Button asChild className="bg-white text-black hover:bg-white/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-              <Link href="/admin/products/new">
-                <Plus className="w-4 h-4 mr-3" />
-                ADD NEW MODULE
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="bg-black text-white hover:bg-black/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase">
+            <Link href="/admin/products/new"><Plus className="w-4 h-4 mr-3" /> ADD PRODUCT</Link>
+          </Button>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6 mb-12 items-start md:items-center justify-between">
           <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 group-focus-within:text-white transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 transition-colors" />
             <Input 
-              placeholder="SEARCH THE ASSEMBLAGE..." 
+              placeholder="SEARCH PRODUCTS..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white/5 border-white/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] focus-visible:ring-0 focus-visible:border-white/60 font-bold text-white uppercase placeholder:text-white/40 transition-all"
+              className="bg-black/5 border-black/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.3em] font-bold text-black uppercase transition-all"
             />
           </div>
-
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="hidden sm:flex items-center gap-2 text-[8px] tracking-[0.4em] text-white/60 uppercase font-bold mr-2">
-              <SlidersHorizontal className="w-3 h-3" />
-              SORT_BY:
-            </div>
-            <Select value={sortBy} onValueChange={(val) => setSortBy(val as AdminSortOption)}>
-              <SelectTrigger className="w-full md:w-64 bg-white/5 border-white/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase focus:ring-0 text-white font-bold transition-all hover:bg-white/10">
-                <SelectValue placeholder="SORT_BY" />
-              </SelectTrigger>
-              <SelectContent className="bg-black border-white/20 text-white rounded-none">
-                <SelectItem value="newest" className="text-[9px] tracking-widest uppercase">RECENT ARRIVALS</SelectItem>
-                <SelectItem value="price-asc" className="text-[9px] tracking-widest uppercase">PRICE: LOW TO HIGH</SelectItem>
-                <SelectItem value="price-desc" className="text-[9px] tracking-widest uppercase">PRICE: HIGH TO LOW</SelectItem>
-                <SelectItem value="name-asc" className="text-[9px] tracking-widest uppercase">IDENTITY: A - Z</SelectItem>
-                <SelectItem value="name-desc" className="text-[9px] tracking-widest uppercase">IDENTITY: Z - A</SelectItem>
-                <SelectItem value="stock-desc" className="text-[9px] tracking-widest uppercase">INVENTORY: HIGH AVAILABILITY</SelectItem>
-                <SelectItem value="stock-asc" className="text-[9px] tracking-widest uppercase text-red-500">INVENTORY: DEPLETING FAST</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={sortBy} onValueChange={(val) => setSortBy(val as AdminSortOption)}>
+            <SelectTrigger className="w-full md:w-64 bg-black/5 border-black/10 rounded-none h-14 text-[9px] tracking-[0.3em] uppercase text-black font-bold">
+              <SelectValue placeholder="SORT BY" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-black/20 text-black rounded-none">
+              <SelectItem value="newest" className="text-[9px] uppercase">NEWEST</SelectItem>
+              <SelectItem value="price-asc" className="text-[9px] uppercase">PRICE: LOW</SelectItem>
+              <SelectItem value="price-desc" className="text-[9px] uppercase">PRICE: HIGH</SelectItem>
+              <SelectItem value="stock-asc" className="text-[9px] uppercase">LOW STOCK</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="bg-white/[0.02] border border-white/5 overflow-hidden backdrop-blur-xl">
+        <div className="bg-black/[0.01] border border-black/5 overflow-hidden backdrop-blur-xl">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">MODULE</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">CATEGORY</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">PRICE (₹)</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60">STATUS / STOCK</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/60 text-right">COMMANDS</th>
+              <tr className="border-b border-black/5 bg-black/[0.02]">
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">PRODUCT</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">CATEGORY</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">PRICE</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40 text-right">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-black/5">
               {isCollectionLoading ? (
-                [1, 2, 3].map(i => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-10 py-12 bg-white/[0.01]" />
-                  </tr>
-                ))
-              ) : filteredAndSortedProducts && filteredAndSortedProducts.length > 0 ? (
-                filteredAndSortedProducts.map((product) => {
-                  const displayImage = product.imageUrls && product.imageUrls.length > 0 
-                    ? product.imageUrls[0] 
-                    : 'https://picsum.photos/seed/void-placeholder/200/300';
-                    
-                  return (
-                    <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-6">
-                          <div className="relative w-12 h-16 bg-white/5 border border-white/5 overflow-hidden">
-                            <Image 
-                              src={displayImage} 
-                              alt={product.name} 
-                              fill 
-                              unoptimized
-                              className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-bold tracking-widest uppercase text-white">{product.name}</p>
-                            <p className="text-[8px] text-white/40 font-mono font-bold uppercase">UID: {product.id.slice(0, 8)}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                        <p className="text-[10px] text-white/80 tracking-widest uppercase font-bold">{product.category}</p>
-                      </td>
-                      <td className="px-10 py-8 text-[10px] font-bold tracking-widest uppercase text-white">
-                        ₹{product.basePrice}
-                      </td>
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-3">
-                           {product.isOutOfStock ? (
-                             <span className="flex items-center gap-2 text-[8px] tracking-widest text-red-500 font-bold border border-red-500/20 px-3 py-1 uppercase">
-                               <ZapOff className="w-3 h-3" /> OVERRIDE: SOLD OUT
-                             </span>
-                           ) : (
-                             <>
-                               <span className={`font-mono text-[10px] tracking-widest ${
-                                 (product.stockQuantity || 0) < 5 ? 'text-red-500 font-bold' : 'text-white/60'
-                               }`}>
-                                 {product.stockQuantity || 0} UNITS
-                               </span>
-                               {(product.stockQuantity || 0) < 5 && <ShieldAlert className="w-3 h-3 text-red-500/60" />}
-                             </>
-                           )}
-                        </div>
-                      </td>
-                      <td className="px-10 py-8 text-right">
-                        <div className="flex items-center justify-end gap-4">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDuplicate(product)}
-                            disabled={duplicating === product.id}
-                            className="text-white/40 hover:text-white transition-colors"
-                            title="DUPLICATE MODULE"
-                          >
-                            {duplicating === product.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
-                          </Button>
-                          <Button variant="ghost" size="icon" asChild className="text-white/60 hover:text-white transition-colors">
-                            <Link href={`/admin/products/${product.id}`}>
-                              <Edit2 className="w-4 h-4" />
-                            </Link>
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDelete(product.id)}
-                            className="text-white/40 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-10 py-32 text-center opacity-40">
-                    <div className="flex flex-col items-center gap-6">
-                      <Package className="w-12 h-12 stroke-[0.5px] text-white" />
-                      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">NO MODULES LOGGED</p>
+                <tr><td colSpan={4} className="px-10 py-32 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-black/20" /></td></tr>
+              ) : filteredAndSortedProducts.map((p) => (
+                <tr key={p.id} className="hover:bg-black/[0.02] transition-colors group">
+                  <td className="px-10 py-8">
+                    <div className="flex items-center gap-6">
+                      <div className="relative w-12 h-16 bg-black/5 border border-black/5 overflow-hidden">
+                        <Image src={p.imageUrls?.[0] || 'https://picsum.photos/seed/void/200/300'} alt={p.name} fill unoptimized className="object-cover grayscale group-hover:grayscale-0" />
+                      </div>
+                      <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-10 py-8">
+                    <span className="text-[10px] text-black/60 uppercase font-bold">{p.category}</span>
+                  </td>
+                  <td className="px-10 py-8 text-[10px] font-bold text-black">₹{p.basePrice}</td>
+                  <td className="px-10 py-8 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <Link href={`/admin/products/${p.id}`}><Button variant="ghost" size="icon" className="text-black/40 hover:text-black"><Edit2 className="w-4 h-4" /></Button></Link>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-black/40 hover:text-red-600"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
