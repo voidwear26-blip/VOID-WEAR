@@ -42,7 +42,7 @@ export function Hero() {
   const content = useMemo(() => ({
     title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
-    tagline: 'EMBRACE THE KNOWN' // Hard-anchored per system requirements
+    tagline: 'EMBRACE THE KNOWN'
   }), [config, greeting]);
 
   if (!mounted) return null;
@@ -67,8 +67,8 @@ export function Hero() {
       </motion.div>
 
       {/* Hero Narrative Layer */}
-      <div className="relative z-20 text-center space-y-8 w-full max-w-7xl px-6 flex flex-col items-center">
-        <div className="space-y-6 flex flex-col items-center w-full">
+      <div className="relative z-20 text-center space-y-6 w-full max-w-7xl px-6 flex flex-col items-center">
+        <div className="space-y-4 flex flex-col items-center w-full">
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -83,9 +83,9 @@ export function Hero() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.2, duration: 1 }}
-            className="flex flex-col items-center gap-6 w-full"
+            className="flex flex-col items-center gap-4 w-full"
           >
-            <div className="relative h-[25vh] md:h-[30vh] w-auto aspect-square">
+            <div className="relative h-[120px] md:h-[20vh] w-auto aspect-square">
               <Image 
                 src="/logo.png" 
                 alt="VOID WEAR LOGO" 

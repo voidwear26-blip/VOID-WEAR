@@ -84,12 +84,12 @@ export default function Home() {
       <Hero />
       
       {/* 02. Campaign Broadcast Node */}
-      <div className="mt-12 md:mt-20">
+      <div className="mt-8 md:mt-12">
         <PromoBanner />
       </div>
 
       {/* 03. Tactical Acquisition Uplink (View Collection) */}
-      <section className="py-12 md:py-16 flex justify-center border-b border-black/5 bg-black/[0.01]">
+      <section className="py-8 md:py-12 flex justify-center border-b border-black/5 bg-black/[0.01]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -103,15 +103,15 @@ export default function Home() {
       </section>
       
       {/* 04. Recent Arrivals Node */}
-      <section className="py-16 md:py-24 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-6 mb-8 md:mb-12">
+      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden">
+        <div className="container mx-auto px-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-4">
-              <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-black font-headline">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none text-black font-headline">
                 RECENT <br /> ARRIVALS
               </h2>
             </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-4 w-fit uppercase flex items-center gap-4">
+            <Link href="/products" className="text-[10px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-2 w-fit uppercase flex items-center gap-4">
               VIEW ALL
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -151,11 +151,11 @@ export default function Home() {
       </section>
 
       {/* 05. Field Reports Node (Reviews) */}
-      <section className="py-16 md:py-24 bg-black/[0.01] border-y border-black/5">
-        <div className="container mx-auto px-6 mb-12">
+      <section className="py-8 md:py-12 bg-black/[0.01] border-y border-black/5">
+        <div className="container mx-auto px-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
              <div className="space-y-4">
-                <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black font-headline">CUSTOMER <br /> FEEDBACK</h2>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">CUSTOMER <br /> FEEDBACK</h2>
              </div>
           </div>
         </div>
