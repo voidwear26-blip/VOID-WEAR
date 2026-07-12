@@ -17,7 +17,7 @@ export default function AdminReviewsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [replyText, setReplyText] = useState('');
-  const [activeReviewId, setActiveActiveReviewId] = useState<string | null>(null);
+  const [activeReviewId, setActiveReviewId] = useState<string | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function AdminReviewsPage() {
   };
 
   const handleSendReply = async () => {
-    if (!db || !activeReviewId || !replyText.trim()) return;
+    if (!db || !activeReviewId) return;
     setSendingReply(true);
     try {
       await updateDoc(doc(db, 'reviews', activeReviewId), {
@@ -93,11 +93,11 @@ export default function AdminReviewsPage() {
         updatedAt: new Date().toISOString()
       });
       toast({
-        title: "REPLY SENT",
-        description: "System response saved.",
+        title: replyText ? "REPLY SAVED" : "REPLY REMOVED",
+        description: "System feedback updated.",
       });
       setReplyText('');
-      setActiveActiveReviewId(null);
+      setActiveReviewId(null);
     } catch (e) {
       toast({ variant: "destructive", title: "REPLY_FAILURE" });
     } finally {
@@ -203,13 +203,13 @@ export default function AdminReviewsPage() {
                       </td>
                       <td className="px-10 py-8 text-right">
                         <div className="flex items-center justify-end gap-4">
-                          <Dialog open={activeReviewId === review.id} onOpenChange={(open) => !open && setActiveActiveReviewId(null)}>
+                          <Dialog open={activeReviewId === review.id} onOpenChange={(open) => !open && setActiveReviewId(null)}>
                             <DialogTrigger asChild>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => {
-                                  setActiveActiveReviewId(review.id);
+                                  setActiveReviewId(review.id);
                                   setReplyText(review.adminReply || '');
                                 }}
                                 className="text-[9px] tracking-widest uppercase text-black/60 hover:text-black h-9 rounded-none border-black/10 bg-white"
@@ -219,9 +219,9 @@ export default function AdminReviewsPage() {
                             </DialogTrigger>
                             <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
                               <DialogHeader className="space-y-4 mb-8">
-                                <DialogTitle className="text-xl font-black tracking-tight uppercase">Send Reply</DialogTitle>
+                                <DialogTitle className="text-xl font-black tracking-tight uppercase">System Feedback</DialogTitle>
                                 <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold">
-                                  Responding to customer: {review.userName.toUpperCase()}.
+                                  RESPONDING TO CUSTOMER: {review.userName.toUpperCase()}.
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-8">
@@ -245,7 +245,7 @@ export default function AdminReviewsPage() {
                                   onClick={handleSendReply}
                                   className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
                                 >
-                                  {sendingReply ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT REPLY <Send className="ml-3 w-4 h-4" /></>}
+                                  {sendingReply ? <Loader2 className="animate-spin w-4 h-4" /> : <>SAVE RESPONSE <Send className="ml-3 w-4 h-4" /></>}
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
