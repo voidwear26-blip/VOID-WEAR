@@ -2,7 +2,7 @@
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, orderBy, limit, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package, CheckCircle2, Zap, Send, Heart } from 'lucide-react';
+import { MessageSquare, ChevronLeft, Trash2, Star, ShieldAlert, Loader2, Package, CheckCircle2, Zap, Send, Heart, Edit3 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -202,19 +202,20 @@ export default function AdminReviewsPage() {
                         </div>
                       </td>
                       <td className="px-10 py-8 text-right">
-                        <div className="flex items-center justify-end gap-4">
+                        <div className="flex items-center justify-end gap-3">
                           <Dialog open={activeReviewId === review.id} onOpenChange={(open) => !open && setActiveReviewId(null)}>
                             <DialogTrigger asChild>
                               <Button 
-                                variant="outline" 
-                                size="sm" 
+                                variant="ghost" 
+                                size="icon" 
                                 onClick={() => {
                                   setActiveReviewId(review.id);
                                   setReplyText(review.adminReply || '');
                                 }}
-                                className="text-[9px] tracking-widest uppercase text-black/60 hover:text-black h-9 rounded-none border-black/10 bg-white"
+                                className="text-black/40 hover:text-black transition-colors"
+                                title={review.adminReply ? "Edit Reply" : "Reply"}
                               >
-                                {review.adminReply ? 'EDIT REPLY' : 'REPLY'}
+                                {review.adminReply ? <Edit3 className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
@@ -254,7 +255,8 @@ export default function AdminReviewsPage() {
                             variant="ghost" 
                             size="icon" 
                             onClick={() => handleDelete(review.id)}
-                            className="text-black/20 hover:text-red-600 transition-colors"
+                            className="text-black/40 hover:text-red-600 transition-colors"
+                            title="Delete Review"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
