@@ -89,7 +89,7 @@ export default function Home() {
       </div>
 
       {/* 03. Tactical Acquisition Uplink (View Collection) */}
-      <section className="py-16 md:py-24 flex justify-center border-b border-black/5 bg-black/[0.01]">
+      <section className="py-12 md:py-16 flex justify-center border-b border-black/5 bg-black/[0.01]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -102,12 +102,11 @@ export default function Home() {
         </motion.div>
       </section>
       
-      {/* 04. Recent Arrivals Node (With Skeleton Logic) */}
-      <section className="py-32 md:py-48 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-6 mb-16 md:mb-24">
+      {/* 04. Recent Arrivals Node */}
+      <section className="py-16 md:py-24 bg-transparent relative overflow-hidden">
+        <div className="container mx-auto px-6 mb-8 md:mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[1em] text-black/40 uppercase">NEW</span>
+            <div className="space-y-4">
               <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-black font-headline">
                 RECENT <br /> ARRIVALS
               </h2>
@@ -130,7 +129,6 @@ export default function Home() {
             className="flex gap-8 md:gap-12 whitespace-nowrap px-6 md:px-0"
           >
             {latestLoading ? (
-              // High-Fidelity Skeletons for perceived performance
               [1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex flex-col items-center justify-center">
                    <Loader2 className="w-6 h-6 animate-spin text-black/10" />
@@ -143,7 +141,7 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <div className="py-48 text-center opacity-20 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
+              <div className="py-24 text-center opacity-20 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
                 <Package className="w-16 h-16 stroke-[0.5px]" />
                 <p className="text-[10px] tracking-[1em] uppercase font-black mt-4">EMPTY</p>
               </div>
@@ -153,11 +151,10 @@ export default function Home() {
       </section>
 
       {/* 05. Field Reports Node (Reviews) */}
-      <section className="py-32 md:py-48 bg-black/[0.01] border-y border-black/5">
-        <div className="container mx-auto px-6 mb-24">
+      <section className="py-16 md:py-24 bg-black/[0.01] border-y border-black/5">
+        <div className="container mx-auto px-6 mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-             <div className="space-y-6">
-                <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">REVIEWS</span>
+             <div className="space-y-4">
                 <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black font-headline">CUSTOMER <br /> FEEDBACK</h2>
              </div>
           </div>
@@ -225,7 +222,7 @@ export default function Home() {
                  </Link>
                ))
              ) : (
-               <div className="w-full py-24 text-center opacity-20 border border-dashed border-black/10">
+               <div className="w-full py-16 text-center opacity-20 border border-dashed border-black/10">
                   <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">NO REVIEWS YET</p>
                </div>
              )}
@@ -234,9 +231,9 @@ export default function Home() {
       </section>
 
       {/* 06. System Protocol Node (Best Sellers) */}
-      <section className="py-32 md:py-48 bg-transparent">
+      <section className="py-24 md:py-32 bg-transparent">
         <div className="container mx-auto px-6">
-          <div className="text-center space-y-8 mb-24">
+          <div className="text-center space-y-8 mb-16">
             <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">BEST SELLERS</span>
             <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black font-headline">Top Items</h2>
           </div>
@@ -263,7 +260,7 @@ export default function Home() {
       </section>
 
       {/* 07. Manifesto Node */}
-      <section className="py-48 md:py-64 bg-background overflow-hidden border-t border-black/5">
+      <section className="py-32 md:py-48 bg-background overflow-hidden border-t border-black/5">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-widest text-black/40 uppercase font-black">MANIFESTO</span>
