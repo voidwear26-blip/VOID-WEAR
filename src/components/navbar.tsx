@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -65,7 +66,8 @@ export function Navbar() {
     { name: 'CONTACT', href: '/contact' },
   ];
 
-  const iconBaseClass = "text-black/60 hover:text-black transition-all duration-300 transform active:scale-95";
+  // Recalibrated icon class: Scale up and increase intensity without background artifacts
+  const iconBaseClass = "text-black/60 hover:text-black hover:scale-110 bg-transparent hover:bg-transparent transition-all duration-300 transform active:scale-95";
 
   return (
     <>
@@ -75,7 +77,7 @@ export function Navbar() {
             <div className="lg:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-black hover:bg-black/5 rounded-none w-10 h-10">
+                  <Button variant="ghost" size="icon" className={cn(iconBaseClass, "rounded-none w-10 h-10")}>
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
@@ -153,7 +155,7 @@ export function Navbar() {
             </Link>
 
             <Link href={user ? "/profile" : "/login"}>
-              <Button variant="ghost" size="icon" className={`${iconBaseClass} ${isAdmin ? 'border border-black/10' : ''}`}>
+              <Button variant="ghost" size="icon" className={cn(iconBaseClass, isAdmin && "border border-black/10")}>
                 {isAdmin ? <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-black" /> : <User className="w-4 h-4 md:w-5 md:h-5" />}
               </Button>
             </Link>
