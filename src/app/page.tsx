@@ -6,7 +6,7 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where, orderBy } from 'firebase/firestore';
-import { Package, ArrowRight, ShieldCheck, Zap, Globe, FileText, Star, MessageSquare, User, Heart } from 'lucide-react';
+import { Package, ArrowRight, Zap, Star, MessageSquare, User } from 'lucide-react';
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
 
 export default function Home() {
@@ -77,43 +77,6 @@ export default function Home() {
   return (
     <div className="space-y-0 bg-background text-black">
       <Hero />
-
-      <section className="py-32 md:py-48 bg-black/[0.01] border-y border-black/5 relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-10"
-            >
-              <div className="space-y-4">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">OUR MISSION</span>
-                <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black">
-                  PREMIUM <br /> APPAREL
-                </h2>
-              </div>
-              <p className="text-sm md:text-base text-black/70 tracking-[0.1em] leading-relaxed uppercase font-light max-w-xl">
-                VOID WEAR PROVIDES PREMIUM APPAREL FOR YOUR EVERYDAY LIFE. 
-                OUR COLLECTION IS DESIGNED FOR STYLE AND EVERYDAY COMFORT.
-              </p>
-              <div className="pt-4">
-                <Link href="/products" className="group flex items-center gap-6 text-[10px] font-black tracking-[0.5em] text-black uppercase border-b border-black/20 pb-4 w-fit hover:border-black transition-all">
-                  VIEW COLLECTION
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-                </Link>
-              </div>
-            </motion.div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <FeatureNode icon={<Package />} title="ESSENTIAL" desc="EVERYDAY WEAR." />
-              <FeatureNode icon={<FileText />} title="DESIGN" desc="MODERN STYLE." />
-              <FeatureNode icon={<Globe />} title="SHIPPING" desc="FAST DELIVERY." />
-              <FeatureNode icon={<ShieldCheck />} title="QUALITY" desc="PREMIUM FABRICS." />
-            </div>
-          </div>
-        </div>
-      </section>
       
       <section className="py-32 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-16 md:mb-24">
@@ -204,7 +167,7 @@ export default function Home() {
                            </div>
                            <div className="flex gap-1">
                               {[...Array(5)].map((_, i) => (
-                                <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-black/5'}`} />
+                                <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-[#facc15] fill-current' : 'text-black/5'}`} />
                               ))}
                            </div>
                         </div>
@@ -275,21 +238,5 @@ export default function Home() {
         </div>
       </section>
     </div>
-  );
-}
-
-function FeatureNode({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
-  return (
-    <motion.div 
-      className="p-8 border border-black/10 bg-black/[0.01] space-y-6 hover:border-black/20 transition-all duration-500"
-    >
-      <div className="text-black/40">
-        {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-5 h-5" }) : icon}
-      </div>
-      <div className="space-y-2">
-        <h3 className="text-[10px] font-black tracking-[0.4em] uppercase text-black">{title}</h3>
-        <p className="text-[9px] text-black/60 tracking-[0.1em] uppercase font-bold leading-relaxed">{desc}</p>
-      </div>
-    </motion.div>
   );
 }
