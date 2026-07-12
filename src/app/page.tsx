@@ -146,15 +146,15 @@ export default function Home() {
                [1, 2, 3].map(i => <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-black/5 animate-pulse border border-black/5" />)
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
-                 <Link key={review.id} href={`/products/${review.productId}`} className="min-w-[320px] md:min-w-[420px] block">
+                 <Link key={review.id} href={`/products/${review.productId}`} className="w-[320px] md:w-[420px] shrink-0 block">
                    <motion.div 
                      initial={{ opacity: 0, scale: 0.98 }}
                      whileInView={{ opacity: 1, scale: 1 }}
                      transition={{ delay: idx * 0.1 }}
                      viewport={{ once: true }}
-                     className="p-10 border border-black/10 bg-background flex flex-col justify-between h-[380px] hover:border-black/30 transition-all group select-none shadow-sm"
+                     className="p-10 border border-black/10 bg-background flex flex-col h-[400px] hover:border-black/30 transition-all group select-none shadow-sm"
                    >
-                      <div className="space-y-6">
+                      <div className="space-y-6 flex-1 overflow-hidden">
                         <div className="flex justify-between items-start">
                            <div className="flex items-center gap-4">
                               <div className="w-10 h-10 border border-black/10 flex items-center justify-center bg-black/5">
@@ -181,7 +181,7 @@ export default function Home() {
                       </div>
 
                       {review.adminReply && (
-                        <div className="p-4 bg-black/[0.02] border border-black/10 space-y-1">
+                        <div className="mt-6 p-4 bg-black/[0.02] border border-black/10 space-y-1">
                            <p className="text-[7px] text-black/60 font-black tracking-[0.2em] uppercase">REPLY:</p>
                            <p className="text-[9px] text-black/80 tracking-widest uppercase font-medium line-clamp-2">
                              {review.adminReply}
