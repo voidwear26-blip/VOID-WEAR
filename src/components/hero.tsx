@@ -26,23 +26,23 @@ export function Hero() {
   const { data: config } = useDoc(configRef);
   const { data: profile } = useDoc(profileRef);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const greeting = useMemo(() => {
-    if (!user) return 'OPERATOR';
+    if (!user) return 'CUSTOMER';
     const profileName = profile?.displayName;
     const authName = user.displayName;
-    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'OPERATOR';
+    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'CUSTOMER';
     return (profileName || authName || emailPrefix).toUpperCase();
   }, [user, profile]);
   
   const content = useMemo(() => ({
     title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
-    tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
+    tagline: config?.heroTagline || 'YOUR EVERYDAY UNIFORM'
   }), [config, greeting]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) return null;
 
@@ -59,7 +59,7 @@ export function Hero() {
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 eclipse-logo border border-black/[0.02]"
+            className="absolute inset-0 eclipse-logo border border-black/[0.05]"
           />
         </div>
       </motion.div>
@@ -71,7 +71,7 @@ export function Hero() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
           >
-            <span className="text-[10px] md:text-xs font-bold tracking-[1em] text-black/40 uppercase">
+            <span className="text-[10px] md:text-xs font-bold tracking-[1em] text-black/60 uppercase">
               VOID WEAR // {content.subtitle}
             </span>
           </motion.div>
@@ -103,7 +103,7 @@ export function Hero() {
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.4, duration: 1 }}
-            className="text-[10px] md:text-xs text-black/60 max-w-2xl mx-auto tracking-[0.6em] uppercase font-light"
+            className="text-[10px] md:text-xs text-black/80 max-w-2xl mx-auto tracking-[0.6em] uppercase font-light"
           >
             {content.tagline}
           </motion.p>
@@ -116,7 +116,7 @@ export function Hero() {
           className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
         >
           <Button asChild className="bg-black text-white hover:bg-black/80 border-black border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm">
-            <Link href="/products">ENTER SYSTEM</Link>
+            <Link href="/products">VIEW COLLECTION</Link>
           </Button>
         </motion.div>
       </div>
@@ -128,7 +128,7 @@ export function Hero() {
         className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
       >
         <div className="w-px h-16 bg-gradient-to-b from-black/20 to-transparent"></div>
-        <span className="text-[8px] tracking-[1.2em] text-black/40 uppercase font-bold">DESCEND</span>
+        <span className="text-[8px] tracking-[1.2em] text-black/60 uppercase font-bold">SCROLL</span>
       </motion.div>
     </section>
   );

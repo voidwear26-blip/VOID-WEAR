@@ -88,17 +88,17 @@ export default function Home() {
               className="space-y-10"
             >
               <div className="space-y-4">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-black/20 uppercase">MANIFESTO</span>
+                <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">OUR MISSION</span>
                 <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black">
-                  TECHNICAL <br /> APPAREL
+                  PREMIUM <br /> APPAREL
                 </h2>
               </div>
-              <p className="text-sm md:text-base text-black/60 tracking-[0.1em] leading-relaxed uppercase font-light max-w-xl">
-                VOID WEAR provides high-performance technical apparel. 
-                Our collection is precision-engineered for urban exploration.
+              <p className="text-sm md:text-base text-black/70 tracking-[0.1em] leading-relaxed uppercase font-light max-w-xl">
+                VOID WEAR PROVIDES HIGH-QUALITY CLOTHING. 
+                OUR COLLECTION IS DESIGNED FOR STYLE AND EVERYDAY COMFORT.
               </p>
               <div className="pt-4">
-                <Link href="/products" className="group flex items-center gap-6 text-[10px] font-black tracking-[0.5em] text-black uppercase border-b border-black/10 pb-4 w-fit hover:border-black transition-all">
+                <Link href="/products" className="group flex items-center gap-6 text-[10px] font-black tracking-[0.5em] text-black uppercase border-b border-black/20 pb-4 w-fit hover:border-black transition-all">
                   VIEW COLLECTION
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
                 </Link>
@@ -106,10 +106,10 @@ export default function Home() {
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <FeatureNode icon={<Package />} title="MODULAR" desc="TECHNICAL SHELLS." />
-              <FeatureNode icon={<FileText />} title="NEURAL" desc="ENGINEERED FABRIC." />
-              <FeatureNode icon={<Globe />} title="GLOBAL" desc="SECURE TRANSIT." />
-              <FeatureNode icon={<ShieldCheck />} title="SECURE" desc="VERIFIED QUALITY." />
+              <FeatureNode icon={<Package />} title="ESSENTIAL" desc="EVERYDAY WEAR." />
+              <FeatureNode icon={<FileText />} title="DESIGN" desc="MODERN STYLE." />
+              <FeatureNode icon={<Globe />} title="SHIPPING" desc="FAST DELIVERY." />
+              <FeatureNode icon={<ShieldCheck />} title="QUALITY" desc="PREMIUM FABRICS." />
             </div>
           </div>
         </div>
@@ -119,13 +119,13 @@ export default function Home() {
         <div className="container mx-auto px-6 mb-16 md:mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[1em] text-black/20 uppercase">LATEST</span>
+              <span className="text-[10px] font-bold tracking-[1em] text-black/40 uppercase">NEW</span>
               <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-black">
                 RECENT <br /> ARRIVALS
               </h2>
             </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.4em] text-black/40 hover:text-black transition-all border-b border-black/5 hover:border-black pb-4 w-fit uppercase flex items-center gap-4">
-              ALL MODULES
+            <Link href="/products" className="text-[10px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-4 w-fit uppercase flex items-center gap-4">
+              VIEW ALL
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -152,7 +152,7 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <div className="py-48 text-center opacity-10 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
+              <div className="py-48 text-center opacity-20 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
                 <Package className="w-16 h-16 stroke-[0.5px]" />
                 <p className="text-[10px] tracking-[1em] uppercase font-black mt-4">EMPTY</p>
               </div>
@@ -165,8 +165,8 @@ export default function Home() {
         <div className="container mx-auto px-6 mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
              <div className="space-y-6">
-                <span className="text-[10px] font-bold tracking-[1.2em] text-black/20 uppercase">REPORTS</span>
-                <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black">OPERATOR <br /> FEEDBACK</h2>
+                <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">REVIEWS</span>
+                <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black">CUSTOMER <br /> FEEDBACK</h2>
              </div>
           </div>
         </div>
@@ -189,38 +189,38 @@ export default function Home() {
                      whileInView={{ opacity: 1, scale: 1 }}
                      transition={{ delay: idx * 0.1 }}
                      viewport={{ once: true }}
-                     className="p-10 border border-black/5 bg-white flex flex-col justify-between h-[380px] hover:border-black/20 transition-all group select-none shadow-sm"
+                     className="p-10 border border-black/10 bg-white flex flex-col justify-between h-[380px] hover:border-black/30 transition-all group select-none shadow-sm"
                    >
                       <div className="space-y-6">
                         <div className="flex justify-between items-start">
                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 border border-black/5 flex items-center justify-center bg-black/5">
-                                 <User className="w-4 h-4 text-black/20" />
+                              <div className="w-10 h-10 border border-black/10 flex items-center justify-center bg-black/5">
+                                 <User className="w-4 h-4 text-black/40" />
                               </div>
                               <div>
                                  <p className="text-[10px] font-black tracking-widest uppercase text-black">{review.userName}</p>
-                                 <p className="text-[8px] tracking-widest text-black/20 uppercase font-bold">VERIFIED</p>
+                                 <p className="text-[8px] tracking-widest text-black/40 uppercase font-bold">VERIFIED PURCHASE</p>
                               </div>
                            </div>
                            <div className="flex gap-1">
                               {[...Array(5)].map((_, i) => (
-                                <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-black fill-current' : 'text-black/5'}`} />
+                                <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-black/5'}`} />
                               ))}
                            </div>
                         </div>
 
                         <div className="space-y-2">
-                           <p className="text-[7px] font-black tracking-[0.2em] uppercase text-black/30">PRODUCT: {review.productName}</p>
-                           <p className="text-[11px] tracking-widest leading-relaxed uppercase text-black/60 font-medium line-clamp-4 group-hover:text-black transition-colors">
+                           <p className="text-[7px] font-black tracking-[0.2em] uppercase text-black/40">ITEM: {review.productName}</p>
+                           <p className="text-[11px] tracking-widest leading-relaxed uppercase text-black/80 font-medium line-clamp-4 group-hover:text-black transition-colors">
                               "{review.comment}"
                            </p>
                         </div>
                       </div>
 
                       {review.adminReply && (
-                        <div className="p-4 bg-black/[0.02] border border-black/5 space-y-1">
-                           <p className="text-[7px] text-black/40 font-black tracking-[0.2em] uppercase">RESPONSE:</p>
-                           <p className="text-[9px] text-black/60 tracking-widest uppercase font-medium line-clamp-2">
+                        <div className="p-4 bg-black/[0.02] border border-black/10 space-y-1">
+                           <p className="text-[7px] text-black/60 font-black tracking-[0.2em] uppercase">REPLY:</p>
+                           <p className="text-[9px] text-black/80 tracking-widest uppercase font-medium line-clamp-2">
                              {review.adminReply}
                            </p>
                         </div>
@@ -229,8 +229,8 @@ export default function Home() {
                  </Link>
                ))
              ) : (
-               <div className="w-full py-24 text-center opacity-10 border border-dashed border-black/10">
-                  <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">AWAITING FEEDBACK</p>
+               <div className="w-full py-24 text-center opacity-20 border border-dashed border-black/10">
+                  <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">NO REVIEWS YET</p>
                </div>
              )}
           </motion.div>
@@ -240,8 +240,8 @@ export default function Home() {
       <section className="py-32 md:py-48 bg-transparent">
         <div className="container mx-auto px-6">
           <div className="text-center space-y-8 mb-24">
-            <span className="text-[10px] font-bold tracking-[1.2em] text-black/20 uppercase">TOP RATED</span>
-            <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black">Top Modules</h2>
+            <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">BEST SELLERS</span>
+            <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black">Top Items</h2>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
@@ -263,12 +263,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-48 md:py-64 bg-white overflow-hidden">
+      <section className="py-48 md:py-64 bg-white overflow-hidden border-t border-black/5">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
-            <span className="text-[10px] tracking-widest text-black/20 uppercase font-black">MANIFESTO</span>
+            <span className="text-[10px] tracking-widest text-black/40 uppercase font-black">MANIFESTO</span>
             <h3 className="text-2xl md:text-5xl font-light tracking-[0.1em] leading-relaxed uppercase text-black">
-              WE ARE THE SHELL <br /> FOR YOUR <span className="text-black font-black">DIGITAL MIGRATION</span>. 
+              WE PROVIDE <span className="text-black font-black">PREMIUM APPAREL</span> <br /> FOR YOUR EVERYDAY LIFE. 
             </h3>
             <div className="w-[1px] h-32 bg-gradient-to-b from-black/10 to-transparent mx-auto"></div>
           </div>
@@ -281,14 +281,14 @@ export default function Home() {
 function FeatureNode({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
   return (
     <motion.div 
-      className="p-8 border border-black/5 bg-black/[0.01] space-y-6 hover:border-black/10 transition-all duration-500"
+      className="p-8 border border-black/10 bg-black/[0.01] space-y-6 hover:border-black/20 transition-all duration-500"
     >
-      <div className="text-black/20">
+      <div className="text-black/40">
         {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-5 h-5" }) : icon}
       </div>
       <div className="space-y-2">
         <h3 className="text-[10px] font-black tracking-[0.4em] uppercase text-black">{title}</h3>
-        <p className="text-[9px] text-black/30 tracking-[0.1em] uppercase font-bold leading-relaxed">{desc}</p>
+        <p className="text-[9px] text-black/60 tracking-[0.1em] uppercase font-bold leading-relaxed">{desc}</p>
       </div>
     </motion.div>
   );
