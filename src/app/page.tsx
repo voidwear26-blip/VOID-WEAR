@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Hero } from '@/components/hero';
+import { PromoBanner } from '@/components/promo-banner';
 import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -77,6 +78,8 @@ export default function Home() {
   return (
     <div className="space-y-0 bg-background text-black">
       <Hero />
+      
+      <PromoBanner />
       
       <section className="py-32 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-16 md:mb-24">

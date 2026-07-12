@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star, Activity, Cpu } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star, Activity, Cpu, PlaySquare } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
                 <QuickActionButton href="/admin/users" label="CUSTOMER LIST" description="MANAGE PROFILES" icon={<Users className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/messages" label="MESSAGES" description="CUSTOMER INQUIRIES" icon={<MessageSquare className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/reviews" label="REVIEWS" description="MANAGE FEEDBACK" icon={<Star className="w-4 h-4" />} />
-                <QuickActionButton href="/admin/system" label="SYSTEM LOGS" description="GENERATE REPORTS" icon={<Database className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/ads" label="ADVERTISING" description="MANAGE BANNERS" icon={<PlaySquare className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/content" label="BRAND CONTROL" description="HOMEPAGE CONTENT" icon={<Settings className="w-4 h-4" />} />
               </div>
             </div>
