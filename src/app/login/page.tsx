@@ -43,7 +43,7 @@ export default function LoginPage() {
         // SUCCESSFUL AUTHENTICATED UPLINK: REDIRECT TO HOMEPAGE
         router.push('/');
       } else {
-        // ENTITY UNVERIFIED: REQUIRE NEURAL HANDSHAKE
+        // ENTITY UNVERIFIED: REQUIRE HANDSHAKE
         setMode('verify');
       }
     }
@@ -57,7 +57,7 @@ export default function LoginPage() {
       setLoading(true);
       try {
         await initiatePasswordReset(auth, email.trim());
-        toast({ title: "RECOVERY TRANSMITTED", description: "CHECK YOUR COMM-CHANNEL FOR THE RESET LINK." });
+        toast({ title: "RECOVERY TRANSMITTED", description: "CHECK YOUR EMAIL FOR THE RESET LINK." });
         setMode('login');
       } catch (err) {
         toast({ variant: "destructive", title: "RECOVERY_FAILURE" });
@@ -74,7 +74,7 @@ export default function LoginPage() {
       if (mode === 'signup') {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
         
-        // 1. SYNC AUTH PROFILE: Required for template tags like %DISPLAY_NAME% to work
+        // 1. SYNC AUTH PROFILE
         await updateAuthProfile(cred.user, { displayName });
         
         // 2. DISPATCH VERIFICATION PACKET
@@ -83,16 +83,16 @@ export default function LoginPage() {
         // 3. INITIALIZE DOSSIER
         await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
         
-        toast({ title: "IDENTITY INITIALIZED", description: "VERIFICATION LINK TRANSMITTED TO YOUR COMM-CHANNEL." });
+        toast({ title: "IDENTITY INITIALIZED", description: "VERIFICATION LINK TRANSMITTED." });
         setMode('verify');
       } else {
         const cred = await initiateEmailSignIn(auth, email.trim(), password);
         if (!cred.user.emailVerified) {
           setMode('verify');
-          toast({ variant: "destructive", title: "IDENTITY UNVERIFIED", description: "PLEASE AUTHENTICATE YOUR COMM-CHANNEL." });
+          toast({ variant: "destructive", title: "IDENTITY UNVERIFIED", description: "PLEASE AUTHENTICATE YOUR EMAIL." });
         } else {
           await saveUserToFirestore(db, cred.user);
-          toast({ title: "LINK ESTABLISHED", description: "WELCOME BACK, OPERATOR." });
+          toast({ title: "CONNECTION ESTABLISHED", description: "WELCOME BACK." });
         }
       }
     } catch (err: any) {
@@ -103,13 +103,13 @@ export default function LoginPage() {
 
       if (err.code === 'auth/email-already-in-use') {
         errorTitle = "IDENTITY_ALREADY_LINKED";
-        errorDesc = "THIS COMM-CHANNEL IS ALREADY ANCHORED TO THE NETWORK.";
+        errorDesc = "THIS EMAIL IS ALREADY CONNECTED.";
       } else if (err.code === 'auth/weak-password') {
-        errorTitle = "SECURITY_THREAT";
-        errorDesc = "ACCESS KEY IS TOO FRAGILE. INCREASE COMPLEXITY.";
+        errorTitle = "SECURITY_ADVISORY";
+        errorDesc = "PASSWORD IS TOO SIMPLE.";
       } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        errorTitle = "UPLINK_FAILURE";
-        errorDesc = "CREDENTIALS DO NOT MATCH ANY ACTIVE DOSSIER.";
+        errorTitle = "CONNECTION_FAILURE";
+        errorDesc = "CREDENTIALS DO NOT MATCH.";
       }
 
       toast({
@@ -127,7 +127,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await initiateEmailVerification(user);
-      toast({ title: "PACKET RE-TRANSMITTED", description: "CHECK YOUR INBOX FOR THE NEURAL HANDSHAKE." });
+      toast({ title: "PACKET RE-TRANSMITTED", description: "CHECK YOUR INBOX." });
     } catch (err) {
       toast({ variant: "destructive", title: "TRANSMISSION_FAILED" });
     } finally {
@@ -145,83 +145,82 @@ export default function LoginPage() {
     try {
       const cred = await initiateGoogleSignIn(auth);
       await saveUserToFirestore(db, cred.user);
-      toast({ title: "GOOGLE UPLINK SECURED" });
+      toast({ title: "GOOGLE CONNECTION SECURED" });
     } catch (err: any) {
       console.error('[GOOGLE_AUTH_FAILURE]', err);
-      toast({ variant: "destructive", title: "UPLINK FAILED" });
+      toast({ variant: "destructive", title: "CONNECTION FAILED" });
     } finally {
       setLoading(false);
     }
   };
 
-  if (isUserLoading) return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="animate-spin text-white/20" /></div>;
+  if (isUserLoading) return <div className="h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin text-black/20" /></div>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 pt-32 bg-black">
+    <div className="min-h-screen flex items-center justify-center p-6 pt-32 bg-background">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-12">
         <div className="text-center space-y-6">
-           <Image src="/logo.png" alt="VOID WEAR" width={80} height={80} className="mx-auto brightness-200 grayscale" unoptimized />
-           <p className="text-[10px] tracking-[0.8em] text-white/40 uppercase font-black">
+           <Image src="/logo.png" alt="VOID WEAR" width={80} height={80} className="mx-auto grayscale" unoptimized />
+           <p className="text-[10px] tracking-[0.8em] text-black/40 uppercase font-black font-headline">
              {mode === 'login' ? 'AUTHENTICATION' : mode === 'signup' ? 'INITIALIZATION' : mode === 'reset' ? 'RECOVERY' : 'VERIFICATION'}
            </p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 p-10 space-y-8 backdrop-blur-xl">
+        <div className="bg-black/[0.02] border border-black/10 p-10 space-y-8 backdrop-blur-xl">
           <AnimatePresence mode="wait">
             {mode === 'verify' ? (
               <motion.div key="verify" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 text-center py-6">
-                <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                  <MailCheck className="w-8 h-8 text-white/60 animate-pulse" />
+                <div className="w-16 h-16 bg-black/5 border border-black/10 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                  <MailCheck className="w-8 h-8 text-black/60 animate-pulse" />
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-white">NEURAL HANDSHAKE REQUIRED</h3>
-                  <p className="text-[10px] tracking-[0.2em] text-white/40 leading-relaxed uppercase font-medium">
-                    A verification link has been transmitted to <span className="text-white">{user?.email}</span>. Please authorize this link to activate your system uplink.
+                  <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-black font-headline">HANDSHAKE REQUIRED</h3>
+                  <p className="text-[10px] tracking-[0.2em] text-black/60 leading-relaxed uppercase font-medium">
+                    A verification link has been sent to <span className="text-black font-bold">{user?.email}</span>. Please authorize to continue.
                   </p>
                   
-                  {/* SPAM ADVISORY PROTOCOL */}
-                  <div className="p-4 border border-red-500/20 bg-red-500/5 flex items-center gap-3">
-                     <AlertTriangle className="w-4 h-4 text-red-500/60 shrink-0" />
-                     <p className="text-[8px] tracking-[0.2em] text-red-500/80 uppercase font-black text-left leading-relaxed">
-                        SYSTEM_ADVISORY: IF TRANSMISSION IS NOT DETECTED WITHIN 60s, AUDIT YOUR SPAM OR JUNK FOLDERS.
+                  <div className="p-4 border border-black/10 bg-black/[0.02] flex items-center gap-3">
+                     <AlertTriangle className="w-4 h-4 text-black/40 shrink-0" />
+                     <p className="text-[8px] tracking-[0.2em] text-black/60 uppercase font-black text-left leading-relaxed">
+                        ADVISORY: IF NOT RECEIVED, CHECK YOUR SPAM FOLDERS.
                      </p>
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
-                  <Button onClick={handleResendVerification} disabled={loading} variant="outline" className="h-14 border-white/10 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
-                    {loading ? <Loader2 className="animate-spin" /> : <><RotateCcw className="mr-3 w-3.5 h-3.5" /> RE-TRANSMIT PACKET</>}
+                  <Button onClick={handleResendVerification} disabled={loading} variant="outline" className="h-14 border-black/10 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent hover:bg-black hover:text-white uppercase transition-all">
+                    {loading ? <Loader2 className="animate-spin" /> : <><RotateCcw className="mr-3 w-3.5 h-3.5" /> RE-SEND EMAIL</>}
                   </Button>
-                  <button onClick={handleLogout} className="text-[8px] tracking-[0.4em] text-white/20 hover:text-white uppercase font-black">SEVER CURRENT SESSION</button>
+                  <button onClick={handleLogout} className="text-[8px] tracking-[0.4em] text-black/40 hover:text-black uppercase font-black transition-colors">SIGN OUT</button>
                 </div>
               </motion.div>
             ) : (
               <form onSubmit={handleAuth} className="space-y-6">
                 {mode === 'signup' && (
                   <div className="space-y-6">
-                    <Field label="ENTITY NAME" value={displayName} onChange={setDisplayName} placeholder="IDENTIFIER" />
-                    <Field label="CONTACT MODULE" value={mobileNumber} onChange={setMobileNumber} placeholder="+91..." />
+                    <Field label="NAME" value={displayName} onChange={setDisplayName} placeholder="YOUR NAME" />
+                    <Field label="MOBILE" value={mobileNumber} onChange={setMobileNumber} placeholder="+91..." />
                   </div>
                 )}
                 
-                <Field label="COMM-CHANNEL / EMAIL" value={email} onChange={setEmail} type="email" placeholder="ID@NETWORK.COM" />
+                <Field label="EMAIL" value={email} onChange={setEmail} type="email" placeholder="YOUR@EMAIL.COM" />
                 
                 {mode !== 'reset' && (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">ACCESS KEY</label>
-                      {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-white/20 hover:text-white transition-colors font-black">FORGOT?</button>}
+                      <label className="text-[9px] font-bold tracking-[0.4em] text-black/40 uppercase">PASSWORD</label>
+                      {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-black/40 hover:text-black transition-colors font-black uppercase">FORGOT?</button>}
                     </div>
                     <div className="relative">
                       <Input 
                         type={showPassword ? 'text' : 'password'} 
                         value={password} 
                         onChange={e => setPassword(e.target.value)} 
-                        className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white font-mono pr-12" 
+                        className="bg-white border-black/10 h-14 rounded-none text-xs tracking-widest text-black font-mono pr-12 focus:border-black/40" 
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors focus:outline-none"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors focus:outline-none"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -229,13 +228,13 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                <Button disabled={loading} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-black tracking-[0.5em] rounded-none">
-                  {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'INITIALIZE' : mode === 'reset' ? 'RECOVER' : 'ESTABLISH LINK')}
+                <Button disabled={loading} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-black tracking-[0.5em] rounded-none uppercase transition-all shadow-sm">
+                  {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'INITIALIZE' : mode === 'reset' ? 'RECOVER' : 'LOGIN')}
                 </Button>
                 
                 {mode === 'login' && (
-                  <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={loading} className="w-full border-white/10 h-14 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent">
-                    <Chrome className="mr-3 w-4 h-4" /> GOOGLE UPLINK
+                  <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={loading} className="w-full border-black/10 h-14 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent hover:bg-black/5 uppercase transition-all">
+                    <Chrome className="mr-3 w-4 h-4" /> GOOGLE LOGIN
                   </Button>
                 )}
               </form>
@@ -243,13 +242,13 @@ export default function LoginPage() {
           </AnimatePresence>
 
           {mode === 'reset' && (
-             <button onClick={() => setMode('login')} className="w-full text-[8px] tracking-[0.4em] text-white/20 hover:text-white uppercase font-black">BACK TO UPLINK</button>
+             <button onClick={() => setMode('login')} className="w-full text-[8px] tracking-[0.4em] text-black/40 hover:text-black uppercase font-black transition-colors">BACK TO LOGIN</button>
           )}
         </div>
 
         {mode !== 'verify' && (
-          <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-white/40 hover:text-white border-b border-white/5 pb-1 uppercase font-black">
-            {mode === 'signup' ? 'ALREADY LINKED? LOGIN' : 'NEW ENTITY? SIGN UP'}
+          <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-black/40 hover:text-black border-b border-black/5 pb-1 uppercase font-black transition-all">
+            {mode === 'signup' ? 'ALREADY CONNECTED? LOGIN' : 'NEW CUSTOMER? SIGN UP'}
           </button>
         )}
       </motion.div>
@@ -260,8 +259,8 @@ export default function LoginPage() {
 function Field({ label, value, onChange, type = "text", placeholder }: any) {
   return (
     <div className="space-y-2">
-      <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">{label}</label>
-      <Input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="bg-black/50 border-white/10 h-14 rounded-none text-xs tracking-widest text-white placeholder:text-white/5 uppercase" />
+      <label className="text-[9px] font-bold tracking-[0.4em] text-black/40 uppercase">{label}</label>
+      <Input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="bg-white border-black/10 h-14 rounded-none text-xs tracking-widest text-black placeholder:text-black/10 uppercase focus:border-black/40" />
     </div>
   );
 }
