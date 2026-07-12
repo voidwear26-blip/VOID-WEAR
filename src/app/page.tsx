@@ -83,7 +83,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[1em] text-black/40 uppercase">NEW</span>
-              <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-black">
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none text-black font-headline">
                 RECENT <br /> ARRIVALS
               </h2>
             </div>
@@ -129,7 +129,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
              <div className="space-y-6">
                 <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">REVIEWS</span>
-                <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black">CUSTOMER <br /> FEEDBACK</h2>
+                <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black font-headline">CUSTOMER <br /> FEEDBACK</h2>
              </div>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="text-center space-y-8 mb-24">
             <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">BEST SELLERS</span>
-            <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black">Top Items</h2>
+            <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black font-headline">Top Items</h2>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">

@@ -24,7 +24,6 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // 1. Fetch Global Reports for this product
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !productId) return null;
     return query(
@@ -43,7 +42,6 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
     );
   }, [rawReports]);
 
-  // 2. VERIFICATION PROTOCOL: Check if user has purchased this item
   const userOrdersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'orders');
@@ -92,14 +90,14 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
   };
 
   return (
-    <div className="space-y-20">
+    <div className="space-y-20 text-black">
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-black/10 pb-12 gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <MessageSquare className="w-5 h-5 text-black/40" />
             <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">CUSTOMER REVIEWS</span>
           </div>
-          <h3 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none">Buyer <br /> Feedback</h3>
+          <h3 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Buyer <br /> Feedback</h3>
           <p className="text-[9px] tracking-[0.3em] text-black/60 uppercase font-black">AUTHENTIC REVIEWS FROM OUR CUSTOMERS</p>
         </div>
         <div className="bg-black/5 border border-black/10 px-8 py-4 backdrop-blur-md">
@@ -236,11 +234,6 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                          </p>
                       </div>
                     )}
-
-                    <div className="pt-4 flex justify-end opacity-20 group-hover:opacity-60 transition-opacity">
-                       <div className="h-px flex-1 bg-gradient-to-r from-transparent to-black/10 mr-4 self-center" />
-                       <span className="text-[7px] tracking-[1em] font-black uppercase">VOID WEAR REVIEWS</span>
-                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>

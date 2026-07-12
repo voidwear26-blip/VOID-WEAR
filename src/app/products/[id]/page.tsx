@@ -38,10 +38,6 @@ const OutOfStockOverlay = () => (
   </div>
 );
 
-/**
- * NEURAL MAGNIFIER COMPONENT
- * Handles coordinate-based magnification for technical module inspection.
- */
 function ProductImageMagnifier({ 
   src, 
   alt, 
@@ -86,30 +82,29 @@ function ProductImageMagnifier({
       
       {showMagnifier && !isGlobalOOS && (
         <div 
-          className="absolute pointer-events-none border border-white/20 bg-black/60 backdrop-blur-xl overflow-hidden z-40 hidden md:block"
+          className="absolute pointer-events-none border border-black/20 bg-white/60 backdrop-blur-xl overflow-hidden z-40 hidden md:block"
           style={{
             width: '240px',
             height: '240px',
             left: `${cursorPosition.x - 120}px`,
             top: `${cursorPosition.y - 120}px`,
-            boxShadow: '0 0 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.1)'
+            boxShadow: '0 0 50px rgba(0,0,0,0.1), inset 0 0 20px rgba(0,0,0,0.05)'
           }}
         >
           <div 
             className="absolute"
             style={{
               backgroundImage: `url(${src})`,
-              backgroundSize: '400%', // 4x Zoom calibration
+              backgroundSize: '400%',
               backgroundPosition: `${position.x}% ${position.y}%`,
               width: '100%',
               height: '100%',
               backgroundRepeat: 'no-repeat'
             }}
           />
-          {/* Viewfinder Reticle */}
-          <div className="absolute inset-0 border border-white/10 flex items-center justify-center opacity-30">
-            <div className="w-4 h-px bg-white"></div>
-            <div className="h-4 w-px bg-white"></div>
+          <div className="absolute inset-0 border border-black/10 flex items-center justify-center opacity-30">
+            <div className="w-4 h-px bg-black"></div>
+            <div className="h-4 w-px bg-black"></div>
           </div>
         </div>
       )}
@@ -227,7 +222,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const handleAuthGuard = () => {
     if (!user) {
-      toast({ title: "AUTHENTICATION REQUIRED", description: "LOG IN TO YOUR ENTITY TO CONTINUE." });
+      toast({ title: "AUTHENTICATION REQUIRED", description: "LOG IN TO YOUR ACCOUNT TO CONTINUE." });
       router.push('/login');
       return false;
     }
@@ -238,7 +233,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (isGlobalOOS || isSelectedVariantOOS) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
-      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
+      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR." });
       return;
     }
     if (!db || !product) return;
@@ -246,7 +241,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     setAdding(true);
     try {
       await addToCart(db, user!.uid, { ...product, id: product.id, color: selectedColor } as any, selectedSize);
-      toast({ title: "MODULE ADDED", description: "ASSEMBLAGE TRANSITIONED TO BAG." });
+      toast({ title: "ADDED TO BAG", description: "ITEM TRANSITIONED TO BAG." });
     } catch (e) {
       console.error(e);
     } finally {
@@ -258,7 +253,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (isGlobalOOS || isSelectedVariantOOS) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
-      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR NODES." });
+      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR." });
       return;
     }
     if (!db || !product) return;
@@ -280,8 +275,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     try {
       await toggleWishlist(db!, user!.uid, product as any);
       toast({ 
-        title: isInWishlist ? "MODULE REMOVED" : "MODULE SECURED", 
-        description: isInWishlist ? "STASIS LOG SEVERED." : "ASSEMBLAGE ADDED TO STASIS." 
+        title: isInWishlist ? "REMOVED" : "SAVED", 
+        description: isInWishlist ? "ITEM REMOVED FROM WISHLIST." : "ITEM SAVED TO WISHLIST." 
       });
     } catch (e) {
       console.error(e);
@@ -295,7 +290,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareData = {
       title: product.name,
-      text: `CHECK OUT THIS VOID WEAR MODULE: ${product.name}\n${product.description}`,
+      text: `Check out ${product.name} from VOID WEAR.\n${product.description}`,
       url: shareUrl,
     };
 
@@ -306,19 +301,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "LINK EXTRACTED", description: "PRODUCT UPLINK SAVED TO CLIPBOARD." });
+        toast({ title: "LINK COPIED", description: "PRODUCT LINK SAVED TO CLIPBOARD." });
       } catch (err) {
-        toast({ variant: "destructive", title: "SHARE_FAILURE" });
+        toast({ variant: "destructive", title: "SHARE FAILURE" });
       }
     }
   };
 
   if (isProductLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-black">
+      <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-6">
-          <Loader2 className="w-10 h-10 animate-spin text-white/20" />
-          <span className="text-[10px] tracking-[1em] uppercase font-bold text-white/40">Syncing Module...</span>
+          <Loader2 className="w-10 h-10 animate-spin text-black/20" />
+          <span className="text-[10px] tracking-[1em] uppercase font-bold text-black/40">Syncing Module...</span>
         </div>
       </div>
     );
@@ -327,14 +322,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   if (!product) return notFound();
 
   return (
-    <div className="pt-32 pb-24 bg-transparent min-h-screen">
+    <div className="pt-32 pb-24 bg-transparent min-h-screen text-black">
       <div className="container mx-auto px-6">
-        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-white/40 mb-12 uppercase font-bold">
-          <Link href="/" className="hover:text-white transition-colors">HOME</Link>
+        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-black/40 mb-12 uppercase font-bold">
+          <Link href="/" className="hover:text-black transition-colors">HOME</Link>
           <ChevronRight className="w-3 h-3 opacity-30" />
-          <Link href="/products" className="hover:text-white transition-colors">COLLECTION</Link>
+          <Link href="/products" className="hover:text-black transition-colors">COLLECTION</Link>
           <ChevronRight className="w-3 h-3 opacity-30" />
-          <span className="text-white">{product.name}</span>
+          <span className="text-black">{product.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-24 items-start pb-32">
@@ -350,7 +345,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <CarouselContent>
                 {displayImages.map((url: string, idx: number) => (
                   <CarouselItem key={url + idx}>
-                    <div className="relative aspect-[3/4] bg-white/[0.02] overflow-hidden border border-white/10 group">
+                    <div className="relative aspect-[3/4] bg-black/[0.02] overflow-hidden border border-black/10 group">
                       <ProductImageMagnifier 
                         src={url} 
                         alt={product.name} 
@@ -360,8 +355,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       
                       {isGlobalOOS && (
                         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                          <div className="bg-black/80 border border-white/20 px-8 py-4 backdrop-blur-xl">
-                            <span className="text-xs font-black tracking-[0.8em] text-white uppercase">OUT OF STOCK</span>
+                          <div className="bg-white/80 border border-black/20 px-8 py-4 backdrop-blur-xl">
+                            <span className="text-xs font-black tracking-[0.8em] text-black uppercase">OUT OF STOCK</span>
                           </div>
                         </div>
                       )}
@@ -374,7 +369,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             onClick={handleWishlistToggle}
                             disabled={toggling}
                             className={`p-5 rounded-full border backdrop-blur-xl transition-all ${
-                              isInWishlist ? 'bg-white text-black border-white shadow-[0_0_20px_white]' : 'bg-black/60 text-white border-white/20 hover:border-white'
+                              isInWishlist ? 'bg-black text-white border-black shadow-[0_0_20px_rgba(0,0,0,0.1)]' : 'bg-white/60 text-black border-black/20 hover:border-black'
                             }`}
                           >
                             {toggling ? <Loader2 className="w-6 h-6 animate-spin" /> : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-current' : ''}`} />}
@@ -384,7 +379,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={handleShare}
-                            className="p-5 rounded-full border border-white/20 bg-black/60 text-white hover:border-white backdrop-blur-xl transition-all"
+                            className="p-5 rounded-full border border-black/20 bg-white/60 text-black hover:border-black backdrop-blur-xl transition-all"
                           >
                             <Share2 className="w-6 h-6" />
                           </motion.button>
@@ -396,8 +391,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </CarouselContent>
               {displayImages.length > 1 && (
                 <>
-                  <CarouselPrevious className="left-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-50 group-hover/carousel:opacity-100 transition-all duration-500 z-50" />
-                  <CarouselNext className="right-6 h-12 w-12 border-white/10 bg-black/60 hover:bg-white hover:text-black rounded-none opacity-50 group-hover/carousel:opacity-100 transition-all duration-500 z-50" />
+                  <CarouselPrevious className="left-6 h-12 w-12 border-black/10 bg-white/60 hover:bg-black hover:text-white rounded-none opacity-50 group-hover/carousel:opacity-100 transition-all duration-500 z-50" />
+                  <CarouselNext className="right-6 h-12 w-12 border-black/10 bg-white/60 hover:bg-black hover:text-white rounded-none opacity-50 group-hover/carousel:opacity-100 transition-all duration-500 z-50" />
                 </>
               )}
             </Carousel>
@@ -405,51 +400,51 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           <div className="space-y-12 lg:sticky lg:top-32">
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-white/50 uppercase">
-                <span className="w-8 h-[1px] bg-white/20"></span>
+              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-black/50 uppercase">
+                <span className="w-8 h-[1px] bg-black/20"></span>
                 {product.category}
               </div>
               <div className="flex flex-col gap-2">
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase text-white">{product.name}</h1>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase text-black font-headline">{product.name}</h1>
                 {(isGlobalOOS || isSelectedVariantOOS) && (
                   <div className="flex items-center gap-2 text-red-500">
                     <ZapOff className="w-4 h-4" />
-                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Status: Offline - Out of Stock</span>
+                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Status: Out of Stock</span>
                   </div>
                 )}
               </div>
               <div className="flex items-baseline gap-4">
                 {hasDiscount && (
-                  <span className="text-xl line-through text-white/30 tracking-widest">₹{product.originalPrice}</span>
+                  <span className="text-xl line-through text-black/30 tracking-widest">₹{product.originalPrice}</span>
                 )}
-                <p className="text-3xl font-black tracking-tighter glow-text text-white">₹{product.basePrice}</p>
+                <p className="text-3xl font-black tracking-tighter text-black">₹{product.basePrice}</p>
                 {hasDiscount && (
-                  <span className="bg-white/10 text-white text-[9px] font-black px-3 py-1 tracking-[0.2em] uppercase">-{product.discountPercentage}% OFF</span>
+                  <span className="bg-black/10 text-black text-[9px] font-black px-3 py-1 tracking-[0.2em] uppercase">-{product.discountPercentage}% OFF</span>
                 )}
               </div>
             </div>
 
-            <p className="text-sm tracking-widest leading-relaxed text-white/60 uppercase font-light max-w-xl">
+            <p className="text-sm tracking-widest leading-relaxed text-black/60 uppercase font-light max-w-xl">
               {product.description}
             </p>
 
             <div className="space-y-10">
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">01. SELECT SIZE</h4>
+                <div className="flex items-center justify-between border-b border-black/10 pb-4">
+                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/40">01. SELECT SIZE</h4>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <button className="flex items-center gap-2 text-[9px] font-black tracking-[0.3em] text-white/60 hover:text-white transition-all uppercase">
+                      <button className="flex items-center gap-2 text-[9px] font-black tracking-[0.3em] text-black/60 hover:text-black transition-all uppercase">
                         <Ruler className="w-3 h-3" />
                         SIZE GUIDE
                       </button>
                     </DialogTrigger>
-                    <DialogContent className="bg-black/95 border border-white/10 max-w-2xl p-0 overflow-hidden">
+                    <DialogContent className="bg-white/95 border border-black/10 max-w-2xl p-0 overflow-hidden">
                       <DialogTitle className="sr-only">SIZE CHART</DialogTitle>
-                      <div className="relative aspect-square md:aspect-[4/3] w-full">
+                      <div className="relative aspect-square md:aspect-[4/3] w-full bg-white">
                         <Image 
                           src="/SIZE CHART.png" 
-                          alt="VOID WEAR SIZE GUIDE" 
+                          alt="SIZE GUIDE" 
                           fill 
                           className="object-contain" 
                           unoptimized
@@ -466,11 +461,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         key={size} 
                         onClick={() => { 
                           setSelectedSize(size); 
-                          if (isOOS) toast({ title: "OFFLINE", description: "SIZE OUT OF STOCK" });
+                          if (isOOS) toast({ title: "OUT OF STOCK", description: "THIS SIZE IS CURRENTLY UNAVAILABLE." });
                         }}
                         className={cn(
                           "relative w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
-                          selectedSize === size ? "bg-white text-black border-white" : "border-white/10 hover:border-white/40 bg-white/[0.01] text-white/50",
+                          selectedSize === size ? "bg-black text-white border-black" : "border-black/10 hover:border-black/40 bg-black/[0.01] text-black/50",
                           isOOS && "border-red-500/20 text-red-500/30"
                         )}
                       >
@@ -483,7 +478,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
 
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40 border-b border-white/10 pb-4">02. SELECT COLOR</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/40 border-b border-black/10 pb-4">02. SELECT COLOR</h4>
                 <div className="flex flex-wrap gap-4">
                   {allUniqueColors.map(color => {
                     const isOOS = selectedSize 
@@ -497,12 +492,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         key={color} 
                         onClick={() => {
                           setSelectedColor(color);
-                          if (isOOS) toast({ title: "OFFLINE", description: "OUT OF STOCK" });
+                          if (isOOS) toast({ title: "OUT OF STOCK", description: "THIS COLOR IS CURRENTLY UNAVAILABLE." });
                         }}
                         title={color}
                         className={cn(
                           "relative w-16 h-20 border transition-all overflow-hidden group backdrop-blur-sm",
-                          selectedColor === color ? "border-white ring-1 ring-white/50" : "border-white/10 hover:border-white/40 bg-white/[0.01]",
+                          selectedColor === color ? "border-black ring-1 ring-black/50" : "border-black/10 hover:border-black/40 bg-black/[0.01]",
                           isOOS && "opacity-40"
                         )}
                       >
@@ -516,14 +511,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                           )}
                           unoptimized
                         />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-1">
-                          <p className="text-[7px] font-black tracking-widest uppercase text-white text-center truncate px-1">{color}</p>
+                        <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-white/80 py-1">
+                          <p className="text-[7px] font-black tracking-widest uppercase text-black text-center truncate px-1">{color}</p>
                         </div>
                         {isOOS && <OutOfStockOverlay />}
                         {selectedColor === color && (
                           <div className="absolute top-1 right-1">
-                            <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
+                            <div className="w-2 h-2 bg-black rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
                           </div>
                         )}
                       </button>
@@ -536,29 +531,29 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <Button 
                   onClick={handleBuyNow}
                   disabled={buying || isGlobalOOS || isSelectedVariantOOS || !selectedSize || !selectedColor}
-                  className="w-full bg-white text-black hover:bg-white/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none group shadow-[0_0_40px_rgba(255,255,255,0.1)] uppercase transition-all"
+                  className="w-full bg-black text-white hover:bg-black/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none group shadow-[0_0_40px_rgba(0,0,0,0.05)] uppercase transition-all"
                 >
-                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : (isGlobalOOS || isSelectedVariantOOS) ? <>MODULE UNAVAILABLE <ZapOff className="ml-3 w-4 h-4" /></> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
+                  {buying ? <Loader2 className="w-5 h-5 animate-spin" /> : (isGlobalOOS || isSelectedVariantOOS) ? <>UNAVAILABLE <ZapOff className="ml-3 w-4 h-4" /></> : <>BUY NOW <Zap className="ml-3 w-4 h-4 group-hover:scale-110" /></>}
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={handleAdd}
                   disabled={adding || isGlobalOOS || isSelectedVariantOOS || !selectedSize || !selectedColor}
-                  className="w-full border-white/10 bg-transparent hover:bg-white/5 h-16 text-[10px] font-bold tracking-[0.4em] rounded-none text-white uppercase transition-all"
+                  className="w-full border-black/10 bg-transparent hover:bg-black/5 h-16 text-[10px] font-bold tracking-[0.4em] rounded-none text-black uppercase transition-all"
                 >
-                  {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <>ADD TO TRANSMISSION BAG <ShoppingBag className="ml-3 w-3.5 h-3.5" /></>}
+                  {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <>ADD TO BAG <ShoppingBag className="ml-3 w-3.5 h-3.5" /></>}
                 </Button>
               </div>
             </div>
 
-            <div className="border-t border-white/10 pt-12 space-y-8">
+            <div className="border-t border-black/10 pt-12 space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/40">TECHNICAL SPECIFICATIONS</h4>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-white/60">
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/40">SPECIFICATIONS</h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-black/60">
                   {product.details?.map((detail: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 uppercase font-light">
-                      <span className="w-1 h-1 bg-white/20 rounded-full"></span>
+                      <span className="w-1 h-1 bg-black/20 rounded-full"></span>
                       {detail}
                     </li>
                   ))}
@@ -568,26 +563,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* FIELD REPORTS (REVIEWS) - PLACED ABOVE RECOMMENDED ASSEMBLAGES */}
-        <div className="border-t border-white/10 pt-32 pb-32">
+        <div className="border-t border-black/10 pt-32 pb-32">
           <FieldReports productId={product.id} productName={product.name} />
         </div>
 
-        {/* RECOMMENDED ASSEMBLAGES */}
-        <div className="border-t border-white/10 pt-32 pb-32">
+        <div className="border-t border-black/10 pt-32 pb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <Sparkles className="w-4 h-4 text-white/40" />
-                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">CONTEXTUAL // UPLINK</span>
+                <Sparkles className="w-4 h-4 text-black/40" />
+                <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">YOU MAY ALSO LIKE</span>
               </div>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tight glow-text uppercase leading-none">Recommended <br /> Assemblages</h2>
-              <p className="text-white/60 tracking-widest text-xs uppercase font-light max-w-xl">
-                SYSTEM IDENTIFIED MODULES THAT ALIGN WITH YOUR CURRENT ARCHITECTURAL REQUIREMENT.
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none font-headline">Recommended <br /> Items</h2>
+              <p className="text-black/60 tracking-widest text-xs uppercase font-light max-w-xl">
+                ITEMS THAT ALIGN WITH YOUR CURRENT SELECTION.
               </p>
             </div>
-            <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-white/40 hover:text-white transition-all uppercase border-b border-white/10 pb-4">
-              EXPLORE ALL MODULES
+            <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-black/40 hover:text-black transition-all uppercase border-b border-black/10 pb-4">
+              EXPLORE ALL
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -598,11 +591,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               ))
             ) : similarLoading ? (
               [1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-[3/4] bg-white/[0.02] border border-white/5 animate-pulse" />
+                <div key={i} className="aspect-[3/4] bg-black/[0.02] border border-black/5 animate-pulse" />
               ))
             ) : (
                <div className="col-span-full py-20 text-center opacity-40">
-                  <p className="text-[10px] tracking-[0.5em] uppercase">No similar modules logged.</p>
+                  <p className="text-[10px] tracking-[0.5em] uppercase">No recommendations found.</p>
                </div>
             )}
           </div>

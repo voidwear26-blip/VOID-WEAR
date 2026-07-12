@@ -93,7 +93,7 @@ export function Hero() {
               />
             </div>
             <div className="w-full overflow-hidden">
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[0.4em] uppercase leading-none whitespace-nowrap inline-block text-black">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[0.4em] uppercase leading-none whitespace-nowrap inline-block text-black font-headline">
                 {content.title}
               </h1>
             </div>

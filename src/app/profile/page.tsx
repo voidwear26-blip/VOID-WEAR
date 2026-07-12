@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
@@ -130,71 +129,71 @@ export default function ProfilePage() {
 
   if (isUserLoading || (user && isProfileLoading)) {
     return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white/20" />
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-10 h-10 animate-spin text-black/20" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center space-y-8 bg-black">
-        <h2 className="text-xl font-bold tracking-[0.5em] glow-text text-white uppercase">ACCESS DENIED</h2>
+      <div className="h-screen flex flex-col items-center justify-center space-y-8 bg-background">
+        <h2 className="text-xl font-bold tracking-[0.5em] text-black uppercase font-headline">ACCESS DENIED</h2>
         <Link href="/login">
-          <button className="px-12 py-4 border border-white/20 text-[10px] tracking-[0.5em] hover:bg-white hover:text-black transition-all font-bold uppercase">ESTABLISH LINK</button>
+          <button className="px-12 py-4 border border-black/20 text-[10px] tracking-[0.5em] hover:bg-black hover:text-white transition-all font-bold uppercase">ESTABLISH LINK</button>
         </Link>
       </div>
     );
   }
 
-  const displayTitle = formData.displayName || profile?.displayName || user.email?.split('@')[0].toUpperCase() || 'OPERATOR';
+  const displayTitle = formData.displayName || profile?.displayName || user.email?.split('@')[0].toUpperCase() || 'CUSTOMER';
 
   return (
-    <div className="pt-48 pb-32 bg-transparent min-h-screen text-white">
+    <div className="pt-48 pb-32 bg-transparent min-h-screen text-black">
       <div className="container mx-auto px-6 md:px-10">
         <div className="grid lg:grid-cols-4 gap-16 md:gap-24 items-start">
           <div className="space-y-12 lg:sticky lg:top-48">
             <div className="space-y-6">
               <div className="relative group w-20 h-20 mx-auto lg:mx-0 cursor-pointer" onClick={handleLogout} title="CLICK TO LOGOUT">
-                 <div className="absolute inset-0 bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-red-500/10 group-hover:border-red-500/50 transition-all">
-                    <LogOut className="w-6 h-6 text-white/40 group-hover:text-red-500" />
+                 <div className="absolute inset-0 bg-black/5 border border-black/10 flex items-center justify-center group-hover:bg-red-500/10 group-hover:border-red-500/50 transition-all">
+                    <LogOut className="w-6 h-6 text-black/40 group-hover:text-red-500" />
                  </div>
               </div>
               <div className="space-y-2 text-center lg:text-left">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-white/40 uppercase">ENTITY // PROFILE</span>
-                <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none break-all">
+                <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">ENTITY // PROFILE</span>
+                <h1 className="text-4xl font-black tracking-tight uppercase leading-none break-all font-headline">
                   {displayTitle}
                 </h1>
-                <p className="text-white/30 tracking-[0.2em] text-[10px] uppercase font-mono">UID: {user.uid.slice(0, 12)}...</p>
+                <p className="text-black/30 tracking-[0.2em] text-[10px] uppercase font-mono">UID: {user.uid.slice(0, 12)}...</p>
               </div>
             </div>
 
             {isAdmin && (
               <Link href="/admin">
-                <Button className="w-full bg-white text-black hover:bg-white/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] shadow-[0_0_20px_rgba(255,255,255,0.1)] uppercase">
+                <Button className="w-full bg-black text-white hover:bg-black/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] shadow-[0_0_20px_rgba(0,0,0,0.1)] uppercase">
                   <Settings className="w-4 h-4 mr-3" /> COMMAND CENTER
                 </Button>
               </Link>
             )}
 
-            <div className="p-8 border border-white/5 bg-white/[0.01] space-y-6 backdrop-blur-sm">
-              <div className="flex items-center gap-4 text-white/60">
-                <ShieldCheck className={`w-4 h-4 ${isAdmin ? 'text-white shadow-[0_0_10px_white]' : 'text-white/30'}`} />
+            <div className="p-8 border border-black/5 bg-black/[0.01] space-y-6 backdrop-blur-sm">
+              <div className="flex items-center gap-4 text-black/60">
+                <ShieldCheck className={`w-4 h-4 ${isAdmin ? 'text-black shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'text-black/30'}`} />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
               </div>
-              <div className="flex items-center gap-4 text-white/60">
-                <Calendar className="w-4 h-4 text-white/30" />
+              <div className="flex items-center gap-4 text-black/60">
+                <Calendar className="w-4 h-4 text-black/30" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">JOINED: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'INITIALIZING...'}</span>
               </div>
             </div>
             
-            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-white/30">
+            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-black/30">
               {[
                 { id: 'identity', label: 'IDENTITY', icon: <UserIcon className="w-3.5 h-3.5" /> },
                 { id: 'orders', label: 'TRANSMISSIONS', icon: <Package className="w-3.5 h-3.5" /> },
-                { id: 'wishlist', label: 'STASIS', icon: <Heart className="w-3.5 h-3.5" /> }
+                { id: 'wishlist', label: 'WISHLIST', icon: <Heart className="w-3.5 h-3.5" /> }
               ].map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-white pl-4 border-l border-white' : 'hover:text-white/60'}`}>
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-black pl-4 border-l border-black' : 'hover:text-black/60'}`}>
                   {tab.icon} {tab.label}
                 </button>
               ))}
@@ -205,50 +204,50 @@ export default function ProfilePage() {
             <AnimatePresence mode="wait">
               {activeTab === 'identity' && (
                 <motion.div key="identity" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/60">ENTITY IDENTITY</h2>
+                  <div className="flex items-center justify-between border-b border-black/5 pb-8">
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/60">ENTITY IDENTITY</h2>
                   </div>
 
-                  <form onSubmit={handleUpdateProfile} className="bg-white/[0.01] border border-white/5 p-10 space-y-10 backdrop-blur-xl">
+                  <form onSubmit={handleUpdateProfile} className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-xl">
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">FULL IDENTIFIER</label>
-                        <Input value={formData.displayName} onChange={e => setFormData({ ...formData, displayName: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">FULL NAME</label>
+                        <Input value={formData.displayName} onChange={e => setFormData({ ...formData, displayName: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">UPLINK MODULE (MOBILE)</label>
-                        <Input value={formData.mobileNumber} onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white" placeholder="+91 XXXX XXX XXX" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">MOBILE NUMBER</label>
+                        <Input value={formData.mobileNumber} onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" placeholder="+91 XXXX XXX XXX" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">CITY</label>
-                        <Input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">CITY</label>
+                        <Input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">STATE</label>
-                        <Input value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">STATE</label>
+                        <Input value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PINCODE</label>
-                        <Input value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">PINCODE</label>
+                        <Input value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
-                        <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">ADDRESS</label>
+                        <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-white/40 uppercase">LANDMARK</label>
-                        <Input value={formData.landmark} onChange={e => setFormData({ ...formData, landmark: e.target.value.toUpperCase() })} className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white uppercase" placeholder="E.G. NEAR ORBITAL TOWER" />
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">LANDMARK</label>
+                        <Input value={formData.landmark} onChange={e => setFormData({ ...formData, landmark: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                     </div>
 
-                    <Button type="submit" disabled={saving} className="w-full bg-white text-black hover:bg-white/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>SYNC IDENTITY LOGS <Save className="ml-3 w-4 h-4" /></>}
+                    <Button type="submit" disabled={saving} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>SAVE CHANGES <Save className="ml-3 w-4 h-4" /></>}
                     </Button>
                   </form>
                 </motion.div>
@@ -256,9 +255,9 @@ export default function ProfilePage() {
 
               {activeTab === 'orders' && (
                 <motion.div key="orders" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/60">TRANSMISSION HISTORY</h2>
-                    <span className="text-[10px] text-white/30 font-bold uppercase">{orders?.length || 0} LOGS</span>
+                  <div className="flex items-center justify-between border-b border-black/5 pb-8">
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/60">TRANSMISSION HISTORY</h2>
+                    <span className="text-[10px] text-black/30 font-bold uppercase">{orders?.length || 0} LOGS</span>
                   </div>
                   <div className="space-y-8">
                     {orders?.map((order) => <OrderCard key={order.id} order={order} userId={user.uid} userName={displayTitle} db={db} />)}
@@ -269,13 +268,13 @@ export default function ProfilePage() {
 
               {activeTab === 'wishlist' && (
                 <motion.div key="wishlist" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-white/60">STASIS MODULES</h2>
-                    <span className="text-[10px] text-white/30 font-bold uppercase">{wishlistItems?.length || 0} ITEMS</span>
+                  <div className="flex items-center justify-between border-b border-black/5 pb-8">
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/60">WISHLIST</h2>
+                    <span className="text-[10px] text-black/30 font-bold uppercase">{wishlistItems?.length || 0} ITEMS</span>
                   </div>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {wishlistItems?.map(item => <ProductCard key={item.id} product={{ id: item.productId, name: item.name, basePrice: item.price, imageUrls: [item.image], category: item.category, description: '', slug: '' } as any} />)}
-                    {wishlistItems?.length === 0 && <div className="sm:col-span-2 lg:col-span-3"><EmptyState icon={<Heart />} message="STASIS IS EMPTY" /></div>}
+                    {wishlistItems?.length === 0 && <div className="sm:col-span-2 lg:col-span-3"><EmptyState icon={<Heart />} message="WISHLIST IS EMPTY" /></div>}
                   </div>
                 </motion.div>
               )}
@@ -289,11 +288,11 @@ export default function ProfilePage() {
 
 function EmptyState({ icon, message }: { icon: React.ReactNode, message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-32 text-center space-y-8 opacity-20 border border-dashed border-white/10">
+    <div className="flex flex-col items-center justify-center py-32 text-center space-y-8 opacity-20 border border-dashed border-black/10">
       <div className="w-16 h-16 stroke-[0.5px]">
         {icon}
       </div>
-      <p className="text-[10px] tracking-[1em] uppercase font-bold text-white">{message}</p>
+      <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">{message}</p>
     </div>
   );
 }
@@ -313,7 +312,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
   const handleReviewSubmit = async (productId: string, productName: string) => {
     if (!db || !userId) return;
     if (!reviewComment.trim()) {
-      toast({ variant: "destructive", title: "REPORT_INCOMPLETE" });
+      toast({ variant: "destructive", title: "INCOMPLETE" });
       return;
     }
 
@@ -340,27 +339,27 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
   };
 
   return (
-    <div className="bg-white/[0.02] border border-white/10 p-8 md:p-10 space-y-8 backdrop-blur-xl group hover:border-white/20 transition-all duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-white/5 pb-8">
+    <div className="bg-black/[0.02] border border-black/10 p-8 md:p-10 space-y-8 backdrop-blur-xl group hover:border-black/20 transition-all duration-500 text-black">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-black/5 pb-8">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <Hash className="w-4 h-4 text-white/40" />
-            <span className="text-[11px] font-black tracking-widest text-white uppercase">{order.order_ID || order.id}</span>
+            <Hash className="w-4 h-4 text-black/40" />
+            <span className="text-[11px] font-black tracking-widest text-black uppercase">{order.order_ID || order.id}</span>
           </div>
           <div className="flex flex-wrap gap-8">
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-white/30 uppercase font-bold">CYCLE_DATE</p>
-                <p className="text-[10px] text-white/70 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
+                <p className="text-[8px] tracking-widest text-black/30 uppercase font-bold">CYCLE_DATE</p>
+                <p className="text-[10px] text-black/70 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
              </div>
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-white/30 uppercase font-bold">VALUATION</p>
-                <p className="text-[10px] text-white font-black">₹{order.totalAmount}</p>
+                <p className="text-[8px] tracking-widest text-black/30 uppercase font-bold">VALUATION</p>
+                <p className="text-[10px] text-black font-black">₹{order.totalAmount}</p>
              </div>
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-white/30 uppercase font-bold">STATUS</p>
+                <p className="text-[8px] tracking-widest text-black/30 uppercase font-bold">STATUS</p>
                 <div className="flex items-center gap-2">
-                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : 'bg-white/40')} />
-                   <p className="text-[10px] text-white uppercase tracking-widest font-black">{order.shippingStatus || 'PROCESSING'}</p>
+                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : 'bg-black/40')} />
+                   <p className="text-[10px] text-black uppercase tracking-widest font-black">{order.shippingStatus || 'PROCESSING'}</p>
                 </div>
              </div>
           </div>
@@ -368,7 +367,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
         <Button 
           variant="outline" 
           onClick={handleDownload}
-          className="h-12 border-white/10 bg-white/5 hover:bg-white hover:text-black rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all shrink-0"
+          className="h-12 border-black/10 bg-black/5 hover:bg-black hover:text-white rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all shrink-0"
         >
           DOWNLOAD LOG <Download className="ml-3 w-3.5 h-3.5" />
         </Button>
@@ -378,56 +377,56 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
         {order.items?.map((item: any, idx: number) => (
           <div key={idx} className="flex items-center justify-between group/item">
             <div className="flex items-center gap-6">
-              <div className="relative w-12 h-16 bg-white/5 border border-white/10 overflow-hidden shrink-0">
+              <div className="relative w-12 h-16 bg-black/5 border border-black/10 overflow-hidden shrink-0">
                 <Image src={item.image || 'https://picsum.photos/seed/void/200/300'} alt={item.name} fill className="object-cover grayscale" unoptimized />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold tracking-widest uppercase text-white">{item.name}</p>
-                <p className="text-[8px] text-white/40 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-black">{item.name}</p>
+                <p className="text-[8px] text-black/40 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
               </div>
             </div>
             
             {order.shippingStatus === 'delivered' && (
               <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-white/30 hover:text-white uppercase transition-all">
+                  <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-black/30 hover:text-black uppercase transition-all">
                     SUBMIT MODULE REVIEW <MessageSquare className="ml-2 w-3 h-3" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-black border border-white/10 p-10 max-w-lg">
+                <DialogContent className="bg-white border border-black/10 p-10 max-w-lg">
                   <DialogHeader className="space-y-4 mb-8">
-                    <DialogTitle className="text-xl font-black tracking-tight glow-text uppercase">Field Report Protocol</DialogTitle>
-                    <DialogDescription className="text-[9px] tracking-widest uppercase text-white/40 leading-relaxed font-bold">
+                    <DialogTitle className="text-xl font-black tracking-tight uppercase text-black font-headline">Field Report Protocol</DialogTitle>
+                    <DialogDescription className="text-[9px] tracking-widest uppercase text-black/40 leading-relaxed font-bold">
                       INPUT OPERATIONAL PERFORMANCE DATA FOR THE {item.name.toUpperCase()} MODULE.
                     </DialogDescription>
                   </DialogHeader>
                   
                   <div className="space-y-10">
                     <div className="space-y-4">
-                      <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">AESTHETIC CALIBRATION</label>
+                      <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">AESTHETIC CALIBRATION</label>
                       <div className="flex gap-4">
                         {[1,2,3,4,5].map((s) => (
                           <button key={s} onClick={() => setReviewRating(s)} className="transition-transform hover:scale-125">
-                            <Star className={cn("w-5 h-5", reviewRating >= s ? "text-white fill-current" : "text-white/10")} />
+                            <Star className={cn("w-5 h-5", reviewRating >= s ? "text-[#facc15] fill-current" : "text-black/10")} />
                           </button>
                         ))}
                       </div>
                     </div>
                     
                     <div className="space-y-4">
-                      <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">NARRATIVE CONTENT</label>
+                      <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">NARRATIVE CONTENT</label>
                       <Textarea 
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
                         placeholder="INPUT PERFORMANCE DATA..."
-                        className="bg-white/5 border-white/10 rounded-none h-32 text-[10px] tracking-widest focus:border-white/40 text-white uppercase placeholder:text-white/5"
+                        className="bg-black/5 border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/5"
                       />
                     </div>
                     
                     <Button 
                       disabled={submittingReview}
                       onClick={() => handleReviewSubmit(item.productId, item.name)}
-                      className="w-full h-14 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
+                      className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
                     >
                       {submittingReview ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT LOG <Zap className="ml-3 w-4 h-4" /></>}
                     </Button>

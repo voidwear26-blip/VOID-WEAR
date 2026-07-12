@@ -60,7 +60,7 @@ export default function ProductsPage() {
              <div className="h-[2px] w-12 bg-black/10"></div>
              <span className="text-[11px] font-black tracking-[0.8em] text-black/60 uppercase">COLLECTION // SEASON 01</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-none uppercase text-black">Collection</h1>
+          <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-none uppercase text-black font-headline">Collection</h1>
           <p className="text-black/60 tracking-[0.4em] text-xs uppercase leading-relaxed font-light max-w-2xl">
             Premium modular apparel designed for the urban explorer.
           </p>
