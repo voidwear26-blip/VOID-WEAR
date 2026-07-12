@@ -66,21 +66,29 @@ export function Navbar() {
     { name: 'CONTACT', href: '/contact' },
   ];
 
-  const iconBaseClass = "text-black/60 hover:text-black hover:scale-110 bg-transparent hover:bg-transparent transition-all duration-300 transform active:scale-95";
+  const iconBaseClass = "text-black/60 hover:text-black bg-transparent hover:bg-transparent transition-all duration-500 transform active:scale-90";
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-background/90 backdrop-blur-xl py-4 border-b border-black/5 shadow-sm' : 'bg-transparent py-10'}`}>
-        <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-12">
+      <motion.nav 
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className={cn(
+          "fixed top-0 left-0 right-0 z-[40] transition-all duration-700",
+          scrolled ? "bg-background/90 backdrop-blur-xl py-3 border-b border-black/5 shadow-sm" : "bg-transparent py-8"
+        )}
+      >
+        <div className="w-full px-4 md:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-1 md:gap-8">
             <div className="lg:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className={cn(iconBaseClass, "rounded-none w-8 h-8")}>
-                    <Menu className="w-5 h-5" />
+                  <Button variant="ghost" size="icon" className={cn(iconBaseClass, "w-10 h-10 p-0")}>
+                    <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-background/95 border-r border-black/5 text-black p-0 backdrop-blur-2xl w-[300px]">
+                <SheetContent side="left" className="bg-background/95 border-r border-black/5 text-black p-0 backdrop-blur-3xl w-[300px]">
                   <div className="p-10 space-y-16 pt-24">
                     <SheetTitle className="sr-only">MENU</SheetTitle>
                     <div className="space-y-4">
@@ -95,15 +103,21 @@ export function Navbar() {
 
                        <span className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase">NAVIGATION</span>
                        <div className="flex flex-col gap-8">
-                         {navLinks.map((link) => (
-                           <Link 
-                             key={link.name} 
-                             href={link.href}
-                             onClick={() => setIsMobileMenuOpen(false)}
-                             className="text-lg font-bold tracking-[0.4em] hover:text-black/60 transition-all uppercase font-body"
+                         {navLinks.map((link, idx) => (
+                           <motion.div
+                             key={link.name}
+                             initial={{ x: -20, opacity: 0 }}
+                             animate={{ x: 0, opacity: 1 }}
+                             transition={{ delay: 0.1 * idx }}
                            >
-                             {link.name}
-                           </Link>
+                             <Link 
+                               href={link.href}
+                               onClick={() => setIsMobileMenuOpen(false)}
+                               className="text-lg font-bold tracking-[0.4em] hover:text-black/60 transition-all uppercase font-body"
+                             >
+                               {link.name}
+                             </Link>
+                           </motion.div>
                          ))}
                        </div>
                     </div>
@@ -122,14 +136,18 @@ export function Navbar() {
               </Sheet>
             </div>
 
-            <Link href="/" className="group flex items-center gap-2">
-              <div className="flex items-center gap-4 hover:scale-[1.02] transition-transform duration-500">
-                <Image src="/logo.png" alt="VOID WEAR" width={40} height={40} className="h-8 w-auto object-contain grayscale" priority unoptimized />
-                <span className="text-[14px] font-black tracking-[0.4em] uppercase text-black hidden sm:block font-headline">VOID WEAR</span>
-              </div>
-            </Link>
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center"
+            >
+              <Link href="/" className="group flex items-center gap-3">
+                <Image src="/logo.png" alt="VOID WEAR" width={40} height={40} className="h-8 md:h-9 w-auto object-contain grayscale" priority unoptimized />
+                <span className="text-[13px] md:text-[15px] font-black tracking-[0.4em] uppercase text-black font-headline pt-1">VOID WEAR</span>
+              </Link>
+            </motion.div>
 
-            <div className="hidden lg:flex items-center gap-12 text-[10px] font-bold tracking-[0.5em] font-body">
+            <div className="hidden lg:flex items-center gap-10 text-[9px] font-bold tracking-[0.5em] font-body ml-8">
               {navLinks.map((link) => (
                 <Link 
                   key={link.name} 
@@ -137,42 +155,75 @@ export function Navbar() {
                   className="text-black/60 hover:text-black transition-all duration-500 uppercase relative group/link"
                 >
                   {link.name}
-                  <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-black transition-all duration-500 group-hover/link:w-full" />
+                  <motion.span 
+                    className="absolute -bottom-1 left-0 w-0 h-[1px] bg-black"
+                    whileHover={{ width: "100%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-black transition-all duration-500 group-hover/link:w-full" />
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-1 md:gap-4">
-            <Link href="/wishlist">
-              <Button variant="ghost" size="icon" className={iconBaseClass}>
+          <div className="flex items-center gap-2 md:gap-4">
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Link href="/wishlist">
+                <Button variant="ghost" size="icon" className={iconBaseClass}>
+                  <div className="relative">
+                    <Heart className="w-5 h-5" />
+                    <AnimatePresence>
+                      {wishlistCount > 0 && (
+                        <motion.span 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-black text-white text-[7px] font-black rounded-full flex items-center justify-center"
+                        >
+                          {wishlistCount}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Button>
+              </Link>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Link href={user ? "/profile" : "/login"}>
+                <Button variant="ghost" size="icon" className={cn(iconBaseClass, isAdmin && "border border-black/10")}>
+                  {isAdmin ? <ShieldCheck className="w-5 h-5 text-black" /> : <User className="w-5 h-5" />}
+                </Button>
+              </Link>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={iconBaseClass} 
+                onClick={() => setIsCartOpen(true)}
+              >
                 <div className="relative">
-                  <Heart className="w-4 h-4 md:w-5 md:h-5" />
-                  {wishlistCount > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-black text-white text-[7px] font-black rounded-full flex items-center justify-center">{wishlistCount}</span>}
+                  <ShoppingBag className="w-5 h-5" />
+                  <AnimatePresence>
+                    {itemCount > 0 && (
+                      <motion.span 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[8px] font-bold rounded-full flex items-center justify-center"
+                      >
+                        {itemCount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
               </Button>
-            </Link>
-
-            <Link href={user ? "/profile" : "/login"}>
-              <Button variant="ghost" size="icon" className={cn(iconBaseClass, isAdmin && "border border-black/10")}>
-                {isAdmin ? <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-black" /> : <User className="w-4 h-4 md:w-5 md:h-5" />}
-              </Button>
-            </Link>
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className={iconBaseClass} 
-              onClick={() => setIsCartOpen(true)}
-            >
-              <div className="relative">
-                <ShoppingBag className="w-4 h-4 md:w-5 md:h-5" />
-                {itemCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[9px] font-bold rounded-full flex items-center justify-center">{itemCount}</span>}
-              </div>
-            </Button>
+            </motion.div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
       <CartDrawer open={isCartOpen} onOpenChange={setIsCartOpen} />
     </>
   );
