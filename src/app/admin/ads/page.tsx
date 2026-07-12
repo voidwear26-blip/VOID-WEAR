@@ -122,8 +122,7 @@ export default function AdvertisingControlPage() {
             <ChevronLeft className="w-3 h-3" />
             BACK TO SYSTEM
           </Link>
-          <div className="flex items-center gap-6">
-            <ImageIcon className="w-10 h-10 text-black/20" />
+          <div className="flex items-center">
             <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline text-black">Advertising</h1>
           </div>
         </div>

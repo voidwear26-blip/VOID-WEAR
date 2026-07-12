@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Sparkles, Layout } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -88,8 +88,7 @@ export default function BrandControlPage() {
             <ChevronLeft className="w-3 h-3" />
             BACK TO SYSTEM
           </Link>
-          <div className="flex items-center gap-6">
-            <Layout className="w-10 h-10 text-black/20" />
+          <div className="flex items-center">
             <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-black font-headline">Brand Control</h1>
           </div>
         </div>
