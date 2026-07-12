@@ -1,4 +1,4 @@
-'use server';
+'use client';
 
 import { collection, addDoc, Firestore } from 'firebase/firestore';
 import { errorEmitter } from './error-emitter';
@@ -19,7 +19,9 @@ export interface ReviewData {
 }
 
 /**
- * Submits a new product review.
+ * VOID WEAR // REVIEW SUBMISSION
+ * Persists customer feedback to the global reviews collection.
+ * Recalibrated to client-side protocol to allow database instance pass-through.
  */
 export async function submitReview(db: Firestore, reviewData: ReviewData) {
   const reviewsCol = collection(db, 'reviews');
