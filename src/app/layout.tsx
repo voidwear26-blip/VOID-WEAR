@@ -9,7 +9,7 @@ import Script from 'next/script';
 const siteUrl = 'https://voidwear.co.in';
 
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#f9f9f9',
   width: 'device-width',
   initialScale: 1,
 };
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'VOID WEAR | Embrace The Unknown',
     template: '%s | VOID WEAR'
   },
-  description: 'VOID WEAR provides high-performance futuristic technical assemblages. Minimalist architecture and cinematic aesthetics for the digital migration.',
+  description: 'VOID WEAR provides high-performance futuristic premium apparel. Minimalist architecture and cinematic aesthetics for the digital migration.',
   keywords: ['techwear', 'futuristic clothing', 'cyberpunk apparel', 'urban explorer gear', 'minimalist architecture', 'VOID WEAR'],
   authors: [{ name: 'VOID WEAR collective' }],
   creator: 'VOID WEAR',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: siteUrl,
     title: 'VOID WEAR | EMBRACE THE UNKNOWN',
-    description: 'High-performance technical shells for the high-density urban environment.',
+    description: 'High-performance premium apparel for the high-density urban environment.',
     siteName: 'VOID WEAR',
     images: [
       {
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'VOID WEAR | EMBRACE THE UNKNOWN',
-    description: 'Premium futuristic technical shells for the digital migration.',
+    description: 'Premium futuristic apparel for the digital migration.',
     creator: '@voidwearoff_26',
     images: ['/logo.png'],
   },
@@ -95,7 +95,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="antialiased bg-white text-black selection:bg-black selection:text-white overflow-x-hidden">
+      <body className="antialiased bg-background text-black selection:bg-black selection:text-white overflow-x-hidden">
         <FirebaseClientProvider>
           <div className="noise-overlay" />
           <Navbar />

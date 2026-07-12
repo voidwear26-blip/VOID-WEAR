@@ -57,7 +57,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-white border-l border-black/5 text-black p-0 flex flex-col w-full sm:max-w-md backdrop-blur-xl">
+      <SheetContent className="bg-background border-l border-black/5 text-black p-0 flex flex-col w-full sm:max-w-md backdrop-blur-xl">
         <SheetHeader className="p-10 border-b border-black/5">
           <SheetTitle className="text-sm font-bold tracking-[0.5em] flex items-center gap-4 text-black uppercase">
             <ShoppingBag className="w-4 h-4" />

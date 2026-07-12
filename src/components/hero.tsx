@@ -47,7 +47,7 @@ export function Hero() {
   if (!mounted) return null;
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white">
+    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

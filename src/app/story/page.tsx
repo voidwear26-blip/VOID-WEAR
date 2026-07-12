@@ -18,7 +18,7 @@ export default function StoryPage() {
   const { data: stories, isLoading } = useCollection(storiesQuery);
 
   return (
-    <div className="pt-48 pb-32 bg-white min-h-screen">
+    <div className="pt-48 pb-32 bg-background min-h-screen">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto space-y-32">
           <div className="space-y-8 text-center md:text-left">
@@ -28,7 +28,7 @@ export default function StoryPage() {
             </div>
             <h1 className="text-5xl md:text-8xl font-bold tracking-tight uppercase leading-none text-black">Stories</h1>
             <p className="text-lg md:text-xl text-black/60 font-light tracking-widest leading-relaxed uppercase">
-              LATEST UPDATES AND TECHNICAL TRENDS.
+              LATEST UPDATES AND PREMIUM TRENDS.
             </p>
           </div>
 

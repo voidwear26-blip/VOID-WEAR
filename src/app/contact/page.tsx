@@ -63,7 +63,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-40 pb-32 bg-white min-h-screen text-black">
+    <div className="pt-40 pb-32 bg-background min-h-screen text-black">
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-24 max-w-6xl mx-auto">
           <div className="space-y-12">
@@ -123,7 +123,7 @@ export default function ContactPage() {
                       <Textarea 
                         name="message"
                         required
-                        className="bg-white border-black/10 rounded-none min-h-[150px] text-xs tracking-widest focus:border-black/30 text-black uppercase" 
+                        className="bg-background border-black/10 rounded-none min-h-[150px] text-xs tracking-widest focus:border-black/30 text-black uppercase" 
                       />
                     </div>
                     <Button 
@@ -165,7 +165,7 @@ function FormField({ label, name, type = "text" }: { label: string, name: string
         name={name}
         type={type}
         required
-        className="bg-white border-black/10 rounded-none h-12 text-xs tracking-widest focus:border-black/30 text-black uppercase" 
+        className="bg-background border-black/10 rounded-none h-12 text-xs tracking-widest focus:border-black/30 text-black uppercase" 
       />
     </div>
   );

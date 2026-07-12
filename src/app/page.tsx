@@ -75,7 +75,7 @@ export default function Home() {
   });
 
   return (
-    <div className="space-y-0 bg-white text-black">
+    <div className="space-y-0 bg-background text-black">
       <Hero />
 
       <section className="py-32 md:py-48 bg-black/[0.01] border-y border-black/5 relative overflow-hidden">
@@ -94,7 +94,7 @@ export default function Home() {
                 </h2>
               </div>
               <p className="text-sm md:text-base text-black/70 tracking-[0.1em] leading-relaxed uppercase font-light max-w-xl">
-                VOID WEAR PROVIDES HIGH-QUALITY CLOTHING. 
+                VOID WEAR PROVIDES PREMIUM APPAREL FOR YOUR EVERYDAY LIFE. 
                 OUR COLLECTION IS DESIGNED FOR STYLE AND EVERYDAY COMFORT.
               </p>
               <div className="pt-4">
@@ -189,7 +189,7 @@ export default function Home() {
                      whileInView={{ opacity: 1, scale: 1 }}
                      transition={{ delay: idx * 0.1 }}
                      viewport={{ once: true }}
-                     className="p-10 border border-black/10 bg-white flex flex-col justify-between h-[380px] hover:border-black/30 transition-all group select-none shadow-sm"
+                     className="p-10 border border-black/10 bg-background flex flex-col justify-between h-[380px] hover:border-black/30 transition-all group select-none shadow-sm"
                    >
                       <div className="space-y-6">
                         <div className="flex justify-between items-start">
@@ -253,7 +253,7 @@ export default function Home() {
               topProducts.map((product, idx) => (
                 <div key={product.id} className="relative group">
                   <ProductCard product={product as any} />
-                  <div className="absolute -top-4 -left-4 w-12 h-12 border border-black/10 bg-white flex items-center justify-center text-[11px] font-black tracking-widest text-black/40 z-30 shadow-sm">
+                  <div className="absolute -top-4 -left-4 w-12 h-12 border border-black/10 bg-background flex items-center justify-center text-[11px] font-black tracking-widest text-black/40 z-30 shadow-sm">
                     0{idx + 1}
                   </div>
                 </div>
@@ -263,7 +263,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-48 md:py-64 bg-white overflow-hidden border-t border-black/5">
+      <section className="py-48 md:py-64 bg-background overflow-hidden border-t border-black/5">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
             <span className="text-[10px] tracking-widest text-black/40 uppercase font-black">MANIFESTO</span>

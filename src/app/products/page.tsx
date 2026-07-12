@@ -53,7 +53,7 @@ export default function ProductsPage() {
   }, [dbProducts, searchTerm, sortBy]);
 
   return (
-    <div className="pt-48 pb-32 bg-white min-h-screen">
+    <div className="pt-48 pb-32 bg-background min-h-screen">
       <div className="container mx-auto px-6 md:px-10">
         <div className="space-y-6 mb-24 max-w-4xl">
           <div className="flex items-center gap-4">
@@ -62,7 +62,7 @@ export default function ProductsPage() {
           </div>
           <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-none uppercase text-black">Collection</h1>
           <p className="text-black/60 tracking-[0.4em] text-xs uppercase leading-relaxed font-light max-w-2xl">
-            Technical modular apparel designed for the urban explorer.
+            Premium modular apparel designed for the urban explorer.
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default function ProductsPage() {
               <SelectTrigger className="w-full md:w-64 bg-black/[0.02] border-black/5 rounded-none h-14 text-[9px] tracking-[0.4em] uppercase focus:ring-0 text-black font-black transition-all hover:bg-black/5">
                 <SelectValue placeholder="SORT_BY" />
               </SelectTrigger>
-              <SelectContent className="bg-white border-black/5 text-black rounded-none">
+              <SelectContent className="bg-background border-black/5 text-black rounded-none">
                 <SelectItem value="newest" className="text-[10px] tracking-widest uppercase">RECENT</SelectItem>
                 <SelectItem value="price-asc" className="text-[10px] tracking-widest uppercase">PRICE: LOW</SelectItem>
                 <SelectItem value="price-desc" className="text-[10px] tracking-widest uppercase">PRICE: HIGH</SelectItem>

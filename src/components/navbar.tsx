@@ -72,7 +72,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-white/90 backdrop-blur-xl py-4 border-b border-black/5 shadow-sm' : 'bg-transparent py-10'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-background/90 backdrop-blur-xl py-4 border-b border-black/5 shadow-sm' : 'bg-transparent py-10'}`}>
         <div className="container mx-auto px-6 md:px-10 flex items-center justify-between">
           <div className="flex items-center gap-4 md:gap-16">
             <div className="lg:hidden">
@@ -82,7 +82,7 @@ export function Navbar() {
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-white/95 border-r border-black/5 text-black p-0 backdrop-blur-2xl w-[300px]">
+                <SheetContent side="left" className="bg-background/95 border-r border-black/5 text-black p-0 backdrop-blur-2xl w-[300px]">
                   <div className="p-10 space-y-16 pt-24">
                     <SheetTitle className="sr-only">MENU</SheetTitle>
                     <div className="space-y-4">
