@@ -144,7 +144,7 @@ export default function AdvertisingControlPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               {banners.map((banner, idx) => (
                 <div key={idx} className="relative aspect-video bg-black/5 border border-black/10 group overflow-hidden">
-                  <Image src={banner.url} alt={`Promo ${idx}`} fill className="object-cover grayscale" unoptimized />
+                  <Image src={banner.url} alt={`Promo ${idx}`} fill className="object-cover" unoptimized />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center p-6 text-center space-y-4">
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-white tracking-widest uppercase">{banner.title || 'NO TITLE'}</p>

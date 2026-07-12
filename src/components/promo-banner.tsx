@@ -72,7 +72,7 @@ export function PromoBanner() {
               src={currentBanner.url} 
               alt={currentBanner.title || "Promotion"} 
               fill 
-              className="object-cover grayscale brightness-75 md:brightness-90"
+              className="object-cover brightness-75 md:brightness-90"
               unoptimized
               priority
             />
