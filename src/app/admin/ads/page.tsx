@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Upload, Trash2, Link as LinkIcon, Image as ImageIcon, Sparkles, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Upload, Trash2, Image as ImageIcon, Sparkles, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ type Banner = {
   title: string;
   subtitle: string;
   alignment: 'left' | 'center' | 'right';
+  textColor?: string;
 };
 
 export default function AdvertisingControlPage() {
@@ -31,7 +32,8 @@ export default function AdvertisingControlPage() {
     url: '',
     title: '',
     subtitle: '',
-    alignment: 'center'
+    alignment: 'center',
+    textColor: '#FFFFFF'
   });
 
   const configRef = useMemoFirebase(() => {
@@ -44,15 +46,6 @@ export default function AdvertisingControlPage() {
   useEffect(() => {
     if (config?.promoBanners) {
       setBanners(config.promoBanners);
-    } else if (config?.promoImages) {
-      // Legacy fallback for simple URL strings
-      const migrated = config.promoImages.map((url: string) => ({
-        url,
-        title: '',
-        subtitle: '',
-        alignment: 'center'
-      }));
-      setBanners(migrated);
     }
   }, [config]);
 
@@ -75,7 +68,7 @@ export default function AdvertisingControlPage() {
       return;
     }
     setBanners(prev => [...prev, newBanner]);
-    setNewBanner({ url: '', title: '', subtitle: '', alignment: 'center' });
+    setNewBanner({ url: '', title: '', subtitle: '', alignment: 'center', textColor: '#FFFFFF' });
     toast({ title: "BANNER ADDED", description: "LOCAL BUFFER UPDATED." });
   };
 
@@ -147,8 +140,8 @@ export default function AdvertisingControlPage() {
                   <Image src={banner.url} alt={`Promo ${idx}`} fill className="object-cover" unoptimized />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center p-6 text-center space-y-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-white tracking-widest uppercase">{banner.title || 'NO TITLE'}</p>
-                      <p className="text-[8px] text-white/60 tracking-[0.2em] uppercase">{banner.alignment.toUpperCase()} ALIGNED</p>
+                      <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: banner.textColor || '#FFFFFF' }}>{banner.title || 'NO TITLE'}</p>
+                      <p className="text-[8px] tracking-[0.2em] uppercase opacity-70" style={{ color: banner.textColor || '#FFFFFF' }}>{banner.alignment.toUpperCase()} ALIGNED</p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => removeBanner(idx)} className="text-white hover:text-red-500">
                       <Trash2 className="w-6 h-6" />
@@ -193,17 +186,17 @@ export default function AdvertisingControlPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-10">
-                <div className="space-y-3 md:col-span-2">
+                <div className="space-y-3 md:col-span-1">
                   <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">ASSET SOURCE (URL OR UPLOAD)</label>
                   <div className="flex gap-4">
                     <Input 
                       value={newBanner.url}
                       onChange={e => setNewBanner({ ...newBanner, url: e.target.value })}
-                      placeholder="HTTPS://IMAGE-HOST.COM/CAMPAIGN.JPG"
+                      placeholder="URL..."
                       className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black"
                     />
                     <div className="relative">
-                      <Button type="button" className="h-14 bg-black/5 border border-black/10 hover:bg-black hover:text-white rounded-none px-8 text-[9px] font-black tracking-widest text-black transition-all">UPLOAD</Button>
+                      <Button type="button" className="h-14 bg-black/5 border border-black/10 hover:bg-black hover:text-white rounded-none px-4 text-[9px] font-black tracking-widest text-black transition-all">UPLOAD</Button>
                       <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                     </div>
                   </div>
@@ -220,6 +213,23 @@ export default function AdvertisingControlPage() {
                       <SelectItem value="right" className="text-[10px] uppercase font-bold"><div className="flex items-center gap-2"><AlignRight className="w-3 h-3" /> RIGHT</div></SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">TEXT COLOR</label>
+                  <div className="flex gap-3">
+                    <Input 
+                      type="color"
+                      value={newBanner.textColor}
+                      onChange={e => setNewBanner({ ...newBanner, textColor: e.target.value })}
+                      className="h-14 w-14 p-1 border-black/10 rounded-none cursor-pointer"
+                    />
+                    <Input 
+                      value={newBanner.textColor}
+                      onChange={e => setNewBanner({ ...newBanner, textColor: e.target.value.toUpperCase() })}
+                      className="flex-1 bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black uppercase"
+                      placeholder="#FFFFFF"
+                    />
+                  </div>
                 </div>
               </div>
 
