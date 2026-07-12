@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -127,7 +128,7 @@ export default function AdminReviewsPage() {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-all hover:scale-105 uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO DASHBOARD
             </Link>
@@ -212,7 +213,7 @@ export default function AdminReviewsPage() {
                                   setActiveReviewId(review.id);
                                   setReplyText(review.adminReply || '');
                                 }}
-                                className="text-black/40 hover:text-black transition-colors"
+                                className="text-black/40 hover:text-black transition-all hover:scale-125 bg-transparent hover:bg-transparent"
                                 title={review.adminReply ? "Edit Reply" : "Reply"}
                               >
                                 {review.adminReply ? <Edit3 className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
@@ -255,7 +256,7 @@ export default function AdminReviewsPage() {
                             variant="ghost" 
                             size="icon" 
                             onClick={() => handleDelete(review.id)}
-                            className="text-black/40 hover:text-red-600 transition-colors"
+                            className="text-black/40 hover:text-red-600 transition-all hover:scale-125 bg-transparent hover:bg-transparent"
                             title="Delete Review"
                           >
                             <Trash2 className="w-4 h-4" />

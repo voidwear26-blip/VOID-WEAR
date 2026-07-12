@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -99,7 +100,7 @@ export default function AdminProductsPage() {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-all hover:scale-105 uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO DASHBOARD
             </Link>
@@ -165,8 +166,14 @@ export default function AdminProductsPage() {
                   <td className="px-10 py-8 text-[10px] font-bold text-black">₹{p.basePrice}</td>
                   <td className="px-10 py-8 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <Link href={`/admin/products/${p.id}`}><Button variant="ghost" size="icon" className="text-black/40 hover:text-black"><Edit2 className="w-4 h-4" /></Button></Link>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-black/40 hover:text-red-600"><Trash2 className="w-4 h-4" /></Button>
+                      <Link href={`/admin/products/${p.id}`}>
+                        <Button variant="ghost" size="icon" className="text-black/40 hover:text-black transition-all hover:scale-125 bg-transparent hover:bg-transparent">
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-black/40 hover:text-red-600 transition-all hover:scale-125 bg-transparent hover:bg-transparent">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </td>
                 </tr>

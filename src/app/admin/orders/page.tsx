@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -112,7 +113,7 @@ export default function AdminOrdersPage() {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-all hover:scale-105 uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
               BACK TO SYSTEM
             </Link>
@@ -197,7 +198,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-10 py-8 text-right">
                       <Link href={`/admin/orders/${order.id}?user=${order.userId}`}>
-                        <Button variant="ghost" size="icon" className="text-black/20 hover:text-black transition-colors">
+                        <Button variant="ghost" size="icon" className="text-black/40 hover:text-black transition-all hover:scale-125 bg-transparent hover:bg-transparent">
                           <Info className="w-4 h-4" />
                         </Button>
                       </Link>
