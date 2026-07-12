@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star, Activity, Cpu, PlaySquare } from 'lucide-react';
+import { Package, ShoppingBag, Users, Zap, ArrowUpRight, DollarSign, Settings, Loader2, ShieldCheck, Megaphone, Database, AlertCircle, TrendingUp, MessageSquare, Star, Activity, Cpu, PlaySquare, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -82,6 +82,8 @@ export default function AdminDashboard() {
     return products.reduce((acc, prod) => acc + (Number(prod.stockQuantity) || 0), 0);
   }, [products]);
 
+  const isIndexMissing = (ordersError as any)?.code === 'failed-precondition';
+
   if (!mounted || isUserLoading || isProfileLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -109,7 +111,28 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {ordersError && (
+        {isIndexMissing && (
+          <div className="mb-12 p-8 border border-red-500/20 bg-red-500/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4 text-red-600">
+              <AlertTriangle className="w-6 h-6 shrink-0" />
+              <div className="space-y-1">
+                <p className="text-[10px] tracking-widest font-black uppercase">DATABASE INDEX MISSING</p>
+                <p className="text-[9px] tracking-widest uppercase opacity-80 leading-relaxed max-w-2xl">
+                  Global order tracking requires a Collection Group index. Open the browser console and click the provided link to authorize this query.
+                </p>
+              </div>
+            </div>
+            <a 
+              href="https://console.firebase.google.com/project/_/firestore/indexes" 
+              target="_blank" 
+              className="px-6 py-3 bg-red-600 text-white text-[9px] font-black tracking-widest uppercase hover:bg-red-700 transition-all text-center"
+            >
+              RESOLVE IN CONSOLE
+            </a>
+          </div>
+        )}
+
+        {ordersError && !isIndexMissing && (
           <div className="mb-12 p-6 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-600">
             <AlertCircle className="w-5 h-5" />
             <div className="space-y-1">
@@ -120,8 +143,8 @@ export default function AdminDashboard() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-16">
-          <StatCard href="/admin/revenue" icon={<TrendingUp className="w-5 h-5" />} label="REVENUE" value={ordersLoading ? "..." : `₹${totalRevenue.toLocaleString()}`} />
-          <StatCard href="/admin/orders" icon={<ShoppingBag className="w-5 h-5" />} label="ORDERS" value={ordersLoading ? "..." : (orders?.length.toString() || "0")} />
+          <StatCard href="/admin/revenue" icon={<TrendingUp className="w-5 h-5" />} label="REVENUE" value={ordersLoading ? "..." : (isIndexMissing ? "ERR" : `₹${totalRevenue.toLocaleString()}`)} />
+          <StatCard href="/admin/orders" icon={<ShoppingBag className="w-5 h-5" />} label="ORDERS" value={ordersLoading ? "..." : (isIndexMissing ? "ERR" : (orders?.length.toString() || "0"))} />
           <StatCard href="/admin/users" icon={<Users className="w-5 h-5" />} label="CUSTOMERS" value={counts.users ? counts.users.toString() : "..."} />
           <StatCard href="/admin/stories" icon={<Megaphone className="w-5 h-5" />} label="STORIES" value={counts.stories ? counts.stories.toString() : "..."} />
           <StatCard href="/admin/messages" icon={<MessageSquare className="w-5 h-5" />} label="MESSAGES" value={counts.messages ? counts.messages.toString() : "..."} />

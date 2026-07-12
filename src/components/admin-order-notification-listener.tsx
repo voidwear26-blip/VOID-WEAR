@@ -4,7 +4,7 @@ import { useEffect, useRef, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, onSnapshot, orderBy, limit, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, Zap } from 'lucide-react';
+import { ShoppingBag, Zap, AlertTriangle } from 'lucide-react';
 
 /**
  * ADMIN ORDER NOTIFICATION LISTENER
@@ -34,7 +34,10 @@ export function AdminOrderNotificationListener() {
   useEffect(() => {
     if (!db || !isAdmin) return;
 
-    // Listen for new orders globally
+    /**
+     * UPLINK CONFIGURATION:
+     * Requires Collection Group Index for 'orders' on field 'createdAt' (DESC).
+     */
     const q = query(
       collectionGroup(db, 'orders'),
       orderBy('createdAt', 'desc'),
@@ -50,7 +53,7 @@ export function AdminOrderNotificationListener() {
           if (order.createdAt > mountTime.current) {
             toast({
               title: "NEW ORDER DETECTED",
-              description: `ORDER ${order.order_ID} / VALUE: ₹${order.totalAmount}`,
+              description: `ORDER ${order.order_ID || order.id} / VALUE: ₹${order.totalAmount}`,
               action: (
                 <div className="flex items-center gap-2 pr-4">
                    <Zap className="w-4 h-4 text-white animate-pulse" />
@@ -58,7 +61,7 @@ export function AdminOrderNotificationListener() {
                 </div>
               ),
             });
-            // Play a subtle notification tone
+            
             try {
                const audio = new Audio('/notification.mp3');
                audio.play().catch(() => {});
@@ -66,6 +69,12 @@ export function AdminOrderNotificationListener() {
           }
         }
       });
+    }, (error) => {
+      if (error.code === 'failed-precondition') {
+        console.warn('[ADMIN_NOTIFIER] INDEX_MISSING: Global order tracking requires a Collection Group index. Check Firebase Console.');
+      } else {
+        console.error('[ADMIN_NOTIFIER] UPLINK_CRASH:', error);
+      }
     });
 
     return () => unsubscribe();
