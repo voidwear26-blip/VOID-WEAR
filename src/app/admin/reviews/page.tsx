@@ -50,18 +50,17 @@ export default function AdminReviewsPage() {
   const { data: reviews, isLoading } = useCollection(reviewsQuery);
 
   const handleDelete = async (reviewId: string) => {
-    if (!db || !confirm('CONFIRM DESTRUCTION OF FEEDBACK ENTRY?')) return;
+    if (!db || !confirm('Permanently delete this review?')) return;
     try {
       await deleteDoc(doc(db, 'reviews', reviewId));
       toast({
-        title: "FEEDBACK DELETED",
-        description: "ENTRY PURGED FROM SYSTEM.",
+        title: "REVIEW DELETED",
+        description: "Entry removed from system.",
       });
     } catch (e) {
-      console.error(e);
       toast({
         variant: "destructive",
-        title: "PURGE_FAILURE",
+        title: "DELETE_FAILURE",
       });
     }
   };
@@ -74,14 +73,13 @@ export default function AdminReviewsPage() {
         updatedAt: new Date().toISOString()
       });
       toast({
-        title: !currentStatus ? "REPORT CURATED" : "REPORT DE-LISTED",
-        description: !currentStatus ? "FIELD REPORT PUSHED TO HOME FEED." : "REPORT REMOVED FROM HOME FEED.",
+        title: !currentStatus ? "REVIEW FEATURED" : "REVIEW HIDDEN",
+        description: !currentStatus ? "Review pinned to homepage." : "Review removed from homepage.",
       });
     } catch (e) {
-      console.error(e);
       toast({
         variant: "destructive",
-        title: "SYNC_FAILURE",
+        title: "UPDATE_FAILURE",
       });
     }
   };
@@ -95,13 +93,13 @@ export default function AdminReviewsPage() {
         updatedAt: new Date().toISOString()
       });
       toast({
-        title: "GRATITUDE TRANSMITTED",
-        description: "SYSTEM RESPONSE LOGGED SUCCESSFULLY.",
+        title: "REPLY SENT",
+        description: "System response saved.",
       });
       setReplyText('');
       setActiveActiveReviewId(null);
     } catch (e) {
-      toast({ variant: "destructive", title: "UPLINK_FAILURE" });
+      toast({ variant: "destructive", title: "REPLY_FAILURE" });
     } finally {
       setSendingReply(false);
     }
@@ -109,65 +107,65 @@ export default function AdminReviewsPage() {
 
   if (isUserLoading || !mounted || isProfileLoading) {
     return (
-      <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase opacity-40 font-bold text-white bg-black">
-        Authenticating Protocol...
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-black/20" />
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-6 text-white bg-black">
-        <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-bold">ACCESS DENIED // MASTER ONLY</p>
-        <Link href="/" className="text-[10px] tracking-widest border-b border-white/20 pb-2">RETURN TO SURFACE</Link>
+      <div className="h-screen flex flex-col items-center justify-center gap-6 bg-background text-black">
+        <p className="text-[10px] tracking-[1em] uppercase opacity-40 font-bold">ACCESS DENIED</p>
+        <Link href="/admin" className="text-[10px] tracking-widest border-b border-black/20 pb-2">BACK</Link>
       </div>
     );
   }
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-black font-body">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-white/80 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
-              BACK TO SYSTEM
+              BACK TO DASHBOARD
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-white">Feedback Audit</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Customer Reviews</h1>
           </div>
-          <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-4 backdrop-blur-md">
-            <ShieldAlert className="w-4 h-4 text-white/60" />
-            <span className="text-[10px] tracking-[0.3em] font-bold text-white/60 uppercase">MODERATION CHANNEL ACTIVE</span>
+          <div className="bg-black/5 px-6 py-4 border border-black/10 flex items-center gap-4 backdrop-blur-md">
+            <ShieldAlert className="w-4 h-4 text-black/40" />
+            <span className="text-[10px] tracking-[0.3em] font-bold text-black/60 uppercase">MODERATION ACTIVE</span>
           </div>
         </div>
 
-        <div className="bg-white/[0.02] border border-white/5 overflow-hidden backdrop-blur-xl">
+        <div className="bg-black/[0.01] border border-black/5 overflow-hidden backdrop-blur-xl shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">ENTITY</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-center">HOME_FEED</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">MODULE</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">CALIBRATION</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">NARRATIVE</th>
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-white/40 text-right">ACTION</th>
+                <tr className="border-b border-black/5 bg-black/[0.02]">
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">CUSTOMER</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40 text-center">FEATURED</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">PRODUCT</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">RATING</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">COMMENT</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40 text-right">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-black/5">
                 {isLoading ? (
                   [1, 2, 3].map(i => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={6} className="px-10 py-12 bg-white/[0.01]" />
+                      <td colSpan={6} className="px-10 py-12 bg-black/[0.01]" />
                     </tr>
                   ))
                 ) : reviews && reviews.length > 0 ? (
                   reviews.map((review) => (
-                    <tr key={review.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <tr key={review.id} className="hover:bg-black/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-bold tracking-widest text-white/80 uppercase">{review.userName || 'Anonymous'}</span>
-                          <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold font-mono">{review.userId.slice(0, 12)}...</p>
+                          <span className="text-[10px] font-bold tracking-widest text-black/80 uppercase">{review.userName || 'Guest'}</span>
+                          <p className="text-[8px] text-black/40 uppercase font-mono">{review.userId.slice(0, 12)}...</p>
                         </div>
                       </td>
                       <td className="px-10 py-8 text-center">
@@ -175,34 +173,29 @@ export default function AdminReviewsPage() {
                            <Switch 
                              checked={!!review.isFeatured} 
                              onCheckedChange={() => toggleFeatured(review.id, !!review.isFeatured)}
-                             className="data-[state=checked]:bg-white"
                            />
-                           {review.isFeatured && (
-                             <span className="text-[6px] tracking-widest font-black text-white/40 uppercase">FEATURED</span>
-                           )}
                          </div>
                       </td>
                       <td className="px-10 py-8">
                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-[10px] text-white tracking-widest font-bold uppercase">
-                               <Package className="w-3 h-3 text-white/40" />
-                               {review.productName || 'UNKNOWN MODULE'}
+                            <div className="flex items-center gap-2 text-[10px] text-black/80 tracking-widest font-bold uppercase">
+                               <Package className="w-3 h-3 text-black/40" />
+                               {review.productName || 'PRODUCT'}
                             </div>
-                            <span className="text-[7px] text-white/20 font-mono">UID: {review.productId.slice(0, 12)}...</span>
                          </div>
                       </td>
                       <td className="px-10 py-8">
-                        <div className="flex gap-1">
+                        <div className="flex gap-0.5">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-3 h-3 ${i < (review.rating || 0) ? 'text-white' : 'text-white/10'}`} fill={i < (review.rating || 0) ? 'currentColor' : 'none'} />
+                            <Star key={i} className={`w-3 h-3 ${i < (review.rating || 0) ? 'text-black' : 'text-black/10'}`} fill={i < (review.rating || 0) ? 'currentColor' : 'none'} />
                           ))}
                         </div>
                       </td>
                       <td className="px-10 py-8 max-w-md">
                         <div className="space-y-3">
-                          <p className="text-[10px] text-white/60 tracking-widest leading-relaxed uppercase line-clamp-2">{review.comment}</p>
+                          <p className="text-[10px] text-black/60 tracking-widest leading-relaxed uppercase line-clamp-2">{review.comment}</p>
                           {review.adminReply && (
-                            <div className="flex items-center gap-2 text-[8px] text-green-500/80 font-black tracking-widest uppercase bg-green-500/5 px-3 py-1 w-fit border border-green-500/10">
+                            <div className="flex items-center gap-2 text-[8px] text-green-600 font-black tracking-widest uppercase bg-green-50 px-2 py-1 w-fit border border-green-100">
                                <Heart className="w-2.5 h-2.5 fill-current" /> REPLIED
                             </div>
                           )}
@@ -213,36 +206,36 @@ export default function AdminReviewsPage() {
                           <Dialog open={activeReviewId === review.id} onOpenChange={(open) => !open && setActiveActiveReviewId(null)}>
                             <DialogTrigger asChild>
                               <Button 
-                                variant="ghost" 
+                                variant="outline" 
                                 size="sm" 
                                 onClick={() => {
                                   setActiveActiveReviewId(review.id);
                                   setReplyText(review.adminReply || '');
                                 }}
-                                className="text-[9px] tracking-widest uppercase text-white/40 hover:text-white h-10 rounded-none border border-white/5 bg-white/5"
+                                className="text-[9px] tracking-widest uppercase text-black/60 hover:text-black h-9 rounded-none border-black/10 bg-white"
                               >
                                 {review.adminReply ? 'EDIT REPLY' : 'REPLY'}
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="bg-black border border-white/10 p-10 max-w-lg">
+                            <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
                               <DialogHeader className="space-y-4 mb-8">
-                                <DialogTitle className="text-xl font-black tracking-tight glow-text uppercase">Gratitude Relay</DialogTitle>
-                                <DialogDescription className="text-[9px] tracking-widest uppercase text-white/40 font-bold">
-                                  TRANSMIT A SYSTEM RESPONSE TO OPERATOR {review.userName.toUpperCase()}.
+                                <DialogTitle className="text-xl font-black tracking-tight uppercase">Send Reply</DialogTitle>
+                                <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold">
+                                  Responding to customer: {review.userName.toUpperCase()}.
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-8">
-                                <div className="p-6 bg-white/5 border border-white/5 space-y-4">
-                                   <p className="text-[8px] tracking-[0.4em] text-white/30 uppercase font-black">ORIGINAL_NARRATIVE:</p>
-                                   <p className="text-[10px] text-white/60 tracking-widest uppercase italic leading-relaxed">"{review.comment}"</p>
+                                <div className="p-6 bg-black/5 border border-black/5 space-y-2">
+                                   <p className="text-[8px] tracking-[0.4em] text-black/40 uppercase font-black">ORIGINAL COMMENT:</p>
+                                   <p className="text-[10px] text-black/80 tracking-widest uppercase italic leading-relaxed">"{review.comment}"</p>
                                 </div>
                                 <div className="space-y-4">
-                                  <label className="text-[9px] font-bold tracking-widest text-white/40 uppercase">GRATITUDE CONTENT</label>
+                                  <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">YOUR RESPONSE</label>
                                   <Textarea 
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
-                                    placeholder="INPUT SYSTEM RESPONSE..."
-                                    className="bg-white/5 border-white/10 rounded-none h-32 text-[10px] tracking-widest focus:border-white/40 text-white uppercase"
+                                    placeholder="TYPE REPLY..."
+                                    className="bg-white border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase"
                                   />
                                 </div>
                               </div>
@@ -250,9 +243,9 @@ export default function AdminReviewsPage() {
                                 <Button 
                                   disabled={sendingReply}
                                   onClick={handleSendReply}
-                                  className="w-full h-14 bg-white text-black hover:bg-white/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
+                                  className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
                                 >
-                                  {sendingReply ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT GRATITUDE <Send className="ml-3 w-4 h-4" /></>}
+                                  {sendingReply ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT REPLY <Send className="ml-3 w-4 h-4" /></>}
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
@@ -261,7 +254,7 @@ export default function AdminReviewsPage() {
                             variant="ghost" 
                             size="icon" 
                             onClick={() => handleDelete(review.id)}
-                            className="text-white/20 hover:text-red-500 transition-colors"
+                            className="text-black/20 hover:text-red-600 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -274,7 +267,7 @@ export default function AdminReviewsPage() {
                     <td colSpan={6} className="px-10 py-32 text-center opacity-20">
                       <div className="flex flex-col items-center gap-6">
                         <MessageSquare className="w-12 h-12 stroke-[0.5px]" />
-                        <p className="text-[10px] tracking-[1em] uppercase font-bold">NO FEEDBACK LOGS DETECTED</p>
+                        <p className="text-[10px] tracking-[1em] uppercase font-bold">NO REVIEWS LOGGED</p>
                       </div>
                     </td>
                   </tr>

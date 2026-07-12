@@ -1,19 +1,17 @@
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-import { ChevronLeft, ShieldAlert, ShieldCheck, Loader2, Phone, Mail, User as UserIcon, MapPin, Search, SlidersHorizontal, Trash2, Shield, UserCog } from 'lucide-react';
+import { collection } from 'firebase/firestore';
+import { ChevronLeft, Loader2, User as UserIcon, Search, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useMemo } from 'react';
+import { doc } from 'firebase/firestore';
 
 export default function AdminUsersPage() {
   const { user: currentUser, isUserLoading } = useUser();
   const db = useFirestore();
-  const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -67,7 +65,7 @@ export default function AdminUsersPage() {
           <div className="space-y-4">
             <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
-              BACK TO SYSTEM
+              BACK TO DASHBOARD
             </Link>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Customers</h1>
           </div>
@@ -76,19 +74,19 @@ export default function AdminUsersPage() {
         <div className="relative max-w-xl mb-12">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
           <Input 
-            placeholder="SEARCH CUSTOMERS..." 
+            placeholder="SEARCH CUSTOMER DATABASE..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-black/5 border-black/10 h-14 pl-12 rounded-none text-[10px] tracking-[0.2em] font-bold text-black uppercase transition-all"
           />
         </div>
 
-        <div className="bg-black/[0.01] border border-black/5 overflow-hidden backdrop-blur-xl">
+        <div className="bg-black/[0.01] border border-black/5 overflow-hidden backdrop-blur-xl shadow-sm">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-black/5 bg-black/[0.02]">
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">CUSTOMER</th>
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">CONTACT</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">CUSTOMER NAME</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">EMAIL ADDRESS</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40 text-right">ACTION</th>
               </tr>
             </thead>

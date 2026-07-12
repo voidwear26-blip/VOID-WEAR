@@ -1,8 +1,8 @@
 'use client';
 
-import { useFirestore, useDoc, useMemoFirebase, useUser, useCollection } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, orderBy, setDoc, deleteDoc } from 'firebase/firestore';
-import { ChevronLeft, User as UserIcon, Mail, Phone, MapPin, Package, Clock, ShieldAlert, ShieldCheck, ShoppingBag, Loader2, Save, Trash2, Shield, Fingerprint, ExternalLink, Zap, Info } from 'lucide-react';
+import { ChevronLeft, User as UserIcon, Mail, Phone, MapPin, Package, Clock, ShieldAlert, Loader2, Save, Trash2, Shield, Fingerprint, ExternalLink, Zap, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, use } from 'react';
@@ -44,7 +44,7 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
     );
   }, [db, userId, isAdmin]);
 
-  const { data: orders, isLoading: isOrdersLoading } = useCollection(ordersQuery);
+  const { data: orders } = useCollection(ordersQuery);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -87,11 +87,9 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
         ...formData,
         updatedAt: new Date().toISOString()
       }, { merge: true });
-      
-      toast({ title: "ENTITY RECONFIGURED", description: "SYSTEM LOGS SYNCHRONIZED SUCCESSFULLY." });
+      toast({ title: "PROFILE UPDATED", description: "Customer logs synchronized." });
     } catch (e) {
-      console.error(e);
-      toast({ variant: "destructive", title: "UPLINK FAILURE", description: "COULD NOT SYNC CHANGES." });
+      toast({ variant: "destructive", title: "UPDATE FAILURE" });
     } finally {
       setSaving(false);
     }
@@ -99,244 +97,138 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
 
   const handlePurge = async () => {
     if (!db || !userId || !isAdmin) return;
-    if (!confirm('INITIATE TOTAL DATA PURGE FOR THIS ENTITY? THIS WILL PERMANENTLY REMOVE THE DOSSIER FROM THE NETWORK.')) return;
+    if (!confirm('Permanently delete this customer account?')) return;
     try {
       await deleteDoc(doc(db, 'users', userId));
-      toast({ title: "ENTITY PURGED", description: "DOSSIER SUCCESSFULLY SEVERED FROM ARCHIVE." });
+      toast({ title: "ACCOUNT DELETED" });
       router.push('/admin/users');
     } catch (e) {
-      console.error('[PURGE_FAILURE]', e);
-      toast({ 
-        variant: "destructive", 
-        title: "PURGE_FAILURE",
-        description: "SECURITY LAYER REJECTED THE DELETION TRANSMISSION."
-      });
+      toast({ variant: "destructive", title: "DELETE FAILURE" });
     }
   };
 
-  if (isAuthLoading || isProfileLoading) {
-    return <div className="h-screen flex items-center justify-center opacity-20 text-[10px] tracking-[1em] uppercase text-white">Authenticating Protocol...</div>;
+  if (isAuthLoading || isProfileLoading || isEntityLoading) {
+    return <div className="h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-black/20" /></div>;
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center gap-6">
-        <p className="text-[10px] tracking-[1em] uppercase text-white/40 font-black">ACCESS DENIED // MASTER ONLY</p>
-        <Link href="/admin" className="text-[10px] tracking-widest text-white border-b border-white/20 pb-2 font-bold uppercase">Back to Center</Link>
-      </div>
-    );
-  }
-
-  if (isEntityLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
-      </div>
-    );
-  }
+  if (!isAdmin) return null;
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
+    <div className="pt-40 pb-32 bg-transparent min-h-screen text-black font-body">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="space-y-4 mb-16">
-          <Link href="/admin/users" className="flex items-center gap-2 text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-widest mb-4 font-bold">
+          <Link href="/admin/users" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
             <ChevronLeft className="w-3 h-3" />
-            BACK TO ENTITIES
+            BACK TO CUSTOMERS
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h1 className="text-4xl font-black tracking-tight glow-text uppercase leading-none">Entity Dossier</h1>
-              <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest">ENTITY_UID: {userId}</p>
+              <h1 className="text-4xl font-black tracking-tight uppercase leading-none font-headline">Customer Profile</h1>
+              <p className="text-[10px] font-mono text-black/40 uppercase tracking-widest">ID: {userId}</p>
             </div>
-            <div className="flex items-center gap-4">
-               <Button variant="ghost" onClick={handlePurge} className="text-[10px] tracking-widest text-red-500/60 hover:text-red-500 font-bold uppercase">
-                  PURGE LOGS <Trash2 className="ml-2 w-3.5 h-3.5" />
-               </Button>
-               <div className={`px-6 py-2 border text-[10px] tracking-[0.3em] font-bold uppercase ${
-                 formData.isBlocked ? 'border-red-500/50 text-red-500' : 'border-green-500/50 text-green-500'
-               }`}>
-                 {formData.isBlocked ? 'ACCESS SEVERED' : 'UPLINK ACTIVE'}
-               </div>
-            </div>
+            <Button variant="ghost" onClick={handlePurge} className="text-[10px] tracking-widest text-red-600 hover:text-red-700 font-bold uppercase">
+              DELETE ACCOUNT <Trash2 className="ml-2 w-3.5 h-3.5" />
+            </Button>
           </div>
         </div>
 
         <form onSubmit={handleUpdate} className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
-            <div className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                 <h3 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">CORE IDENTITY MODULE</h3>
-                 <UserIcon className="w-4 h-4 text-white/20" />
-              </div>
-              
+            <div className="bg-black/[0.01] border border-black/5 p-12 space-y-10 backdrop-blur-xl shadow-sm">
+              <h3 className="text-[10px] font-bold tracking-[0.5em] text-black/60 uppercase border-b border-black/10 pb-4">CORE IDENTITY</h3>
               <div className="grid md:grid-cols-2 gap-10">
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">ENTITY IDENTIFIER (NAME)</label>
-                  <Input 
-                    value={formData.displayName} 
-                    onChange={e => setFormData({...formData, displayName: e.target.value.toUpperCase()})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">FULL NAME</label>
+                  <Input value={formData.displayName} onChange={e => setFormData({...formData, displayName: e.target.value.toUpperCase()})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">COMM-CHANNEL (EMAIL)</label>
-                  <Input 
-                    value={formData.email} 
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">EMAIL ADDRESS</label>
+                  <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-10">
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">UPLINK MODULE (MOBILE)</label>
-                  <Input 
-                    value={formData.mobileNumber} 
-                    onChange={e => setFormData({...formData, mobileNumber: e.target.value})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">MOBILE NUMBER</label>
+                  <Input value={formData.mobileNumber} onChange={e => setFormData({...formData, mobileNumber: e.target.value})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">SYSTEM ROLE</label>
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">SYSTEM ROLE</label>
                   <Select value={formData.role} onValueChange={v => setFormData({...formData, role: v})}>
-                    <SelectTrigger className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:ring-0 text-white">
+                    <SelectTrigger className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-black border-white/20 text-white rounded-none">
-                      <SelectItem value="OPERATOR" className="text-[10px] tracking-widest">OPERATOR</SelectItem>
-                      <SelectItem value="ADMIN" className="text-[10px] tracking-widest">ADMINISTRATOR</SelectItem>
-                      <SelectItem value="COURIER" className="text-[10px] tracking-widest">COURIER</SelectItem>
+                    <SelectContent className="bg-background border-black/10 text-black rounded-none">
+                      <SelectItem value="OPERATOR" className="text-[10px]">CUSTOMER</SelectItem>
+                      <SelectItem value="ADMIN" className="text-[10px]">ADMINISTRATOR</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 p-12 space-y-10 backdrop-blur-xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                 <h3 className="text-[10px] font-bold tracking-[0.5em] text-white/60 uppercase">LOGISTICAL NODE MODULE</h3>
-                 <MapPin className="w-4 h-4 text-white/20" />
-              </div>
-              
+            <div className="bg-black/[0.01] border border-black/5 p-12 space-y-10 backdrop-blur-xl shadow-sm">
+              <h3 className="text-[10px] font-bold tracking-[0.5em] text-black/60 uppercase border-b border-black/10 pb-4">DELIVERY INFO</h3>
               <div className="grid md:grid-cols-2 gap-10">
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">PRIMARY ADDRESS NODE</label>
-                  <Input 
-                    value={formData.addressLine1} 
-                    onChange={e => setFormData({...formData, addressLine1: e.target.value.toUpperCase()})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">STREET ADDRESS</label>
+                  <Input value={formData.addressLine1} onChange={e => setFormData({...formData, addressLine1: e.target.value.toUpperCase()})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">LANDMARK</label>
-                  <Input 
-                    value={formData.landmark} 
-                    onChange={e => setFormData({...formData, landmark: e.target.value.toUpperCase()})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">LANDMARK</label>
+                  <Input value={formData.landmark} onChange={e => setFormData({...formData, landmark: e.target.value.toUpperCase()})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-10">
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">CITY / DISTRICT</label>
-                  <Input 
-                    value={formData.city} 
-                    onChange={e => setFormData({...formData, city: e.target.value.toUpperCase()})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">CITY</label>
+                  <Input value={formData.city} onChange={e => setFormData({...formData, city: e.target.value.toUpperCase()})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">STATE / PROVINCE</label>
-                  <Input 
-                    value={formData.stateProvince} 
-                    onChange={e => setFormData({...formData, stateProvince: e.target.value.toUpperCase()})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">STATE</label>
+                  <Input value={formData.stateProvince} onChange={e => setFormData({...formData, stateProvince: e.target.value.toUpperCase()})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">POSTAL CODE</label>
-                  <Input 
-                    value={formData.postalCode} 
-                    onChange={e => setFormData({...formData, postalCode: e.target.value})}
-                    className="bg-black/40 border-white/10 rounded-none h-14 text-[10px] tracking-widest focus:border-white/40 text-white"
-                  />
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">PINCODE</label>
+                  <Input value={formData.postalCode} onChange={e => setFormData({...formData, postalCode: e.target.value})} className="bg-white border-black/10 rounded-none h-14 text-[10px] text-black" />
                 </div>
               </div>
             </div>
 
-            <Button 
-              disabled={saving}
-              className="w-full bg-white text-black hover:bg-white/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all uppercase"
-            >
-              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                <>
-                  RECONFIGURE ENTITY LOGS <Save className="ml-4 w-5 h-5" />
-                </>
-              )}
+            <Button disabled={saving} className="w-full bg-black text-white hover:bg-black/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none uppercase transition-all shadow-sm">
+              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <>SAVE PROFILE UPDATES <Save className="ml-4 w-5 h-5" /></>}
             </Button>
           </div>
 
           <div className="space-y-12">
-            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                 <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">SECURITY MODULE</h3>
-                 <Fingerprint className="w-4 h-4 text-white/20" />
-              </div>
-              <div className="p-6 border border-white/5 bg-black/20 space-y-4">
-                <div className="flex items-center gap-3 text-white/40">
-                   <ShieldAlert className="w-3.5 h-3.5" />
-                   <span className="text-[8px] tracking-[0.2em] font-black uppercase">ACCESS KEY PROTOCOL</span>
-                </div>
-                <p className="text-[9px] text-white/40 tracking-widest leading-relaxed uppercase font-bold italic">
-                   FIREBASE SECURITY PROTOCOLS PREVENT PLAIN-TEXT PASSWORD RETRIEVAL. ACCESS KEYS ARE SALTED AND HASHED AT THE ARCHITECTURAL LEVEL. 
-                </p>
-              </div>
-              <div className="space-y-4">
-                 <label className="text-[9px] font-bold tracking-[0.4em] text-white/40 uppercase">UPLINK STATUS</label>
-                 <div className="flex items-center gap-4">
-                   <Select value={formData.isBlocked ? 'SEVERED' : 'ACTIVE'} onValueChange={v => setFormData({...formData, isBlocked: v === 'SEVERED'})}>
-                     <SelectTrigger className={`rounded-none h-12 text-[10px] tracking-widest font-black uppercase ${formData.isBlocked ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-green-500/10 border-green-500/20 text-green-500'}`}>
-                        <SelectValue />
-                     </SelectTrigger>
-                     <SelectContent className="bg-black border-white/20 text-white rounded-none">
-                        <SelectItem value="ACTIVE" className="text-[10px] tracking-widest text-green-500">ACTIVE_UPLINK</SelectItem>
-                        <SelectItem value="SEVERED" className="text-[10px] tracking-widest text-red-500">SEVER_ACCESS</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 </div>
-              </div>
+            <div className="bg-black/[0.01] border border-black/5 p-10 space-y-8 backdrop-blur-xl shadow-sm">
+               <h3 className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase border-b border-black/10 pb-4">ACCOUNT STATUS</h3>
+               <div className="space-y-4">
+                 <Select value={formData.isBlocked ? 'BANNED' : 'ACTIVE'} onValueChange={v => setFormData({...formData, isBlocked: v === 'BANNED'})}>
+                   <SelectTrigger className={`rounded-none h-12 text-[10px] font-black uppercase ${formData.isBlocked ? 'text-red-600' : 'text-green-600'}`}>
+                      <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent className="bg-background border-black/10 text-black rounded-none">
+                      <SelectItem value="ACTIVE" className="text-[10px] text-green-600">ACTIVE</SelectItem>
+                      <SelectItem value="BANNED" className="text-[10px] text-red-600">BANNED</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 p-10 space-y-8 backdrop-blur-xl">
-               <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                  <h3 className="text-[10px] font-bold tracking-[0.4em] text-white/60 uppercase">MISSION SUMMARY</h3>
-                  <Zap className="w-4 h-4 text-white/20" />
-               </div>
+            <div className="bg-black/[0.01] border border-black/5 p-10 space-y-8 backdrop-blur-xl shadow-sm">
+               <h3 className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase border-b border-black/10 pb-4">ORDER SUMMARY</h3>
                <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-1">
-                     <p className="text-[8px] tracking-widest text-white/40 font-bold uppercase">TRANSMISSIONS</p>
-                     <p className="text-2xl font-black glow-text">{orders?.length || 0}</p>
+                     <p className="text-[8px] tracking-widest text-black/40 font-bold uppercase">TOTAL ORDERS</p>
+                     <p className="text-2xl font-black">{orders?.length || 0}</p>
                   </div>
                   <div className="space-y-1 text-right">
-                     <p className="text-[8px] tracking-widest text-white/40 font-bold uppercase">VALUATION</p>
-                     <p className="text-xl font-bold tracking-tighter">₹{orders?.reduce((acc, o) => acc + (o.totalAmount || 0), 0).toLocaleString()}</p>
+                     <p className="text-[8px] tracking-widest text-black/40 font-bold uppercase">TOTAL SPENT</p>
+                     <p className="text-xl font-bold">₹{orders?.reduce((acc, o) => acc + (o.totalAmount || 0), 0).toLocaleString()}</p>
                   </div>
                </div>
-               {orders && orders.length > 0 && (
-                 <div className="space-y-4 pt-6 border-t border-white/5">
-                    {orders.slice(0, 3).map(o => (
-                      <div key={o.id} className="flex justify-between items-center text-[9px] tracking-widest uppercase text-white/40 font-bold">
-                         <span>{o.id.slice(0, 8)}...</span>
-                         <span className="text-white/60">₹{o.totalAmount}</span>
-                      </div>
-                    ))}
-                    <Link href={`/admin/orders?user=${userId}`} className="block text-[8px] tracking-[0.4em] text-white/60 hover:text-white transition-colors uppercase font-black pt-2 flex items-center gap-2">
-                       VIEW ALL MISSION LOGS <ExternalLink className="w-3 h-3" />
-                    </Link>
-                 </div>
-               )}
             </div>
           </div>
         </form>

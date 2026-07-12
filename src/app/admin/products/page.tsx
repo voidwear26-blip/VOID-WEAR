@@ -1,8 +1,8 @@
 "use client"
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, doc, deleteDoc, query, limit, addDoc } from 'firebase/firestore';
-import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, ShieldAlert, ZapOff, Copy } from 'lucide-react';
+import { collection, doc, deleteDoc, query, limit } from 'firebase/firestore';
+import { Plus, Trash2, Edit2, Package, ChevronLeft, Search, Loader2, SlidersHorizontal, Hash } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useMemo } from 'react';
@@ -22,7 +22,6 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<AdminSortOption>('newest');
   const [mounted, setMounted] = useState(false);
-  const [duplicating, setDuplicating] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -78,7 +77,7 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!db) return;
-    if (!confirm('DELETE THIS PRODUCT?')) return;
+    if (!confirm('Permanently delete this product?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
       toast({ title: "PRODUCT DELETED" });
@@ -102,11 +101,11 @@ export default function AdminProductsPage() {
           <div className="space-y-4">
             <Link href="/admin" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
               <ChevronLeft className="w-3 h-3" />
-              BACK TO SYSTEM
+              BACK TO DASHBOARD
             </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Products</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Product Stock</h1>
           </div>
-          <Button asChild className="bg-black text-white hover:bg-black/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase">
+          <Button asChild className="bg-black text-white hover:bg-black/90 rounded-none h-14 px-8 text-[10px] font-bold tracking-[0.4em] uppercase shadow-sm">
             <Link href="/admin/products/new"><Plus className="w-4 h-4 mr-3" /> ADD PRODUCT</Link>
           </Button>
         </div>
@@ -134,11 +133,11 @@ export default function AdminProductsPage() {
           </Select>
         </div>
 
-        <div className="bg-black/[0.01] border border-black/5 overflow-hidden backdrop-blur-xl">
+        <div className="bg-black/[0.01] border border-black/5 overflow-hidden backdrop-blur-xl shadow-sm">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-black/5 bg-black/[0.02]">
-                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">PRODUCT</th>
+                <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">MODULE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">CATEGORY</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40">PRICE</th>
                 <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/40 text-right">ACTION</th>
@@ -154,7 +153,10 @@ export default function AdminProductsPage() {
                       <div className="relative w-12 h-16 bg-black/5 border border-black/5 overflow-hidden">
                         <Image src={p.imageUrls?.[0] || 'https://picsum.photos/seed/void/200/300'} alt={p.name} fill unoptimized className="object-cover grayscale group-hover:grayscale-0" />
                       </div>
-                      <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.name}</span>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.name}</span>
+                        <p className="text-[8px] text-black/40 uppercase font-mono">STOCK: {p.stockQuantity || 0}</p>
+                      </div>
                     </div>
                   </td>
                   <td className="px-10 py-8">
