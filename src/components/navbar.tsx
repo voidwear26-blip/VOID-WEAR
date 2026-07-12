@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -92,7 +93,7 @@ export function Navbar() {
                          className="flex items-center gap-4 mb-12 group"
                        >
                          <Image src="/logo.png" alt="VOID WEAR" width={32} height={32} className="h-6 w-auto object-contain grayscale" unoptimized />
-                         <span className="text-lg font-black tracking-[0.4em] uppercase text-black font-header">VOID WEAR</span>
+                         <span className="text-lg font-black tracking-[0.4em] uppercase text-black font-headline">VOID WEAR</span>
                        </Link>
 
                        <span className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase">NAVIGATION</span>
@@ -102,7 +103,7 @@ export function Navbar() {
                              key={link.name} 
                              href={link.href}
                              onClick={() => setIsMobileMenuOpen(false)}
-                             className="text-lg font-black tracking-[0.4em] hover:text-black/60 transition-all uppercase font-header"
+                             className="text-lg font-bold tracking-[0.4em] hover:text-black/60 transition-all uppercase font-body"
                            >
                              {link.name}
                            </Link>
@@ -115,7 +116,7 @@ export function Navbar() {
                           <p className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase">STATUS</p>
                           <div className="flex items-center gap-3">
                              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                             <span className="text-[10px] font-bold tracking-widest text-black/60 uppercase">ONLINE</span>
+                             <span className="text-[10px] font-bold tracking-widest text-black/60 uppercase font-body">ONLINE</span>
                           </div>
                        </div>
                     </div>
@@ -127,11 +128,11 @@ export function Navbar() {
             <Link href="/" className="group flex items-center gap-4">
               <motion.div {...iconMotionProps} className="flex items-center gap-4">
                 <Image src="/logo.png" alt="VOID WEAR" width={40} height={40} className="h-8 w-auto object-contain grayscale" priority unoptimized />
-                <span className="text-[14px] font-black tracking-[0.4em] uppercase text-black hidden sm:block font-header">VOID WEAR</span>
+                <span className="text-[14px] font-black tracking-[0.4em] uppercase text-black hidden sm:block font-headline">VOID WEAR</span>
               </motion.div>
             </Link>
 
-            <div className="hidden lg:flex items-center gap-12 text-[10px] font-bold tracking-[0.5em] font-header">
+            <div className="hidden lg:flex items-center gap-12 text-[10px] font-bold tracking-[0.5em] font-body">
               {navLinks.map((link) => (
                 <Link 
                   key={link.name} 

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,14 +37,12 @@
     overflow-x: hidden;
   }
   body {
-    @apply bg-background text-foreground selection:bg-black selection:text-white;
-    font-family: 'Space Grotesk', sans-serif;
+    @apply bg-background text-foreground selection:bg-black selection:text-white font-body;
     overflow-y: auto !important;
     min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Orbitron', sans-serif;
-    @apply uppercase tracking-[0.4em];
+    @apply font-headline uppercase tracking-[0.4em];
   }
 }
 
