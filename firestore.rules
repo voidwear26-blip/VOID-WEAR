@@ -9,12 +9,12 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.uid == 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
-        request.auth.uid == '0LvBBO9ySQdBKr3uwjcAjphMM8x1' ||
-        (request.auth.token.email != null && (
-          request.auth.token.email.lower() == 'voidwear26@gmail.com' ||
-          request.auth.token.email.lower() == 'shahabuddinosaid@gmail.com'
-        )) ||
+        // Master UIDs
+        request.auth.uid in ['A9vsqn10oddfmouKiKjWpTcFqZB2', '0LvBBO9ySQdBKr3uwjcAjphMM8x1'] ||
+        // Master Emails
+        (request.auth.token.email != null && 
+         request.auth.token.email.lower() in ['voidwear26@gmail.com', 'shahabuddinosaid@gmail.com', 'voidwearoff26@gmail.com']) ||
+        // Database Role Check
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN')
       );
@@ -27,6 +27,7 @@ service cloud.firestore {
     // --- PRODUCTS (public) ---
     match /products/{productId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
 
     // --- REVIEWS (public read, restricted write) ---
@@ -58,6 +59,7 @@ service cloud.firestore {
     // --- STORIES ---
     match /stories/{storyId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
 
     // --- USERS ---
@@ -85,7 +87,6 @@ service cloud.firestore {
 
     // --- COLLECTION GROUP: ORDERS ---
     match /{path=**}/orders/{orderId} {
-      // Ensure admins can always read global orders, while users can only read their own
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 

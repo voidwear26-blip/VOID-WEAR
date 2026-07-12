@@ -29,7 +29,8 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
    */
   const isMasterEmail = 
     user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-    user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com';
+    user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com' ||
+    user.email?.toLowerCase() === 'voidwearoff26@gmail.com';
   
   const isMasterUID = 
     user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' || 

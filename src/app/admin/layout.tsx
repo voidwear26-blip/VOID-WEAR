@@ -30,7 +30,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // Master identity checks (UID and Email)
     const isMasterEmail = 
       user.email?.toLowerCase() === 'voidwear26@gmail.com' ||
-      user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com';
+      user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com' ||
+      user.email?.toLowerCase() === 'voidwearoff26@gmail.com';
       
     const isMasterUID = 
       user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
