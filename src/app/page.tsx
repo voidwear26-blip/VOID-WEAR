@@ -7,8 +7,9 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where, orderBy } from 'firebase/firestore';
-import { Package, ArrowRight, Zap, Star, MessageSquare, User } from 'lucide-react';
+import { Package, ArrowRight, Zap, Star, MessageSquare, User, Loader2 } from 'lucide-react';
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const db = useFirestore();
@@ -80,6 +81,19 @@ export default function Home() {
       <Hero />
       
       <PromoBanner />
+
+      <section className="py-12 flex justify-center border-b border-black/5 bg-black/[0.01]">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+        >
+          <Button asChild className="bg-black text-white hover:bg-black/80 px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm uppercase">
+            <Link href="/products">VIEW COLLECTION</Link>
+          </Button>
+        </motion.div>
+      </section>
       
       <section className="py-32 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-16 md:mb-24">
@@ -107,9 +121,11 @@ export default function Home() {
             style={{ x }}
             className="flex gap-8 md:gap-12 whitespace-nowrap px-6 md:px-0"
           >
-            {latestLoading && !latestProducts ? (
+            {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-black/5 animate-pulse border border-black/5" />
+                <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex flex-col items-center justify-center">
+                   <Loader2 className="w-6 h-6 animate-spin text-black/10" />
+                </div>
               ))
             ) : displayProducts.length > 0 ? (
               displayProducts.map((product, idx) => (
@@ -145,8 +161,12 @@ export default function Home() {
             dragElastic={0.1}
             className="flex gap-8 md:container md:mx-auto"
           >
-             {reviewsLoading && !featuredReviews ? (
-               [1, 2, 3].map(i => <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-black/5 animate-pulse border border-black/5" />)
+             {reviewsLoading ? (
+               [1, 2, 3].map(i => (
+                 <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-black/10" />
+                 </div>
+               ))
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
                  <Link key={review.id} href={`/products/${review.productId}`} className="w-[320px] md:w-[420px] shrink-0 block">
@@ -211,9 +231,11 @@ export default function Home() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
-            {topLoading && !topProducts ? (
+            {topLoading ? (
               [1, 2, 3].map(i => (
-                <div key={i} className="aspect-[3/4] bg-black/5 animate-pulse border border-black/5" />
+                <div key={i} className="aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
+                   <Loader2 className="w-6 h-6 animate-spin text-black/10" />
+                </div>
               ))
             ) : topProducts && topProducts.length > 0 ? (
               topProducts.map((product, idx) => (
@@ -236,7 +258,7 @@ export default function Home() {
             <h3 className="text-2xl md:text-5xl font-light tracking-[0.1em] leading-relaxed uppercase text-black">
               WE PROVIDE <span className="text-black font-black">PREMIUM APPAREL</span> <br /> FOR YOUR EVERYDAY LIFE. 
             </h3>
-            <div className="w-[1px] h-32 bg-gradient-to-b from-black/10 to-transparent mx-auto"></div>
+            <div className="w-[1px] h-32 bg-gradient-to-b from-black/20 to-transparent mx-auto"></div>
           </div>
         </div>
       </section>

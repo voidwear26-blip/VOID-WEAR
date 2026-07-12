@@ -108,17 +108,6 @@ export function Hero() {
             {content.tagline}
           </motion.p>
         </div>
-
-        <motion.div 
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1.6, duration: 1 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
-        >
-          <Button asChild className="bg-black text-white hover:bg-black/80 border-black border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm">
-            <Link href="/products">VIEW COLLECTION</Link>
-          </Button>
-        </motion.div>
       </div>
 
       <motion.div 
