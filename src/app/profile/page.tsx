@@ -130,7 +130,7 @@ export default function ProfilePage() {
   if (isUserLoading || (user && isProfileLoading)) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-black/20" />
+        <Loader2 className="w-10 h-10 animate-spin text-black/40" />
       </div>
     );
   }
@@ -156,15 +156,15 @@ export default function ProfilePage() {
             <div className="space-y-6">
               <div className="relative group w-20 h-20 mx-auto lg:mx-0 cursor-pointer" onClick={handleLogout} title="CLICK TO LOGOUT">
                  <div className="absolute inset-0 bg-black/5 border border-black/10 flex items-center justify-center group-hover:bg-red-500/10 group-hover:border-red-500/50 transition-all">
-                    <LogOut className="w-6 h-6 text-black/40 group-hover:text-red-500" />
+                    <LogOut className="w-6 h-6 text-black/60 group-hover:text-red-500" />
                  </div>
               </div>
               <div className="space-y-2 text-center lg:text-left">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">ENTITY // PROFILE</span>
+                <span className="text-[10px] font-bold tracking-[0.8em] text-black/60 uppercase">ENTITY // PROFILE</span>
                 <h1 className="text-4xl font-black tracking-tight uppercase leading-none break-all font-headline">
                   {displayTitle}
                 </h1>
-                <p className="text-black/30 tracking-[0.2em] text-[10px] uppercase font-mono">UID: {user.uid.slice(0, 12)}...</p>
+                <p className="text-black/60 tracking-[0.2em] text-[10px] uppercase font-mono">UID: {user.uid.slice(0, 12)}...</p>
               </div>
             </div>
 
@@ -177,23 +177,23 @@ export default function ProfilePage() {
             )}
 
             <div className="p-8 border border-black/5 bg-black/[0.01] space-y-6 backdrop-blur-sm">
-              <div className="flex items-center gap-4 text-black/60">
-                <ShieldCheck className={`w-4 h-4 ${isAdmin ? 'text-black shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'text-black/30'}`} />
+              <div className="flex items-center gap-4 text-black/80">
+                <ShieldCheck className={`w-4 h-4 ${isAdmin ? 'text-black shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'text-black/40'}`} />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
               </div>
-              <div className="flex items-center gap-4 text-black/60">
-                <Calendar className="w-4 h-4 text-black/30" />
+              <div className="flex items-center gap-4 text-black/80">
+                <Calendar className="w-4 h-4 text-black/40" />
                 <span className="text-[9px] tracking-[0.3em] uppercase font-bold">JOINED: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'INITIALIZING...'}</span>
               </div>
             </div>
             
-            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-black/30">
+            <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-black/60">
               {[
                 { id: 'identity', label: 'IDENTITY', icon: <UserIcon className="w-3.5 h-3.5" /> },
                 { id: 'orders', label: 'TRANSMISSIONS', icon: <Package className="w-3.5 h-3.5" /> },
                 { id: 'wishlist', label: 'WISHLIST', icon: <Heart className="w-3.5 h-3.5" /> }
               ].map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-black pl-4 border-l border-black' : 'hover:text-black/60'}`}>
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-black pl-4 border-l border-black' : 'hover:text-black/80'}`}>
                   {tab.icon} {tab.label}
                 </button>
               ))}
@@ -205,43 +205,43 @@ export default function ProfilePage() {
               {activeTab === 'identity' && (
                 <motion.div key="identity" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/60">ENTITY IDENTITY</h2>
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ENTITY IDENTITY</h2>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-xl">
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">FULL NAME</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">FULL NAME</label>
                         <Input value={formData.displayName} onChange={e => setFormData({ ...formData, displayName: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">MOBILE NUMBER</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">MOBILE NUMBER</label>
                         <Input value={formData.mobileNumber} onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" placeholder="+91 XXXX XXX XXX" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">CITY</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">CITY</label>
                         <Input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">STATE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">STATE</label>
                         <Input value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">PINCODE</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">PINCODE</label>
                         <Input value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">ADDRESS</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">ADDRESS</label>
                         <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/40 uppercase">LANDMARK</label>
+                        <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">LANDMARK</label>
                         <Input value={formData.landmark} onChange={e => setFormData({ ...formData, landmark: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                     </div>
@@ -256,8 +256,8 @@ export default function ProfilePage() {
               {activeTab === 'orders' && (
                 <motion.div key="orders" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/60">TRANSMISSION HISTORY</h2>
-                    <span className="text-[10px] text-black/30 font-bold uppercase">{orders?.length || 0} LOGS</span>
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">TRANSMISSION HISTORY</h2>
+                    <span className="text-[10px] text-black/60 font-bold uppercase">{orders?.length || 0} LOGS</span>
                   </div>
                   <div className="space-y-8">
                     {orders?.map((order) => <OrderCard key={order.id} order={order} userId={user.uid} userName={displayTitle} db={db} />)}
@@ -269,8 +269,8 @@ export default function ProfilePage() {
               {activeTab === 'wishlist' && (
                 <motion.div key="wishlist" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/60">WISHLIST</h2>
-                    <span className="text-[10px] text-black/30 font-bold uppercase">{wishlistItems?.length || 0} ITEMS</span>
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">WISHLIST</h2>
+                    <span className="text-[10px] text-black/60 font-bold uppercase">{wishlistItems?.length || 0} ITEMS</span>
                   </div>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {wishlistItems?.map(item => <ProductCard key={item.id} product={{ id: item.productId, name: item.name, basePrice: item.price, imageUrls: [item.image], category: item.category, description: '', slug: '' } as any} />)}
@@ -288,7 +288,7 @@ export default function ProfilePage() {
 
 function EmptyState({ icon, message }: { icon: React.ReactNode, message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-32 text-center space-y-8 opacity-20 border border-dashed border-black/10">
+    <div className="flex flex-col items-center justify-center py-32 text-center space-y-8 opacity-60 border border-dashed border-black/10">
       <div className="w-16 h-16 stroke-[0.5px]">
         {icon}
       </div>
@@ -343,22 +343,22 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
       <div className="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-black/5 pb-8">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <Hash className="w-4 h-4 text-black/40" />
+            <Hash className="w-4 h-4 text-black/60" />
             <span className="text-[11px] font-black tracking-widest text-black uppercase">{order.order_ID || order.id}</span>
           </div>
           <div className="flex flex-wrap gap-8">
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/30 uppercase font-bold">CYCLE_DATE</p>
-                <p className="text-[10px] text-black/70 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">CYCLE_DATE</p>
+                <p className="text-[10px] text-black/90 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
              </div>
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/30 uppercase font-bold">VALUATION</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">VALUATION</p>
                 <p className="text-[10px] text-black font-black">₹{order.totalAmount}</p>
              </div>
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/30 uppercase font-bold">STATUS</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">STATUS</p>
                 <div className="flex items-center gap-2">
-                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : 'bg-black/40')} />
+                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : 'bg-black/60')} />
                    <p className="text-[10px] text-black uppercase tracking-widest font-black">{order.shippingStatus || 'PROCESSING'}</p>
                 </div>
              </div>
@@ -382,28 +382,28 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-bold tracking-widest uppercase text-black">{item.name}</p>
-                <p className="text-[8px] text-black/40 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
+                <p className="text-[8px] text-black/60 tracking-widest uppercase">SZ: {item.size} // QTY: {item.quantity}</p>
               </div>
             </div>
             
             {order.shippingStatus === 'delivered' && (
               <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-black/30 hover:text-black uppercase transition-all">
+                  <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-black/60 hover:text-black uppercase transition-all">
                     SUBMIT MODULE REVIEW <MessageSquare className="ml-2 w-3 h-3" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-white border border-black/10 p-10 max-w-lg">
                   <DialogHeader className="space-y-4 mb-8">
                     <DialogTitle className="text-xl font-black tracking-tight uppercase text-black font-headline">Field Report Protocol</DialogTitle>
-                    <DialogDescription className="text-[9px] tracking-widest uppercase text-black/40 leading-relaxed font-bold">
+                    <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 leading-relaxed font-bold">
                       INPUT OPERATIONAL PERFORMANCE DATA FOR THE {item.name.toUpperCase()} MODULE.
                     </DialogDescription>
                   </DialogHeader>
                   
                   <div className="space-y-10">
                     <div className="space-y-4">
-                      <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">AESTHETIC CALIBRATION</label>
+                      <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">AESTHETIC CALIBRATION</label>
                       <div className="flex gap-4">
                         {[1,2,3,4,5].map((s) => (
                           <button key={s} onClick={() => setReviewRating(s)} className="transition-transform hover:scale-125">
@@ -414,12 +414,12 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                     </div>
                     
                     <div className="space-y-4">
-                      <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">NARRATIVE CONTENT</label>
+                      <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">NARRATIVE CONTENT</label>
                       <Textarea 
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
                         placeholder="INPUT PERFORMANCE DATA..."
-                        className="bg-black/5 border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/5"
+                        className="bg-black/5 border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/20"
                       />
                     </div>
                     

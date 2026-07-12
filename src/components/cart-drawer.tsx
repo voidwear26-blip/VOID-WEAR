@@ -67,13 +67,13 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
         <div className="flex-1 overflow-y-auto p-10 space-y-10 no-scrollbar">
           {!user ? (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40">
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-60">
               <Package className="w-12 h-12 stroke-[0.5px]" />
               <p className="text-[10px] tracking-[0.5em] uppercase">PLEASE LOGIN</p>
             </div>
           ) : isLoading ? (
             <div className="h-full flex flex-col items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-black/20" />
+              <Loader2 className="w-6 h-6 animate-spin text-black/40" />
             </div>
           ) : cartItems && cartItems.length > 0 ? (
             <div className="space-y-8">
@@ -99,20 +99,20 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
                           <p className="text-[10px] font-bold tracking-widest uppercase truncate max-w-[150px]">{item.name}</p>
-                          <p className="text-[8px] text-black/40 tracking-[0.2em] uppercase">SIZE: {item.size}</p>
+                          <p className="text-[8px] text-black/60 tracking-[0.2em] uppercase">SIZE: {item.size}</p>
                         </div>
                         <button 
                           onClick={() => removeFromCart(db!, user.uid, item.id)}
-                          className="text-black/20 hover:text-red-500 transition-colors"
+                          className="text-black/30 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-4 border border-black/10 px-3 py-1 bg-black/[0.02]">
-                          <button onClick={() => updateQuantity(item.id, -1)} className="text-black/40 hover:text-black"><Minus className="w-3 h-3" /></button>
+                          <button onClick={() => updateQuantity(item.id, -1)} className="text-black/60 hover:text-black"><Minus className="w-3 h-3" /></button>
                           <span className="text-[9px] font-mono w-4 text-center">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, 1)} className="text-black/40 hover:text-black"><Plus className="w-3 h-3" /></button>
+                          <button onClick={() => updateQuantity(item.id, 1)} className="text-black/60 hover:text-black"><Plus className="w-3 h-3" /></button>
                         </div>
                         <div className="text-right">
                            <p className="text-[10px] font-bold tracking-widest">₹{(Number(item.price) || 0) * (Number(item.quantity) || 0)}</p>
@@ -124,7 +124,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-8 opacity-20">
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-8 opacity-60">
               <ShoppingBag className="w-16 h-16 stroke-[0.5px]" />
               <p className="text-[10px] tracking-[1em] uppercase">BAG IS EMPTY</p>
             </div>
@@ -135,7 +135,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           <SheetFooter className="p-10 border-t border-black/5 bg-black/[0.01] flex flex-col gap-10 sm:flex-col items-stretch">
             <div className="space-y-2">
               <div className="flex justify-between items-center text-[10px] font-bold tracking-[0.5em] uppercase">
-                <span className="text-black/40">SUBTOTAL</span>
+                <span className="text-black/60">SUBTOTAL</span>
                 <span className="text-black">₹{subtotal}</span>
               </div>
             </div>
