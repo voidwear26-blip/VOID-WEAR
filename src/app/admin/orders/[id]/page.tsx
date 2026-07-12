@@ -29,7 +29,6 @@ export default function OrderDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // 1. Fetch current operator profile to verify role-based access
   const currentProfileRef = useMemoFirebase(() => {
     if (!db || !currentUser) return null;
     return doc(db, 'users', currentUser.uid);
@@ -44,7 +43,6 @@ export default function OrderDetailsPage() {
            currentProfile?.role === 'ADMIN';
   }, [currentUser, currentProfile]);
 
-  // 2. Fetch the specific order log
   const orderRef = useMemoFirebase(() => {
     if (!db || !userId || !orderId || !isAdmin) return null;
     return doc(db, 'users', userId, 'orders', orderId);
@@ -52,7 +50,6 @@ export default function OrderDetailsPage() {
 
   const { data: order, isLoading } = useDoc(orderRef);
 
-  // 3. Fetch the customer's identity profile
   const entityRef = useMemoFirebase(() => {
     if (!db || !userId || !isAdmin) return null;
     return doc(db, 'users', userId);
@@ -93,7 +90,7 @@ export default function OrderDetailsPage() {
       await updateDoc(orderRef!, {
         shippingStatus: newStatus,
         updatedAt: new Date().toISOString(),
-        transmissions: arrayUnion({
+        notifications: arrayUnion({
           type: 'STATUS_UPDATE',
           status: newStatus,
           timestamp: new Date().toISOString(),
@@ -102,7 +99,7 @@ export default function OrderDetailsPage() {
       });
 
       toast({
-        title: "STATUS UPDATED",
+        title: "ORDER UPDATED",
         description: `NOTIFICATION SENT TO ${entity.email?.toUpperCase()}.`,
       });
     } catch (e) {
@@ -110,7 +107,7 @@ export default function OrderDetailsPage() {
       toast({
         variant: "destructive",
         title: "SYSTEM FAILURE",
-        description: "COULD NOT GENERATE NOTIFICATION.",
+        description: "COULD NOT UPDATE ORDER STATUS.",
       });
     } finally {
       setNotifying(false);
@@ -129,7 +126,7 @@ export default function OrderDetailsPage() {
       };
 
       await updateDoc(orderRef, updateData);
-      toast({ title: "RECORD UPDATED", description: "SYSTEM LOGS SYNCHRONIZED." });
+      toast({ title: "RECORD UPDATED", description: "ORDER LOGS SYNCHRONIZED." });
       setIsEditing(false);
     } catch (e) {
       toast({ variant: "destructive", title: "SYNC FAILURE" });
@@ -154,7 +151,7 @@ export default function OrderDetailsPage() {
   const handleDownloadInvoice = () => {
     if (order) {
       generateInvoicePDF(order);
-      toast({ title: "LOG GENERATED", description: "ORDER INVOICE DOWNLOADED." });
+      toast({ title: "INVOICE GENERATED", description: "ORDER RECORD DOWNLOADED." });
     }
   };
 
@@ -202,9 +199,9 @@ export default function OrderDetailsPage() {
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h1 className="text-4xl font-black tracking-tight uppercase leading-none text-black font-headline">Order Detail</h1>
+              <h1 className="text-4xl font-black tracking-tight uppercase leading-none text-black font-headline">Order Details</h1>
               <div className="flex flex-col gap-1">
-                 <p className="text-[10px] font-mono text-black/40 uppercase tracking-widest">ORDER_UID: {orderId}</p>
+                 <p className="text-[10px] font-mono text-black/40 uppercase tracking-widest">ORDER_ID: {orderId}</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -213,7 +210,7 @@ export default function OrderDetailsPage() {
                 onClick={() => setIsEditing(!isEditing)}
                 className="h-12 border border-black/10 bg-black/5 hover:bg-black hover:text-white rounded-none text-[10px] font-bold tracking-widest uppercase transition-all"
               >
-                {isEditing ? <><X className="mr-2 w-3.5 h-3.5" /> CANCEL EDIT</> : <><Edit3 className="mr-2 w-3.5 h-3.5" /> EDIT RECORD</>}
+                {isEditing ? <><X className="mr-2 w-3.5 h-3.5" /> CANCEL EDIT</> : <><Edit3 className="mr-2 w-3.5 h-3.5" /> EDIT ORDER</>}
               </Button>
               <Button 
                 variant="outline" 
@@ -241,11 +238,11 @@ export default function OrderDetailsPage() {
           <div className="mb-12 bg-black/[0.02] border border-black/10 p-10 space-y-10 animate-in fade-in slide-in-from-top-4 duration-500">
              <div className="flex items-center gap-4 text-black">
                 <ShieldAlert className="w-5 h-5 text-red-600" />
-                <h3 className="text-sm font-black tracking-[0.4em] uppercase">SYSTEM_RECORD_OVERRIDE</h3>
+                <h3 className="text-sm font-black tracking-[0.4em] uppercase">EDIT ORDER RECORD</h3>
              </div>
              <div className="grid md:grid-cols-3 gap-8">
                 <div className="space-y-2">
-                   <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">VALUATION (₹)</label>
+                   <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">VALUE (₹)</label>
                    <Input 
                       type="number" 
                       value={editForm.totalAmount} 
@@ -277,7 +274,7 @@ export default function OrderDetailsPage() {
                 </div>
              </div>
              <div className="space-y-2">
-                <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">GATEWAY IDENTIFIER (PAYMENT ID)</label>
+                <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">PAYMENT ID</label>
                 <Input 
                    value={editForm.transition_ID} 
                    onChange={e => setEditForm({...editForm, transition_ID: e.target.value})}
@@ -286,7 +283,7 @@ export default function OrderDetailsPage() {
              </div>
              <div className="flex justify-between items-center pt-4 border-t border-black/10">
                 <Button variant="ghost" onClick={handlePurgeOrder} className="text-[10px] tracking-widest text-red-600 hover:text-red-700 font-black uppercase transition-all">
-                   PURGE ORDER <Trash2 className="ml-2 w-3.5 h-3.5" />
+                   DELETE ORDER <Trash2 className="ml-2 w-3.5 h-3.5" />
                 </Button>
                 <Button disabled={saving} onClick={handleUpdateRecord} className="bg-black text-white hover:bg-black/90 h-14 px-10 text-[10px] font-black tracking-widest rounded-none uppercase transition-all shadow-sm">
                    {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <>SAVE CHANGES <Save className="ml-3 w-4 h-4" /></>}
@@ -328,7 +325,7 @@ export default function OrderDetailsPage() {
               )}
               
               <div className="pt-8 border-t border-black/10 flex justify-between items-center">
-                <span className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">TOTAL VALUATION</span>
+                <span className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">GRAND TOTAL</span>
                 <span className="text-2xl font-black tracking-tight text-black">₹{order.totalAmount}</span>
               </div>
             </div>
@@ -340,7 +337,7 @@ export default function OrderDetailsPage() {
               </div>
               <div className="p-8 border border-black/5 bg-black/[0.02] space-y-4">
                  <div className="flex flex-col gap-2">
-                    <span className="text-[8px] font-bold tracking-widest uppercase text-black/30">GATEWAY_TX_ID</span>
+                    <span className="text-[8px] font-bold tracking-widest uppercase text-black/30">GATEWAY_PAYMENT_ID</span>
                     <span className="text-sm font-mono text-black tracking-widest uppercase">{order.transition_ID || order.paymentProviderId || 'INTERNAL ENTRY'}</span>
                  </div>
                  <p className="text-[9px] text-black/60 italic leading-relaxed uppercase font-bold">
@@ -375,7 +372,7 @@ export default function OrderDetailsPage() {
                   </div>
                   <div className="flex items-center gap-3 text-[10px] text-black/80 tracking-widest uppercase font-bold">
                     <Calendar className="w-3.5 h-3.5 text-black/20" />
-                    INITIALIZED: {new Date(order.orderDate).toLocaleDateString()}
+                    PLACED: {new Date(order.orderDate).toLocaleDateString()}
                   </div>
                 </div>
               </div>
@@ -385,7 +382,7 @@ export default function OrderDetailsPage() {
                <div className="flex items-center justify-between border-b border-black/10 pb-4">
                   <div className="flex items-center gap-3 text-black/40">
                     <MapPin className="w-4 h-4" />
-                    <span className="text-[10px] font-bold tracking-widest uppercase">DELIVERY NODE</span>
+                    <span className="text-[10px] font-bold tracking-widest uppercase">SHIPPING ADDRESS</span>
                   </div>
                </div>
                <div className="space-y-2">

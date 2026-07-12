@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-export default function NewTransmissionPage() {
+export default function NewOrderPage() {
   const { user: currentUser, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function NewTransmissionPage() {
       stateProvince: userEntity.stateProvince || '',
       postalCode: userEntity.postalCode || ''
     }));
-    toast({ title: "CUSTOMER LINKED", description: `Order anchored to ${userEntity.email.toUpperCase()}.` });
+    toast({ title: "CUSTOMER LINKED", description: `Order assigned to ${userEntity.email.toUpperCase()}.` });
   };
 
   const addItem = (product: any) => {
@@ -151,7 +151,7 @@ export default function NewTransmissionPage() {
 
     try {
       await setDoc(orderRef, newOrder);
-      toast({ title: "ORDER SECURED", description: "Manual order logged successfully." });
+      toast({ title: "ORDER CREATED", description: "Manual order saved successfully." });
       router.push('/admin/orders');
     } catch (e) {
       toast({ variant: "destructive", title: "SYSTEM ERROR" });
@@ -173,7 +173,7 @@ export default function NewTransmissionPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-2">
               <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">New Order</h1>
-              <p className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">Manual Sales Entry</p>
+              <p className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">Manual Entry</p>
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function NewTransmissionPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <span className="text-[8px] font-bold tracking-[0.3em] text-black/40 uppercase">CURRENT SELECTION</span>
+                  <span className="text-[8px] font-bold tracking-[0.3em] text-black/40 uppercase">SELECTED MODULES</span>
                   <div className="space-y-4">
                     {selectedItems.map((item, idx) => (
                       <div key={idx} className="bg-black/5 border border-black/10 p-4 space-y-4">
@@ -288,8 +288,8 @@ export default function NewTransmissionPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-4 space-y-12 lg:sticky lg:top-40 h-fit">
-            <form onSubmit={handleSubmit} className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-3xl">
+          <form onSubmit={handleSubmit} className="lg:col-span-4 space-y-12 lg:sticky lg:top-40 h-fit">
+            <div className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-3xl">
               <div className="flex items-center justify-between border-b border-black/10 pb-4">
                 <h3 className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">03. ORDER SUMMARY</h3>
                 <Zap className="w-4 h-4 text-black/20" />
@@ -298,15 +298,15 @@ export default function NewTransmissionPage() {
               <div className="space-y-6">
                 <div className="space-y-4 bg-black/5 p-6 border border-black/5">
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                      <span className="text-black/60">SUBTOTAL</span>
+                      <span className="text-black/40">SUBTOTAL</span>
                       <span className="text-black">₹{orderMetadata.subtotal.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                      <span className="text-black/60">TAX</span>
+                      <span className="text-black/40">TAX</span>
                       <span className="text-black">₹{orderMetadata.taxAmount.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                      <span className="text-black/60">SHIPPING</span>
+                      <span className="text-black/40">SHIPPING</span>
                       <span className="text-black">{orderMetadata.shippingFee === 0 ? 'FREE' : `₹${orderMetadata.shippingFee.toFixed(2)}`}</span>
                    </div>
                 </div>
@@ -377,18 +377,8 @@ export default function NewTransmissionPage() {
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>CREATE ORDER <Zap className="ml-3 w-3.5 h-3.5" /></>}
               </Button>
-            </form>
-
-            <div className="p-8 border border-black/5 bg-black/[0.01] space-y-4">
-               <div className="flex items-center gap-3 text-black/40">
-                  <CreditCard className="w-3.5 h-3.5" />
-                  <span className="text-[8px] font-black tracking-[0.3em] uppercase">AUDIT COMPLIANCE</span>
-               </div>
-               <p className="text-[9px] text-black/60 leading-relaxed uppercase font-medium italic">
-                  Ensuring manual orders are verified against gateway logs before finalization.
-               </p>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

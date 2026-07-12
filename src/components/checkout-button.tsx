@@ -28,8 +28,8 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
     if (!user || !db) {
       toast({
         variant: "destructive",
-        title: "AUTH_REQUIRED",
-        description: "PLEASE LOG IN TO SECURE YOUR TRANSMISSION.",
+        title: "LOGIN REQUIRED",
+        description: "PLEASE LOG IN TO COMPLETE YOUR PURCHASE.",
       });
       return;
     }
@@ -50,9 +50,9 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
 
       // 2. Mock mode bypass
       if (orderData.isMock) {
-        toast({ title: "DEV_MODE_ACTIVE", description: "MOCK TRANSMISSION INITIALIZED." });
+        toast({ title: "TEST_MODE_ACTIVE", description: "INITIALIZING TEST PURCHASE." });
         setTimeout(async () => {
-           const orderId = `VOID-MOCK-${Date.now()}`;
+           const orderId = `VOID-TEST-${Date.now()}`;
            const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
            await writeBatch(db).set(orderRef, {
              id: orderId, userId: user.uid, totalAmount: amount, paymentStatus: 'paid', createdAt: new Date().toISOString()
@@ -68,7 +68,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
-        description: 'SECURE DIGITAL TRANSMISSION',
+        description: 'SECURE ORDER PAYMENT',
         order_id: orderData.id,
         handler: async function (response: any) {
           setLoading(true);
@@ -81,7 +81,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
           if (verifyRes.ok) {
             window.location.href = '/profile';
           } else {
-            toast({ variant: "destructive", title: "VERIFICATION_FAILURE" });
+            toast({ variant: "destructive", title: "VERIFICATION FAILURE" });
           }
         },
         prefill: { email: user.email },
@@ -92,7 +92,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
       rzp.open();
     } catch (error) {
       console.error('[CHECKOUT_EXCEPTION]', error);
-      toast({ variant: "destructive", title: "LINK_FAILURE" });
+      toast({ variant: "destructive", title: "CONNECTION FAILURE" });
       setLoading(false);
     }
   };
@@ -108,7 +108,7 @@ export function CheckoutButton({ amount, disabled }: CheckoutButtonProps) {
       ) : (
         <>
           <Zap className="absolute left-6 w-4 h-4 text-black/20" />
-          PROCEED TO UPLINK
+          PAY NOW
           <ArrowRight className="ml-4 w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </>
       )}

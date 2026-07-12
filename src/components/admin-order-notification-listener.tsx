@@ -9,7 +9,7 @@ import { ShoppingBag, Zap } from 'lucide-react';
 /**
  * ADMIN ORDER NOTIFICATION LISTENER
  * Establishes a real-time uplink to the global orders collection.
- * Triggers cinematic toasts for new transmissions when admin is active.
+ * Triggers cinematic toasts for new orders when admin is active.
  */
 export function AdminOrderNotificationListener() {
   const { user } = useUser();
@@ -49,8 +49,8 @@ export function AdminOrderNotificationListener() {
           // Only notify for orders created after this listener mounted to avoid history spam
           if (order.createdAt > mountTime.current) {
             toast({
-              title: "NEW TRANSMISSION DETECTED",
-              description: `ORDER ${order.order_ID} / VALUATION: ₹${order.totalAmount}`,
+              title: "NEW ORDER DETECTED",
+              description: `ORDER ${order.order_ID} / VALUE: ₹${order.totalAmount}`,
               action: (
                 <div className="flex items-center gap-2 pr-4">
                    <Zap className="w-4 h-4 text-white animate-pulse" />

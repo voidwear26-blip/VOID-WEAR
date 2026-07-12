@@ -82,8 +82,8 @@ export default function CheckoutPage() {
     if (!displayName || !email || !mobileNumber || !addressLine1 || !city || !stateProvince || !postalCode) {
       toast({
         variant: "destructive",
-        title: "LOGISTICS INCOMPLETE",
-        description: "ALL DATA NODES, INCLUDING MOBILE NUMBER, ARE MANDATORY.",
+        title: "SHIPPING INCOMPLETE",
+        description: "PLEASE FILL ALL REQUIRED CONTACT AND ADDRESS FIELDS.",
       });
       return false;
     }
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
     if (mobileNumber.length < 10) {
       toast({
         variant: "destructive",
-        title: "INVALID UPLINK",
+        title: "INVALID NUMBER",
         description: "MOBILE NUMBER MUST BE AT LEAST 10 DIGITS.",
       });
       return false;
@@ -197,8 +197,8 @@ export default function CheckoutPage() {
       console.error('[TRANSACTION_FAILURE]', e);
       toast({
         variant: "destructive",
-        title: "TRANSMISSION CRASH",
-        description: "COULD NOT FINALIZE ORDER.",
+        title: "ORDER FAILED",
+        description: "COULD NOT FINALIZE YOUR PURCHASE.",
       });
     } finally {
       setLoading(false);
@@ -215,19 +215,19 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           amount: Number(totalAmount),
-          notes: { operator_name: formData.displayName, user_uid: user.uid }
+          notes: { customer_name: formData.displayName, user_uid: user.uid }
         }),
       });
 
       const orderData = await res.json();
-      if (!res.ok) throw new Error(orderData.message || 'UPLINK_FAILURE');
+      if (!res.ok) throw new Error(orderData.message || 'ORDER_CREATION_FAILED');
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'VOID WEAR',
-        description: 'PREMIUM ASSEMBLAGE UPLINK',
+        description: 'PREMIUM APPAREL PURCHASE',
         order_id: orderData.id,
         handler: async function (response: any) {
           setLoading(true);
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
 
             if (verifyRes.ok) {
               await finalizeOrderInFirestore(response.razorpay_payment_id);
-              toast({ title: "TRANSMISSION SECURED", description: "ORDER VERIFIED SUCCESSFULLY." });
+              toast({ title: "ORDER SECURED", description: "PAYMENT VERIFIED SUCCESSFULLY." });
             } else {
               toast({ variant: "destructive", title: "VERIFICATION FAILURE" });
               setLoading(false);
@@ -267,7 +267,7 @@ export default function CheckoutPage() {
   };
 
   if (isUserLoading || (step !== 'success' && isCartLoading) || isProfileLoading) {
-    return <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase text-black font-bold bg-background">Syncing Protocols...</div>;
+    return <div className="h-screen flex items-center justify-center text-[10px] tracking-[1em] uppercase text-black font-bold bg-background">Loading...</div>;
   }
 
   if (step === 'success') {
@@ -275,8 +275,8 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center pt-32 pb-24 px-6 bg-background text-black">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl w-full bg-black/[0.02] border border-black/10 p-16 space-y-12 text-center backdrop-blur-3xl">
           <CheckCircle2 className="w-16 h-16 text-black mx-auto" />
-          <h1 className="text-4xl font-black tracking-tight uppercase font-headline">TRANSMISSION SECURED</h1>
-          <p className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-black">LOGGING ACQUISITION TO YOUR DOSSIER...</p>
+          <h1 className="text-4xl font-black tracking-tight uppercase font-headline">ORDER SECURED</h1>
+          <p className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-black">YOUR ORDER HAS BEEN LOGGED SUCCESSFULLY.</p>
           
           <div className="bg-white/40 border border-black/10 p-10 space-y-8 text-left">
              <div className="space-y-2">
@@ -288,7 +288,7 @@ export default function CheckoutPage() {
              </div>
              <div className="h-px bg-black/5 w-full" />
              <div className="space-y-2">
-                <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-bold">TRANSITION_ID</p>
+                <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-bold">PAYMENT_ID</p>
                 <div className="flex items-center gap-3">
                    <Zap className="w-4 h-4 text-black/20" />
                    <p className="text-sm font-mono text-black/80 uppercase break-all">{finalTransitionId}</p>
@@ -300,7 +300,7 @@ export default function CheckoutPage() {
              <Button onClick={() => orderObject && generateInvoicePDF(orderObject)} className="h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.4em] uppercase">
                 DOWNLOAD INVOICE (PDF) <Download className="ml-3 w-4 h-4" />
              </Button>
-             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-black/40 hover:text-black transition-all uppercase font-black">RETURN TO PROFILE</Link>
+             <Link href="/profile" className="text-[10px] tracking-[0.5em] text-black/40 hover:text-black transition-all uppercase font-black">GO TO PROFILE</Link>
           </div>
         </motion.div>
       </div>
@@ -313,15 +313,15 @@ export default function CheckoutPage() {
         <div className="flex flex-col md:flex-row gap-16">
           <div className="flex-1 space-y-12">
             <div className="flex items-center gap-6 mb-12 opacity-50">
-              <span className={`text-[10px] tracking-widest ${step === 'shipping' ? 'text-black font-bold opacity-100' : 'text-black'}`}>LOGISTICS</span>
-              <span className={`text-[10px] tracking-widest ${step === 'review' ? 'text-black font-bold opacity-100' : 'text-black'}`}>AUDIT</span>
-              <span className={`text-[10px] tracking-widest ${step === 'payment' ? 'text-black font-bold opacity-100' : 'text-black'}`}>UPLINK</span>
+              <span className={`text-[10px] tracking-widest ${step === 'shipping' ? 'text-black font-bold opacity-100' : 'text-black'}`}>SHIPPING</span>
+              <span className={`text-[10px] tracking-widest ${step === 'review' ? 'text-black font-bold opacity-100' : 'text-black'}`}>REVIEW</span>
+              <span className={`text-[10px] tracking-widest ${step === 'payment' ? 'text-black font-bold opacity-100' : 'text-black'}`}>PAYMENT</span>
             </div>
 
             <AnimatePresence mode="wait">
               {step === 'shipping' && (
                 <motion.div key="ship" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
-                  <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Logistics Node</h2>
+                  <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Shipping Info</h2>
                   <div className="grid md:grid-cols-2 gap-8">
                      <Field label="NAME" value={formData.displayName} onChange={v => setFormData({...formData, displayName: v})} />
                      <Field label="EMAIL" value={formData.email} onChange={v => setFormData({...formData, email: v})} />
@@ -335,14 +335,14 @@ export default function CheckoutPage() {
                      </div>
                   </div>
                   <Button onClick={handleProceedToAudit} className="w-full h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
-                    PROCEED TO AUDIT <ArrowRight className="ml-3 w-4 h-4" />
+                    PROCEED TO REVIEW <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
               )}
 
               {step === 'review' && (
                 <motion.div key="rev" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                   <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Transmission Audit</h2>
+                   <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Order Audit</h2>
                    <div className="bg-black/5 border border-black/10 p-10 space-y-6">
                       <p className="text-[10px] tracking-widest text-black/40 uppercase">RECIPIENT: <span className="text-black font-bold">{formData.displayName}</span></p>
                       <p className="text-[10px] tracking-widest text-black/40 uppercase leading-relaxed">
@@ -351,20 +351,20 @@ export default function CheckoutPage() {
                       <p className="text-[10px] tracking-widest text-black/40 uppercase">MOBILE: <span className="text-black font-bold">{formData.mobileNumber}</span></p>
                    </div>
                    <Button onClick={() => setStep('payment')} className="w-full h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.5em]">
-                    FINALIZE UPLINK <ArrowRight className="ml-3 w-4 h-4" />
+                    CONTINUE TO PAYMENT <ArrowRight className="ml-3 w-4 h-4" />
                   </Button>
                 </motion.div>
               )}
 
               {step === 'payment' && (
                 <motion.div key="pay" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                   <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Uplink Channel</h2>
+                   <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Payment Method</h2>
                    <div className="grid gap-4">
-                      <PaymentOption label="UPI TRANSMISSION" selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
+                      <PaymentOption label="UPI PAYMENT" selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
                       <PaymentOption label="CREDIT / DEBIT CARD" selected={selectedMethod === 'card'} onClick={() => setSelectedMethod('card')} />
                    </div>
                    <Button onClick={handlePaymentUplink} disabled={loading} className="w-full h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-[0_0_30px_rgba(0,0,0,0.1)]">
-                      {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>INITIALIZE SECURE UPLINK <Zap className="ml-3 w-4 h-4" /></>}
+                      {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>PAY NOW <Zap className="ml-3 w-4 h-4" /></>}
                    </Button>
                 </motion.div>
               )}
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                      </div>
                   </div>
                   <div className="pt-4 border-t border-black/5 flex justify-between items-center">
-                     <span className="text-[11px] font-black uppercase text-black/60">TOTAL VALUATION</span>
+                     <span className="text-[11px] font-black uppercase text-black/60">GRAND TOTAL</span>
                      <span className="text-2xl font-black text-black">₹{totalAmount.toFixed(2)}</span>
                   </div>
                </div>

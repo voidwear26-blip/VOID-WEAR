@@ -2,12 +2,12 @@
 
 /**
  * VOID WEAR // INVOICE GENERATOR V2.6
- * Generates a cinematic PDF transmission log.
+ * Generates a high-contrast PDF order log.
  * Includes detailed financial breakdown with support for Free Shipping logic.
  */
 export async function generateInvoicePDF(order: any) {
   if (!order || !order.items) {
-    console.error('SYSTEM_ERROR: INVALID_TRANSMISSION_DATA');
+    console.error('SYSTEM_ERROR: INVALID_ORDER_DATA');
     return;
   }
 
@@ -36,7 +36,7 @@ export async function generateInvoicePDF(order: any) {
     
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.text('EMBRACE THE UNKNOWN', 10, 15); 
+    doc.text('PREMIUM MINIMALIST APPAREL', 10, 15); 
     
     doc.setFontSize(5);
     doc.text('GSTIN 33ABCFV3162D1ZJ', 10, 20); 
@@ -48,7 +48,7 @@ export async function generateInvoicePDF(order: any) {
     doc.setTextColor(primaryColor);
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
-    doc.text('TRANSMISSION_UID:', 10, 38);
+    doc.text('ORDER_ID:', 10, 38);
     doc.setFont('helvetica', 'normal');
     doc.text((order.order_ID || order.id || 'INTERNAL').toString(), 40, 38);
 
@@ -58,14 +58,14 @@ export async function generateInvoicePDF(order: any) {
     const displayDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString() : new Date().toLocaleDateString();
     doc.text(displayDate, 40, 43);
 
-    // 3. Entity Details
+    // 3. Customer Details
     doc.setDrawColor(accentColor);
     doc.line(10, 48, 90, 48);
 
     doc.setFont('helvetica', 'bold');
     doc.text('RECIPIENT:', 10, 55);
     doc.setFont('helvetica', 'normal');
-    doc.text((order.displayName || 'UNIDENTIFIED OPERATOR').toUpperCase(), 10, 59);
+    doc.text((order.displayName || 'CUSTOMER').toUpperCase(), 10, 59);
     
     doc.setFontSize(6);
     doc.setTextColor(secondaryColor);
@@ -74,13 +74,13 @@ export async function generateInvoicePDF(order: any) {
     doc.text(splitAddress, 10, 63);
 
     doc.setFont('helvetica', 'bold');
-    doc.text('UPLINK MODULE (MOBILE):', 10, 71);
+    doc.text('MOBILE:', 10, 71);
     doc.setFont('helvetica', 'normal');
-    doc.text((order.mobileNumber || 'REQUIRED_NODE_MISSING').toString(), 45, 71);
+    doc.text((order.mobileNumber || 'N/A').toString(), 40, 71);
 
-    // 4. Module Table (Products)
+    // 4. Product Table
     const tableData = order.items.map((item: any) => [
-      (item.name || 'ASSEMBLAGE').toUpperCase(),
+      (item.name || 'APPAREL').toUpperCase(),
       (item.size || 'N/A').toString(),
       (item.quantity || 1).toString(),
       `INR ${item.price || 0}`
@@ -88,7 +88,7 @@ export async function generateInvoicePDF(order: any) {
 
     autoTable(doc, {
       startY: 78,
-      head: [['MODULE', 'SZ', 'QTY', 'VAL']],
+      head: [['ITEM', 'SIZE', 'QTY', 'PRICE']],
       body: tableData,
       theme: 'plain',
       styles: {
@@ -113,8 +113,6 @@ export async function generateInvoicePDF(order: any) {
 
     const tableFinalY = (doc as any).lastAutoTable.finalY;
     
-    // Financial Breakdown Calculation
-    // Priority: Persisted data > Calculated data
     const subtotal = order.subtotal || order.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
     const tax = order.taxAmount !== undefined ? order.taxAmount : (subtotal * 0.05);
     
@@ -136,10 +134,10 @@ export async function generateInvoicePDF(order: any) {
     doc.text('SUBTOTAL:', 60, tableFinalY + 6);
     doc.text(`INR ${subtotal.toFixed(2)}`, 90, tableFinalY + 6, { align: 'right' });
     
-    doc.text('ESTIMATED TAX:', 60, tableFinalY + 10);
+    doc.text('TAX:', 60, tableFinalY + 10);
     doc.text(`INR ${tax.toFixed(2)}`, 90, tableFinalY + 10, { align: 'right' });
     
-    doc.text('SHIPPING FEE:', 60, tableFinalY + 14);
+    doc.text('SHIPPING:', 60, tableFinalY + 14);
     const shippingText = shipping === 0 ? 'FREE' : `INR ${shipping.toFixed(2)}`;
     doc.text(shippingText, 90, tableFinalY + 14, { align: 'right' });
 
@@ -155,10 +153,9 @@ export async function generateInvoicePDF(order: any) {
     doc.setTextColor(secondaryColor);
     doc.setFontSize(5);
     doc.setFont('helvetica', 'italic');
-    doc.text('THIS IS A SECURE DIGITAL TRANSMISSION LOG. ALL RIGHTS RESERVED.', 10, 150);
+    doc.text('THIS IS A SECURE DIGITAL ORDER LOG. ALL RIGHTS RESERVED.', 10, 150);
     doc.text('VOID WEAR INC // LOGISTICS PROTOCOL 2026', 10, 153);
 
-    // 8. Save Protocol
     const fileName = `VOID_INVOICE_${order.order_ID || order.id || Date.now()}.pdf`;
     doc.save(fileName);
     

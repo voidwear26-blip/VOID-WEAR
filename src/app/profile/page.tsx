@@ -103,7 +103,7 @@ export default function ProfilePage() {
       updateAuthProfile(user, { displayName: formData.displayName })
     ])
       .then(() => {
-        toast({ title: "IDENTITY UPDATED", description: "SYSTEM METADATA SYNCHRONIZED." });
+        toast({ title: "PROFILE UPDATED", description: "ACCOUNT DETAILS SYNCHRONIZED." });
       })
       .catch(async (err) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -120,7 +120,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await initiateSignOut(auth);
-      toast({ title: "LINK SEVERED", description: "LOGGED OUT SUCCESSFULLY." });
+      toast({ title: "LOGGED OUT", description: "SESSION ENDED SUCCESSFULLY." });
       router.push('/');
     } catch (e) {
       console.error(e);
@@ -140,7 +140,7 @@ export default function ProfilePage() {
       <div className="h-screen flex flex-col items-center justify-center space-y-8 bg-background">
         <h2 className="text-xl font-bold tracking-[0.5em] text-black uppercase font-headline">ACCESS DENIED</h2>
         <Link href="/login">
-          <button className="px-12 py-4 border border-black/20 text-[10px] tracking-[0.5em] hover:bg-black hover:text-white transition-all font-bold uppercase">ESTABLISH LINK</button>
+          <button className="px-12 py-4 border border-black/20 text-[10px] tracking-[0.5em] hover:bg-black hover:text-white transition-all font-bold uppercase">LOGIN</button>
         </Link>
       </div>
     );
@@ -160,11 +160,11 @@ export default function ProfilePage() {
                  </div>
               </div>
               <div className="space-y-2 text-center lg:text-left">
-                <span className="text-[10px] font-bold tracking-[0.8em] text-black/60 uppercase">ENTITY // PROFILE</span>
+                <span className="text-[10px] font-bold tracking-[0.8em] text-black/60 uppercase">MY PROFILE</span>
                 <h1 className="text-4xl font-black tracking-tight uppercase leading-none break-all font-headline">
                   {displayTitle}
                 </h1>
-                <p className="text-black/60 tracking-[0.2em] text-[10px] uppercase font-mono">UID: {user.uid.slice(0, 12)}...</p>
+                <p className="text-black/60 tracking-[0.2em] text-[10px] uppercase font-mono">ID: {user.uid.slice(0, 12)}...</p>
               </div>
             </div>
 
@@ -190,7 +190,7 @@ export default function ProfilePage() {
             <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-black/60">
               {[
                 { id: 'identity', label: 'IDENTITY', icon: <UserIcon className="w-3.5 h-3.5" /> },
-                { id: 'orders', label: 'TRANSMISSIONS', icon: <Package className="w-3.5 h-3.5" /> },
+                { id: 'orders', label: 'ORDERS', icon: <Package className="w-3.5 h-3.5" /> },
                 { id: 'wishlist', label: 'WISHLIST', icon: <Heart className="w-3.5 h-3.5" /> }
               ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-black pl-4 border-l border-black' : 'hover:text-black/80'}`}>
@@ -205,7 +205,7 @@ export default function ProfilePage() {
               {activeTab === 'identity' && (
                 <motion.div key="identity" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ENTITY IDENTITY</h2>
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ACCOUNT DETAILS</h2>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-xl">
@@ -256,12 +256,12 @@ export default function ProfilePage() {
               {activeTab === 'orders' && (
                 <motion.div key="orders" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">TRANSMISSION HISTORY</h2>
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ORDER HISTORY</h2>
                     <span className="text-[10px] text-black/60 font-bold uppercase">{orders?.length || 0} LOGS</span>
                   </div>
                   <div className="space-y-8">
                     {orders?.map((order) => <OrderCard key={order.id} order={order} userId={user.uid} userName={displayTitle} db={db} />)}
-                    {orders?.length === 0 && <EmptyState icon={<ShoppingBag />} message="NO TRANSMISSIONS LOGGED" />}
+                    {orders?.length === 0 && <EmptyState icon={<ShoppingBag />} message="NO ORDERS LOGGED" />}
                   </div>
                 </motion.div>
               )}
@@ -306,13 +306,13 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
 
   const handleDownload = () => {
     generateInvoicePDF(order);
-    toast({ title: "LOG GENERATED", description: "TRANSMISSION BILL DOWNLOADED." });
+    toast({ title: "INVOICE DOWNLOADED", description: "ORDER RECORD SAVED AS PDF." });
   };
 
   const handleReviewSubmit = async (productId: string, productName: string) => {
     if (!db || !userId) return;
     if (!reviewComment.trim()) {
-      toast({ variant: "destructive", title: "INCOMPLETE" });
+      toast({ variant: "destructive", title: "INCOMPLETE", description: "PLEASE ENTER A REVIEW." });
       return;
     }
 
@@ -328,11 +328,11 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
         createdAt: new Date().toISOString(),
         orderId: order.id
       });
-      toast({ title: "REPORT TRANSMITTED", description: `FIELD DATA LOGGED FOR ${productName.toUpperCase()}.` });
+      toast({ title: "REVIEW SUBMITTED", description: `FEEDBACK LOGGED FOR ${productName.toUpperCase()}.` });
       setReviewComment('');
       setReviewOpen(false);
     } catch (e) {
-      toast({ variant: "destructive", title: "TRANSMISSION_FAILURE" });
+      toast({ variant: "destructive", title: "SUBMISSION FAILURE" });
     } finally {
       setSubmittingReview(false);
     }
@@ -348,11 +348,11 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
           </div>
           <div className="flex flex-wrap gap-8">
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">CYCLE_DATE</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">ORDER_DATE</p>
                 <p className="text-[10px] text-black/90 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
              </div>
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">VALUATION</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">TOTAL_VALUE</p>
                 <p className="text-[10px] text-black font-black">₹{order.totalAmount}</p>
              </div>
              <div className="space-y-1">
@@ -369,7 +369,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
           onClick={handleDownload}
           className="h-12 border-black/10 bg-black/5 hover:bg-black hover:text-white rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all shrink-0"
         >
-          DOWNLOAD LOG <Download className="ml-3 w-3.5 h-3.5" />
+          DOWNLOAD INVOICE <Download className="ml-3 w-3.5 h-3.5" />
         </Button>
       </div>
 
@@ -390,20 +390,20 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
               <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" className="h-10 text-[8px] tracking-[0.4em] font-black text-black/60 hover:text-black uppercase transition-all">
-                    SUBMIT MODULE REVIEW <MessageSquare className="ml-2 w-3 h-3" />
+                    LEAVE A REVIEW <MessageSquare className="ml-2 w-3 h-3" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-white border border-black/10 p-10 max-w-lg">
                   <DialogHeader className="space-y-4 mb-8">
-                    <DialogTitle className="text-xl font-black tracking-tight uppercase text-black font-headline">Field Report Protocol</DialogTitle>
+                    <DialogTitle className="text-xl font-black tracking-tight uppercase text-black font-headline">Submit Review</DialogTitle>
                     <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 leading-relaxed font-bold">
-                      INPUT OPERATIONAL PERFORMANCE DATA FOR THE {item.name.toUpperCase()} MODULE.
+                      YOUR FEEDBACK ON THE {item.name.toUpperCase()} MODULE.
                     </DialogDescription>
                   </DialogHeader>
                   
                   <div className="space-y-10">
                     <div className="space-y-4">
-                      <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">AESTHETIC CALIBRATION</label>
+                      <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">RATING</label>
                       <div className="flex gap-4">
                         {[1,2,3,4,5].map((s) => (
                           <button key={s} onClick={() => setReviewRating(s)} className="transition-transform hover:scale-125">
@@ -414,11 +414,11 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                     </div>
                     
                     <div className="space-y-4">
-                      <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">NARRATIVE CONTENT</label>
+                      <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">COMMENT</label>
                       <Textarea 
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
-                        placeholder="INPUT PERFORMANCE DATA..."
+                        placeholder="TELL US WHAT YOU THINK..."
                         className="bg-black/5 border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/20"
                       />
                     </div>
@@ -428,7 +428,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                       onClick={() => handleReviewSubmit(item.productId, item.name)}
                       className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
                     >
-                      {submittingReview ? <Loader2 className="animate-spin w-4 h-4" /> : <>TRANSMIT LOG <Zap className="ml-3 w-4 h-4" /></>}
+                      {submittingReview ? <Loader2 className="animate-spin w-4 h-4" /> : <>SUBMIT REVIEW <Zap className="ml-3 w-4 h-4" /></>}
                     </Button>
                   </div>
                 </DialogContent>

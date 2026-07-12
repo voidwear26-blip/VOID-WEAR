@@ -6,72 +6,68 @@ import { generateNotificationContent } from '@/ai/flows/generate-notification-co
 const resend = new Resend('re_43Qt9Sqs_KMkjukPTvcYxkFEmCsLXwhzC');
 
 /**
- * VOID WEAR // RESEND DUAL-UPLINK RELAY
- * Dispatches cinematic transmissions via Resend to both Admin and Operator.
+ * VOID WEAR // RESEND DUAL-RELAY
+ * Dispatches order notifications via Resend to both Admin and Customer.
  */
 export async function sendOrderConfirmationNotifications(orderData: any) {
   const adminEmail = 'voidwear26@gmail.com';
   const customerEmail = orderData.email;
 
   try {
-    // 1. Generate Neural Content for the Operator
+    // 1. Generate Content for the Customer
     const neuralContent = await generateNotificationContent({
-      productName: orderData.items?.[0]?.name || 'ASSEMBLAGE MODULE',
+      productName: orderData.items?.[0]?.name || 'APPAREL MODULE',
       status: 'confirmed',
-      operatorName: orderData.displayName || 'OPERATOR'
+      operatorName: orderData.displayName || 'CUSTOMER'
     });
 
     const itemsSummary = orderData.items.map((item: any) => 
-      `- ${item.name} (SZ: ${item.size}, QTY: ${item.quantity})`
+      `- ${item.name} (SIZE: ${item.size}, QTY: ${item.quantity})`
     ).join('\n');
 
-    // 2. TRANSMISSION A: Operator Confirmation (Customer)
+    // 2. Customer Confirmation
     const customerMailPromise = resend.emails.send({
       from: 'VOID WEAR <onboarding@resend.dev>',
       to: customerEmail,
-      subject: `[TRANSMISSION_SECURED] ${orderData.order_ID}`,
+      subject: `[ORDER_CONFIRMED] ${orderData.order_ID}`,
       html: `
-        <div style="background-color: #000; color: #fff; padding: 40px; font-family: 'Space Grotesk', sans-serif; border: 1px solid #333;">
-          <h1 style="border-bottom: 1px solid #333; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">TRANSMISSION SECURED</h1>
+        <div style="background-color: #f9f9f9; color: #000; padding: 40px; font-family: 'Space Grotesk', sans-serif; border: 1px solid #eee;">
+          <h1 style="border-bottom: 1px solid #eee; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">ORDER SECURED</h1>
           <div style="margin-top: 30px;">
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">NEURAL_UPDATE</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #ccc;">${neuralContent.emailContent}</p>
+            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">STATUS_UPDATE</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #333;">${neuralContent.emailContent}</p>
           </div>
-          <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
-             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase;">ACQUIRED_MODULES</p>
-             <pre style="font-size: 12px; line-height: 1.6; color: #fff; font-family: monospace;">${itemsSummary}</pre>
+          <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase;">ORDER_SUMMARY</p>
+             <pre style="font-size: 12px; line-height: 1.6; color: #000; font-family: monospace;">${itemsSummary}</pre>
           </div>
-          <div style="margin-top: 30px; background-color: #111; padding: 20px; border-left: 2px solid #fff;">
-             <p style="color: #666; font-size: 9px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">SYSTEM_ALERT</p>
-             <p style="font-size: 11px; color: #fff; font-weight: bold;">${neuralContent.smsContent}</p>
-          </div>
-          <div style="margin-top: 40px; font-size: 8px; color: #444; letter-spacing: 0.5em; text-align: center; text-transform: uppercase;">
-            VOID WEAR // SYSTEM MANIFESTO 2026
+          <div style="margin-top: 40px; font-size: 8px; color: #999; letter-spacing: 0.5em; text-align: center; text-transform: uppercase;">
+            VOID WEAR // 2026
           </div>
         </div>
       `
     });
 
-    // 3. TRANSMISSION B: System Alert (Admin)
+    // 3. System Alert (Admin)
     const adminMailPromise = resend.emails.send({
       from: 'VOID WEAR SYSTEM <onboarding@resend.dev>',
       to: adminEmail,
-      subject: `[NEW_ACQUISITION] ${orderData.order_ID}`,
+      subject: `[NEW_ORDER] ${orderData.order_ID}`,
       html: `
         <div style="background-color: #000; color: #fff; padding: 40px; font-family: 'Space Grotesk', sans-serif; border: 1px solid #333;">
-          <h1 style="border-bottom: 1px solid #333; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">NEW TRANSMISSION DETECTED</h1>
+          <h1 style="border-bottom: 1px solid #333; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">NEW ORDER DETECTED</h1>
           <div style="margin-top: 30px;">
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">ORDER_UID</p>
+            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">ORDER_ID</p>
             <p style="margin-bottom: 20px; font-size: 16px; font-weight: bold;">${orderData.order_ID}</p>
             
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">VALUATION</p>
+            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">VALUE</p>
             <p style="margin-bottom: 20px; font-size: 24px; color: #fff; font-weight: 900;">₹${orderData.totalAmount}</p>
             
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">OPERATOR_IDENTITY</p>
+            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">CUSTOMER_IDENTITY</p>
             <p style="margin-bottom: 20px; font-size: 14px;">${orderData.displayName} / ${orderData.email}</p>
           </div>
           <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
-             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase;">MODULES_SUMMARY</p>
+             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase;">ITEM_SUMMARY</p>
              <pre style="font-size: 12px; line-height: 1.6; color: #ccc;">${itemsSummary}</pre>
           </div>
           <div style="margin-top: 40px; font-size: 8px; color: #444; letter-spacing: 0.5em; text-align: center; text-transform: uppercase;">
@@ -81,12 +77,11 @@ export async function sendOrderConfirmationNotifications(orderData: any) {
       `
     });
 
-    // Parallel Dispatch via Resend
     await Promise.all([customerMailPromise, adminMailPromise]);
 
     return { success: true };
   } catch (error) {
-    console.error('[UPLINK_FAILURE] Resend transmission failed:', error);
+    console.error('[NOTIFICATION_FAILURE] Resend failed:', error);
     return { success: false };
   }
 }
