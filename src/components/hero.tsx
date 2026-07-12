@@ -42,13 +42,14 @@ export function Hero() {
   const content = useMemo(() => ({
     title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
-    tagline: config?.heroTagline || 'EMBRACE THE KNOWN'
+    tagline: 'EMBRACE THE KNOWN' // Hard-anchored per system requirements
   }), [config, greeting]);
 
   if (!mounted) return null;
 
   return (
     <section className="relative min-h-[90vh] md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
+      {/* Cinematic Background Elements */}
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -65,6 +66,7 @@ export function Hero() {
         </div>
       </motion.div>
 
+      {/* Hero Narrative Layer */}
       <div className="relative z-20 text-center space-y-8 w-full max-w-7xl px-6 flex flex-col items-center">
         <div className="space-y-6 flex flex-col items-center w-full">
           <motion.div
@@ -86,7 +88,7 @@ export function Hero() {
             <div className="relative h-[25vh] md:h-[30vh] w-auto aspect-square">
               <Image 
                 src="/logo.png" 
-                alt="LOGO" 
+                alt="VOID WEAR LOGO" 
                 fill
                 className="object-contain grayscale opacity-100"
                 priority
@@ -111,6 +113,7 @@ export function Hero() {
         </div>
       </div>
 
+      {/* Scroll Indicator Node */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -123,4 +126,3 @@ export function Hero() {
     </section>
   );
 }
-

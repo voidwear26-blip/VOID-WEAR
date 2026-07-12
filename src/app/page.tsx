@@ -21,6 +21,7 @@ export default function Home() {
   const [containerWidth, setContainerWidth] = useState(0);
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
   
+  // High-Priority Data Uplink
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'products'), limit(8));
@@ -79,12 +80,15 @@ export default function Home() {
 
   return (
     <div className="space-y-0 bg-background text-black">
+      {/* 01. Brand Identity Node */}
       <Hero />
       
+      {/* 02. Campaign Broadcast Node */}
       <div className="mt-12 md:mt-20">
         <PromoBanner />
       </div>
 
+      {/* 03. Tactical Acquisition Uplink (View Collection) */}
       <section className="py-16 md:py-24 flex justify-center border-b border-black/5 bg-black/[0.01]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -98,6 +102,7 @@ export default function Home() {
         </motion.div>
       </section>
       
+      {/* 04. Recent Arrivals Node (With Skeleton Logic) */}
       <section className="py-32 md:py-48 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-16 md:mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -125,6 +130,7 @@ export default function Home() {
             className="flex gap-8 md:gap-12 whitespace-nowrap px-6 md:px-0"
           >
             {latestLoading ? (
+              // High-Fidelity Skeletons for perceived performance
               [1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex flex-col items-center justify-center">
                    <Loader2 className="w-6 h-6 animate-spin text-black/10" />
@@ -146,6 +152,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 05. Field Reports Node (Reviews) */}
       <section className="py-32 md:py-48 bg-black/[0.01] border-y border-black/5">
         <div className="container mx-auto px-6 mb-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -226,6 +233,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 06. System Protocol Node (Best Sellers) */}
       <section className="py-32 md:py-48 bg-transparent">
         <div className="container mx-auto px-6">
           <div className="text-center space-y-8 mb-24">
@@ -254,6 +262,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 07. Manifesto Node */}
       <section className="py-48 md:py-64 bg-background overflow-hidden border-t border-black/5">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center space-y-16">
