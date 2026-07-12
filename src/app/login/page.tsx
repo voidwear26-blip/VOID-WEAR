@@ -73,7 +73,12 @@ export default function LoginPage() {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
         await updateAuthProfile(cred.user, { displayName });
         await initiateEmailVerification(cred.user);
-        await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
+        // Explicitly set createdAt during signup
+        await saveUserToFirestore(db, cred.user, { 
+          displayName, 
+          mobileNumber, 
+          createdAt: new Date().toISOString() 
+        });
         toast({ title: "ACCOUNT CREATED", description: "VERIFICATION EMAIL SENT." });
         setMode('verify');
       } else {
@@ -98,6 +103,10 @@ export default function LoginPage() {
       } else if (err.code === 'auth/weak-password') {
         errorTitle = "WEAK PASSWORD";
         errorDesc = "PASSWORD MUST BE AT LEAST 6 CHARACTERS.";
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        // Silent closure
+        setLoading(false);
+        return;
       }
 
       toast({
@@ -132,7 +141,15 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const cred = await initiateGoogleSignIn(auth);
-      await saveUserToFirestore(db, cred.user);
+      
+      // Determine if this is a first-time Google login to save joining date
+      const isNewUser = cred.user.metadata.creationTime === cred.user.metadata.lastSignInTime;
+      const extraData: any = {};
+      if (isNewUser) {
+        extraData.createdAt = new Date().toISOString();
+      }
+
+      await saveUserToFirestore(db, cred.user, extraData);
       toast({ title: "LOGIN SUCCESSFUL" });
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {

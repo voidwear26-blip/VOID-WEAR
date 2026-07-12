@@ -2,7 +2,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, orderBy, setDoc, deleteDoc } from 'firebase/firestore';
-import { ChevronLeft, User as UserIcon, Mail, Phone, MapPin, Package, Clock, ShieldAlert, Loader2, Save, Trash2, Shield, Fingerprint, ExternalLink, Zap, Info } from 'lucide-react';
+import { ChevronLeft, User as UserIcon, Mail, Phone, MapPin, Package, Clock, ShieldAlert, Loader2, Save, Trash2, Shield, Fingerprint, ExternalLink, Zap, Info, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, use } from 'react';
@@ -204,7 +204,11 @@ export default function UserDossierPage({ params }: { params: Promise<{ id: stri
           <div className="space-y-12">
             <div className="bg-black/[0.01] border border-black/5 p-10 space-y-8 backdrop-blur-xl shadow-sm">
                <h3 className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase border-b border-black/10 pb-4">ACCOUNT STATUS</h3>
-               <div className="space-y-4">
+               <div className="space-y-6">
+                 <div className="flex items-center gap-3 text-black/80 mb-2">
+                   <Calendar className="w-3.5 h-3.5 text-black/40" />
+                   <span className="text-[9px] font-black tracking-widest uppercase">JOINED: {entity?.createdAt ? new Date(entity.createdAt).toLocaleDateString() : 'N/A'}</span>
+                 </div>
                  <Select value={formData.isBlocked ? 'BANNED' : 'ACTIVE'} onValueChange={v => setFormData({...formData, isBlocked: v === 'BANNED'})}>
                    <SelectTrigger className={`rounded-none h-12 text-[10px] font-black uppercase ${formData.isBlocked ? 'text-red-600' : 'text-green-600'}`}>
                       <SelectValue />
