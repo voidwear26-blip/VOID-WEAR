@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -50,7 +49,8 @@ export function Footer() {
           
           <div className="space-y-8">
             <h4 className="text-[10px] font-bold tracking-[0.5em] text-black uppercase font-headline">RESOURCES</h4>
-            <div className="flex flex-col gap-5 text-[9px] text-black/60 tracking-[0.3em] uppercase font-bold font-body">
+            <div className="flex flex-col gap-5 text-[9px] text-black/80 tracking-[0.3em] uppercase font-bold font-body">
+              <Link href="/about" className="hover:text-black transition-colors">OUR STORY</Link>
               <Link href="/shipping" className="hover:text-black transition-colors">SHIPPING & RETURNS</Link>
               <Link href="/privacy" className="hover:text-black transition-colors">PRIVACY POLICY</Link>
               <Link href="/terms" className="hover:text-black transition-colors">TERMS OF SERVICE</Link>
