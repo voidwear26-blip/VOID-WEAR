@@ -40,10 +40,8 @@ export default function LoginPage() {
   useEffect(() => {
     if (user && !isUserLoading) {
       if (user.emailVerified || user.providerData[0]?.providerId === 'google.com') {
-        // SUCCESSFUL AUTHENTICATED UPLINK: REDIRECT TO HOMEPAGE
         router.push('/');
       } else {
-        // ENTITY UNVERIFIED: REQUIRE HANDSHAKE
         setMode('verify');
       }
     }
@@ -57,10 +55,10 @@ export default function LoginPage() {
       setLoading(true);
       try {
         await initiatePasswordReset(auth, email.trim());
-        toast({ title: "RECOVERY TRANSMITTED", description: "CHECK YOUR EMAIL FOR THE RESET LINK." });
+        toast({ title: "RESET LINK SENT", description: "CHECK YOUR EMAIL FOR THE RECOVERY LINK." });
         setMode('login');
       } catch (err) {
-        toast({ variant: "destructive", title: "RECOVERY_FAILURE" });
+        toast({ variant: "destructive", title: "SEND FAILURE" });
       } finally {
         setLoading(false);
       }
@@ -73,43 +71,33 @@ export default function LoginPage() {
     try {
       if (mode === 'signup') {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
-        
-        // 1. SYNC AUTH PROFILE
         await updateAuthProfile(cred.user, { displayName });
-        
-        // 2. DISPATCH VERIFICATION PACKET
         await initiateEmailVerification(cred.user);
-        
-        // 3. INITIALIZE DOSSIER
         await saveUserToFirestore(db, cred.user, { displayName, mobileNumber });
-        
-        toast({ title: "IDENTITY INITIALIZED", description: "VERIFICATION LINK TRANSMITTED." });
+        toast({ title: "ACCOUNT CREATED", description: "VERIFICATION EMAIL SENT." });
         setMode('verify');
       } else {
         const cred = await initiateEmailSignIn(auth, email.trim(), password);
         if (!cred.user.emailVerified) {
           setMode('verify');
-          toast({ variant: "destructive", title: "IDENTITY UNVERIFIED", description: "PLEASE AUTHENTICATE YOUR EMAIL." });
+          toast({ variant: "destructive", title: "EMAIL NOT VERIFIED", description: "PLEASE VERIFY YOUR ACCOUNT." });
         } else {
           await saveUserToFirestore(db, cred.user);
-          toast({ title: "CONNECTION ESTABLISHED", description: "WELCOME BACK." });
+          toast({ title: "LOGGED IN", description: "WELCOME BACK." });
         }
       }
     } catch (err: any) {
       console.error('[AUTH_FAILURE]', err);
       
-      let errorTitle = "ACCESS_DENIED";
-      let errorDesc = "INVALID IDENTITY CREDENTIALS.";
+      let errorTitle = "LOGIN FAILED";
+      let errorDesc = "INVALID EMAIL OR PASSWORD.";
 
       if (err.code === 'auth/email-already-in-use') {
-        errorTitle = "IDENTITY_ALREADY_LINKED";
-        errorDesc = "THIS EMAIL IS ALREADY CONNECTED.";
+        errorTitle = "ACCOUNT EXISTS";
+        errorDesc = "THIS EMAIL IS ALREADY REGISTERED.";
       } else if (err.code === 'auth/weak-password') {
-        errorTitle = "SECURITY_ADVISORY";
-        errorDesc = "PASSWORD IS TOO SIMPLE.";
-      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        errorTitle = "CONNECTION_FAILURE";
-        errorDesc = "CREDENTIALS DO NOT MATCH.";
+        errorTitle = "WEAK PASSWORD";
+        errorDesc = "PASSWORD MUST BE AT LEAST 6 CHARACTERS.";
       }
 
       toast({
@@ -127,9 +115,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await initiateEmailVerification(user);
-      toast({ title: "PACKET RE-TRANSMITTED", description: "CHECK YOUR INBOX." });
+      toast({ title: "EMAIL SENT", description: "CHECK YOUR INBOX." });
     } catch (err) {
-      toast({ variant: "destructive", title: "TRANSMISSION_FAILED" });
+      toast({ variant: "destructive", title: "SEND FAILURE" });
     } finally {
       setLoading(false);
     }
@@ -145,10 +133,14 @@ export default function LoginPage() {
     try {
       const cred = await initiateGoogleSignIn(auth);
       await saveUserToFirestore(db, cred.user);
-      toast({ title: "GOOGLE CONNECTION SECURED" });
+      toast({ title: "LOGIN SUCCESSFUL" });
     } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setLoading(false);
+        return;
+      }
       console.error('[GOOGLE_AUTH_FAILURE]', err);
-      toast({ variant: "destructive", title: "CONNECTION FAILED" });
+      toast({ variant: "destructive", title: "LOGIN FAILED" });
     } finally {
       setLoading(false);
     }
@@ -161,8 +153,8 @@ export default function LoginPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-12">
         <div className="text-center space-y-6">
            <Image src="/logo.png" alt="VOID WEAR" width={80} height={80} className="mx-auto grayscale" unoptimized />
-           <p className="text-[10px] tracking-[0.8em] text-black/40 uppercase font-black font-headline">
-             {mode === 'login' ? 'AUTHENTICATION' : mode === 'signup' ? 'INITIALIZATION' : mode === 'reset' ? 'RECOVERY' : 'VERIFICATION'}
+           <p className="text-[10px] tracking-[0.8em] text-black/60 uppercase font-black font-headline">
+             {mode === 'login' ? 'LOGIN' : mode === 'signup' ? 'SIGN UP' : mode === 'reset' ? 'RECOVERY' : 'VERIFY'}
            </p>
         </div>
 
@@ -174,23 +166,23 @@ export default function LoginPage() {
                   <MailCheck className="w-8 h-8 text-black/60 animate-pulse" />
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-black font-headline">HANDSHAKE REQUIRED</h3>
+                  <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-black font-headline">VERIFY EMAIL</h3>
                   <p className="text-[10px] tracking-[0.2em] text-black/60 leading-relaxed uppercase font-medium">
-                    A verification link has been sent to <span className="text-black font-bold">{user?.email}</span>. Please authorize to continue.
+                    A link has been sent to <span className="text-black font-bold">{user?.email}</span>. Please verify to continue.
                   </p>
                   
                   <div className="p-4 border border-black/10 bg-black/[0.02] flex items-center gap-3">
                      <AlertTriangle className="w-4 h-4 text-black/40 shrink-0" />
                      <p className="text-[8px] tracking-[0.2em] text-black/60 uppercase font-black text-left leading-relaxed">
-                        ADVISORY: IF NOT RECEIVED, CHECK YOUR SPAM FOLDERS.
+                        CHECK YOUR SPAM FOLDER IF YOU DON'T SEE IT.
                      </p>
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
                   <Button onClick={handleResendVerification} disabled={loading} variant="outline" className="h-14 border-black/10 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent hover:bg-black hover:text-white uppercase transition-all">
-                    {loading ? <Loader2 className="animate-spin" /> : <><RotateCcw className="mr-3 w-3.5 h-3.5" /> RE-SEND EMAIL</>}
+                    {loading ? <Loader2 className="animate-spin" /> : <><RotateCcw className="mr-3 w-3.5 h-3.5" /> RESEND EMAIL</>}
                   </Button>
-                  <button onClick={handleLogout} className="text-[8px] tracking-[0.4em] text-black/40 hover:text-black uppercase font-black transition-colors">SIGN OUT</button>
+                  <button onClick={handleLogout} className="text-[8px] tracking-[0.4em] text-black/60 hover:text-black uppercase font-black transition-colors">SIGN OUT</button>
                 </div>
               </motion.div>
             ) : (
@@ -207,8 +199,8 @@ export default function LoginPage() {
                 {mode !== 'reset' && (
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] font-bold tracking-[0.4em] text-black/40 uppercase">PASSWORD</label>
-                      {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-black/40 hover:text-black transition-colors font-black uppercase">FORGOT?</button>}
+                      <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">PASSWORD</label>
+                      {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-[8px] text-black/60 hover:text-black transition-colors font-black uppercase">FORGOT?</button>}
                     </div>
                     <div className="relative">
                       <Input 
@@ -229,7 +221,7 @@ export default function LoginPage() {
                 )}
 
                 <Button disabled={loading} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-black tracking-[0.5em] rounded-none uppercase transition-all shadow-sm">
-                  {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'INITIALIZE' : mode === 'reset' ? 'RECOVER' : 'LOGIN')}
+                  {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'CREATE ACCOUNT' : mode === 'reset' ? 'RECOVER' : 'LOGIN')}
                 </Button>
                 
                 {mode === 'login' && (
@@ -242,13 +234,13 @@ export default function LoginPage() {
           </AnimatePresence>
 
           {mode === 'reset' && (
-             <button onClick={() => setMode('login')} className="w-full text-[8px] tracking-[0.4em] text-black/40 hover:text-black uppercase font-black transition-colors">BACK TO LOGIN</button>
+             <button onClick={() => setMode('login')} className="w-full text-[8px] tracking-[0.4em] text-black/60 hover:text-black uppercase font-black transition-colors">BACK TO LOGIN</button>
           )}
         </div>
 
         {mode !== 'verify' && (
-          <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-black/40 hover:text-black border-b border-black/5 pb-1 uppercase font-black transition-all">
-            {mode === 'signup' ? 'ALREADY CONNECTED? LOGIN' : 'NEW CUSTOMER? SIGN UP'}
+          <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-black/60 hover:text-black border-b border-black/5 pb-1 uppercase font-black transition-all">
+            {mode === 'signup' ? 'ALREADY HAVE AN ACCOUNT? LOGIN' : 'NEW CUSTOMER? SIGN UP'}
           </button>
         )}
       </motion.div>
@@ -259,7 +251,7 @@ export default function LoginPage() {
 function Field({ label, value, onChange, type = "text", placeholder }: any) {
   return (
     <div className="space-y-2">
-      <label className="text-[9px] font-bold tracking-[0.4em] text-black/40 uppercase">{label}</label>
+      <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">{label}</label>
       <Input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="bg-white border-black/10 h-14 rounded-none text-xs tracking-widest text-black placeholder:text-black/10 uppercase focus:border-black/40" />
     </div>
   );

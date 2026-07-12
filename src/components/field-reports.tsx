@@ -94,8 +94,8 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-black/10 pb-12 gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <MessageSquare className="w-5 h-5 text-black/60" />
-            <span className="text-[10px] font-bold tracking-[0.8em] text-black/60 uppercase">CUSTOMER REVIEWS</span>
+            <MessageSquare className="w-5 h-5 text-black/80" />
+            <span className="text-[10px] font-bold tracking-[0.8em] text-black/80 uppercase">CUSTOMER REVIEWS</span>
           </div>
           <h3 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Buyer <br /> Feedback</h3>
           <p className="text-[9px] tracking-[0.3em] text-black/80 uppercase font-black">AUTHENTIC REVIEWS FROM OUR CUSTOMERS</p>
@@ -110,7 +110,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
         <div className="lg:col-span-1 space-y-12 lg:sticky lg:top-32 h-fit">
           {!user ? (
             <div className="p-12 border border-black/10 bg-black/[0.02] space-y-8 text-center backdrop-blur-xl">
-              <ShieldAlert className="w-10 h-10 text-black/40 mx-auto" />
+              <ShieldAlert className="w-10 h-10 text-black/60 mx-auto" />
               <div className="space-y-2">
                 <p className="text-[10px] tracking-[0.3em] text-black/80 uppercase font-bold">LOGIN REQUIRED</p>
                 <p className="text-[8px] tracking-[0.2em] text-black/80 uppercase leading-relaxed font-black">PLEASE LOGIN TO LEAVE A REVIEW.</p>
@@ -121,12 +121,12 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
             </div>
           ) : checkingVerification ? (
             <div className="p-12 border border-black/10 bg-black/[0.02] flex flex-col items-center justify-center space-y-6">
-              <Loader2 className="w-8 h-8 animate-spin text-black/40" />
+              <Loader2 className="w-8 h-8 animate-spin text-black/60" />
               <p className="text-[9px] tracking-[0.3em] text-black/80 uppercase font-bold">Verifying...</p>
             </div>
           ) : !hasPurchased ? (
             <div className="p-12 border border-black/10 bg-black/[0.02] space-y-6 backdrop-blur-xl">
-               <ShoppingBag className="w-10 h-10 text-black/30 mx-auto" />
+               <ShoppingBag className="w-10 h-10 text-black/60 mx-auto" />
                <p className="text-[9px] tracking-[0.3em] text-black/80 uppercase font-black text-center leading-relaxed">
                  ONLY CUSTOMERS WHO HAVE PURCHASED THIS ITEM CAN LEAVE A REVIEW.
                </p>
@@ -148,7 +148,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                         className="transition-all hover:scale-125 group focus:outline-none"
                       >
                         <Star 
-                          className={`w-6 h-6 transition-all ${rating >= s ? 'text-[#facc15] fill-current' : 'text-black/10 group-hover:text-black/30'}`} 
+                          className={`w-6 h-6 transition-all ${rating >= s ? 'text-[#facc15] fill-current' : 'text-black/10 group-hover:text-black/40'}`} 
                         />
                       </button>
                     ))}
@@ -161,7 +161,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="WHAT DID YOU THINK OF THIS ITEM?..."
-                    className="bg-white border-black/10 rounded-none h-[150px] text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/20 leading-relaxed"
+                    className="bg-white border-black/10 rounded-none h-[150px] text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/40 leading-relaxed"
                   />
                 </div>
 
@@ -175,9 +175,9 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
 
         <div className="lg:col-span-2 space-y-12">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32 opacity-40 border border-dashed border-black/10">
+            <div className="flex flex-col items-center justify-center py-32 opacity-80 border border-dashed border-black/10">
               <Loader2 className="w-10 h-10 animate-spin mb-6" />
-              <span className="text-[10px] tracking-[0.5em] uppercase font-bold">Syncing...</span>
+              <span className="text-[10px] tracking-[0.5em] uppercase font-bold">Loading Reviews...</span>
             </div>
           ) : reports && reports.length > 0 ? (
             <div className="grid gap-12">
@@ -199,13 +199,13 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-black/10 pb-8">
                       <div className="flex items-center gap-6">
                         <div className="w-14 h-14 border border-black/10 bg-black/5 flex items-center justify-center group-hover:border-black/30 transition-colors">
-                          <UserIcon className="w-6 h-6 text-black/60" />
+                          <UserIcon className="w-6 h-6 text-black/80" />
                         </div>
                         <div className="space-y-1">
                           <p className="text-[12px] font-black tracking-[0.3em] text-black uppercase">{report.userName}</p>
                           <div className="flex items-center gap-4 text-[8px] text-black/80 tracking-widest font-bold uppercase">
                              <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                             <span className="w-1 h-1 bg-black/40 rounded-full" />
+                             <span className="w-1 h-1 bg-black/60 rounded-full" />
                              <span className="font-mono">{report.userId.slice(0, 8)}...</span>
                           </div>
                         </div>
@@ -227,7 +227,7 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
                       <div className="p-8 bg-black/[0.02] border border-black/10 space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
                          <div className="flex items-center gap-3 text-green-600">
                             <Heart className="w-4 h-4 fill-current" />
-                            <span className="text-[8px] font-black tracking-[0.5em] uppercase">SYSTEM REPLY</span>
+                            <span className="text-[8px] font-black tracking-[0.5em] uppercase">VOID WEAR REPLY</span>
                          </div>
                          <p className="text-[11px] text-black/80 tracking-[0.2em] leading-relaxed uppercase italic font-bold">
                            "{report.adminReply}"
@@ -239,10 +239,10 @@ export function FieldReports({ productId, productName }: FieldReportsProps) {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="py-48 text-center opacity-60 border border-dashed border-black/10 flex flex-col items-center justify-center gap-10">
-              <Zap className="w-16 h-16 stroke-[0.5px]" />
+            <div className="py-48 text-center opacity-80 border border-dashed border-black/10 flex flex-col items-center justify-center gap-10">
+              <Zap className="w-16 h-16 stroke-[0.5px] text-black/40" />
               <div className="space-y-3">
-                <p className="text-[12px] tracking-[1em] uppercase font-black">NO REVIEWS</p>
+                <p className="text-[12px] tracking-[1em] uppercase font-black text-black/80">NO REVIEWS</p>
                 <p className="text-[8px] tracking-[0.5em] uppercase font-bold text-black/80">BE THE FIRST TO REVIEW THIS ITEM.</p>
               </div>
             </div>

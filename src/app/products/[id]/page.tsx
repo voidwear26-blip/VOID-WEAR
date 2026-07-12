@@ -222,7 +222,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const handleAuthGuard = () => {
     if (!user) {
-      toast({ title: "AUTHENTICATION REQUIRED", description: "LOG IN TO YOUR ACCOUNT TO CONTINUE." });
+      toast({ title: "LOGIN REQUIRED", description: "LOG IN TO YOUR ACCOUNT TO CONTINUE." });
       router.push('/login');
       return false;
     }
@@ -233,7 +233,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (isGlobalOOS || isSelectedVariantOOS) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
-      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR." });
+      toast({ variant: "destructive", title: "SELECTION REQUIRED", description: "SELECT SIZE AND COLOR." });
       return;
     }
     if (!db || !product) return;
@@ -241,7 +241,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     setAdding(true);
     try {
       await addToCart(db, user!.uid, { ...product, id: product.id, color: selectedColor } as any, selectedSize);
-      toast({ title: "ADDED TO BAG", description: "ITEM TRANSITIONED TO BAG." });
+      toast({ title: "ADDED TO BAG", description: "ITEM ADDED TO YOUR BAG." });
     } catch (e) {
       console.error(e);
     } finally {
@@ -253,7 +253,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (isGlobalOOS || isSelectedVariantOOS) return;
     if (!handleAuthGuard()) return;
     if (!selectedSize || !selectedColor) {
-      toast({ variant: "destructive", title: "CONFIGURATION REQUIRED", description: "SELECT SIZE AND COLOR." });
+      toast({ variant: "destructive", title: "SELECTION REQUIRED", description: "SELECT SIZE AND COLOR." });
       return;
     }
     if (!db || !product) return;
@@ -313,7 +313,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-6">
           <Loader2 className="w-10 h-10 animate-spin text-black/40" />
-          <span className="text-[10px] tracking-[1em] uppercase font-bold text-black/60">Syncing Module...</span>
+          <span className="text-[10px] tracking-[1em] uppercase font-bold text-black/60">Loading...</span>
         </div>
       </div>
     );
@@ -324,7 +324,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   return (
     <div className="pt-32 pb-24 bg-transparent min-h-screen text-black">
       <div className="container mx-auto px-6">
-        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-black/60 mb-12 uppercase font-bold">
+        <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] text-black/80 mb-12 uppercase font-bold">
           <Link href="/" className="hover:text-black transition-colors">HOME</Link>
           <ChevronRight className="w-3 h-3 opacity-50" />
           <Link href="/products" className="hover:text-black transition-colors">COLLECTION</Link>
@@ -400,16 +400,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           <div className="space-y-12 lg:sticky lg:top-32">
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-black/70 uppercase">
-                <span className="w-8 h-[1px] bg-black/40"></span>
+              <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.5em] text-black/80 uppercase">
+                <span className="w-8 h-[1px] bg-black/60"></span>
                 {product.category}
               </div>
               <div className="flex flex-col gap-2">
                 <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase text-black font-headline">{product.name}</h1>
                 {(isGlobalOOS || isSelectedVariantOOS) && (
-                  <div className="flex items-center gap-2 text-red-500">
+                  <div className="flex items-center gap-2 text-red-600">
                     <ZapOff className="w-4 h-4" />
-                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Status: Out of Stock</span>
+                    <span className="text-[10px] font-black tracking-[0.4em] uppercase">Out of Stock</span>
                   </div>
                 )}
               </div>
@@ -431,7 +431,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="space-y-10">
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-black/10 pb-4">
-                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/60">01. SELECT SIZE</h4>
+                  <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/70">01. SELECT SIZE</h4>
                   <Dialog>
                     <DialogTrigger asChild>
                       <button className="flex items-center gap-2 text-[9px] font-black tracking-[0.3em] text-black/80 hover:text-black transition-all uppercase">
@@ -465,8 +465,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         }}
                         className={cn(
                           "relative w-14 h-14 border flex items-center justify-center text-[10px] font-bold tracking-widest transition-all backdrop-blur-sm",
-                          selectedSize === size ? "bg-black text-white border-black" : "border-black/10 hover:border-black/40 bg-black/[0.01] text-black/70",
-                          isOOS && "border-red-500/20 text-red-500/50"
+                          selectedSize === size ? "bg-black text-white border-black" : "border-black/10 hover:border-black/40 bg-black/[0.01] text-black/80",
+                          isOOS && "border-red-500/20 text-red-600/50"
                         )}
                       >
                         {size}
@@ -478,7 +478,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
 
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-700">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/60 border-b border-black/10 pb-4">02. SELECT COLOR</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/70 border-b border-black/10 pb-4">02. SELECT COLOR</h4>
                 <div className="flex flex-wrap gap-4">
                   {allUniqueColors.map(color => {
                     const isOOS = selectedSize 
@@ -549,7 +549,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <div className="border-t border-black/10 pt-12 space-y-8">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/60">SPECIFICATIONS</h4>
+                <h4 className="text-[10px] font-bold tracking-[0.4em] uppercase text-black/70">SPECIFICATIONS</h4>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest text-black/80">
                   {product.details?.map((detail: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 uppercase font-light">
@@ -571,15 +571,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <Sparkles className="w-4 h-4 text-black/60" />
-                <span className="text-[10px] font-bold tracking-[0.8em] text-black/60 uppercase">YOU MAY ALSO LIKE</span>
+                <Sparkles className="w-4 h-4 text-black/80" />
+                <span className="text-[10px] font-bold tracking-[0.8em] text-black/80 uppercase">YOU MAY ALSO LIKE</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none font-headline">Recommended <br /> Items</h2>
               <p className="text-black/80 tracking-widest text-xs uppercase font-light max-w-xl">
                 ITEMS THAT ALIGN WITH YOUR CURRENT SELECTION.
               </p>
             </div>
-            <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all uppercase border-b border-black/10 pb-4">
+            <Link href="/products" className="group flex items-center gap-4 text-[10px] font-bold tracking-[0.4em] text-black/80 hover:text-black transition-all uppercase border-b border-black/10 pb-4">
               EXPLORE ALL
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -594,8 +594,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <div key={i} className="aspect-[3/4] bg-black/[0.02] border border-black/5 animate-pulse" />
               ))
             ) : (
-               <div className="col-span-full py-20 text-center opacity-60">
-                  <p className="text-[10px] tracking-[0.5em] uppercase">No recommendations found.</p>
+               <div className="col-span-full py-20 text-center opacity-80">
+                  <p className="text-[10px] tracking-[0.5em] uppercase font-bold">No recommendations found.</p>
                </div>
             )}
           </div>

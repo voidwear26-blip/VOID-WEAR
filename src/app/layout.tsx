@@ -16,11 +16,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'VOID WEAR | Embrace The Unknown',
+    default: 'VOID WEAR | Premium Minimalist Apparel',
     template: '%s | VOID WEAR'
   },
-  description: 'VOID WEAR provides high-performance futuristic premium apparel. Minimalist architecture and cinematic aesthetics for the digital migration.',
-  keywords: ['techwear', 'futuristic clothing', 'cyberpunk apparel', 'urban explorer gear', 'minimalist architecture', 'VOID WEAR'],
+  description: 'VOID WEAR provides premium minimalist apparel for everyday life. Modern design and cinematic aesthetics.',
+  keywords: ['minimalist clothing', 'premium apparel', 'modern style', 'urban fashion', 'VOID WEAR'],
   authors: [{ name: 'VOID WEAR collective' }],
   creator: 'VOID WEAR',
   publisher: 'VOID WEAR INC.',
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: siteUrl,
-    title: 'VOID WEAR | EMBRACE THE UNKNOWN',
-    description: 'High-performance premium apparel for the high-density urban environment.',
+    title: 'VOID WEAR | Premium Minimalist Apparel',
+    description: 'High-quality apparel for the modern environment.',
     siteName: 'VOID WEAR',
     images: [
       {
@@ -46,8 +46,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VOID WEAR | EMBRACE THE UNKNOWN',
-    description: 'Premium futuristic apparel for the digital migration.',
+    title: 'VOID WEAR | Premium Minimalist Apparel',
+    description: 'Premium apparel for everyday life.',
     creator: '@voidwearoff_26',
     images: ['/logo.png'],
   },
