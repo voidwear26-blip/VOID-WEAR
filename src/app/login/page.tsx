@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -39,8 +40,18 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      if (user.emailVerified || user.providerData[0]?.providerId === 'google.com') {
-        router.push('/');
+      const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
+      if (user.emailVerified || isGoogleUser) {
+        // Detect if this is the user's first time arriving
+        const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+        const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
+
+        if (isNewUser || wasNewReg) {
+          if (wasNewReg) localStorage.removeItem('void_new_reg');
+          router.push('/profile');
+        } else {
+          router.push('/');
+        }
       } else {
         setMode('verify');
       }
@@ -73,13 +84,16 @@ export default function LoginPage() {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
         await updateAuthProfile(cred.user, { displayName });
         await initiateEmailVerification(cred.user);
-        // Explicitly set createdAt during signup
+        
+        // Flag this as a new registration for redirect after verification
+        localStorage.setItem('void_new_reg', 'true');
+
         await saveUserToFirestore(db, cred.user, { 
           displayName, 
           mobileNumber, 
           createdAt: new Date().toISOString() 
         });
-        toast({ title: "ACCOUNT CREATED", description: "VERIFICATION EMAIL SENT." });
+        toast({ title: "ACCOUNT CREATED", description: "PLEASE VERIFY YOUR EMAIL TO PROCEED." });
         setMode('verify');
       } else {
         const cred = await initiateEmailSignIn(auth, email.trim(), password);
@@ -89,6 +103,8 @@ export default function LoginPage() {
         } else {
           await saveUserToFirestore(db, cred.user);
           toast({ title: "LOGGED IN", description: "WELCOME BACK." });
+          
+          // Redirection handled by useEffect
         }
       }
     } catch (err: any) {
@@ -104,7 +120,6 @@ export default function LoginPage() {
         errorTitle = "WEAK PASSWORD";
         errorDesc = "PASSWORD MUST BE AT LEAST 6 CHARACTERS.";
       } else if (err.code === 'auth/popup-closed-by-user') {
-        // Silent closure
         setLoading(false);
         return;
       }
@@ -142,7 +157,6 @@ export default function LoginPage() {
     try {
       const cred = await initiateGoogleSignIn(auth);
       
-      // Determine if this is a first-time Google login to save joining date
       const isNewUser = cred.user.metadata.creationTime === cred.user.metadata.lastSignInTime;
       const extraData: any = {};
       if (isNewUser) {
@@ -151,6 +165,8 @@ export default function LoginPage() {
 
       await saveUserToFirestore(db, cred.user, extraData);
       toast({ title: "LOGIN SUCCESSFUL" });
+
+      // useEffect will handle the redirect based on isNewUser
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false);
@@ -185,7 +201,7 @@ export default function LoginPage() {
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-black font-headline">VERIFY EMAIL</h3>
                   <p className="text-[10px] tracking-[0.2em] text-black/60 leading-relaxed uppercase font-medium">
-                    A link has been sent to <span className="text-black font-bold">{user?.email}</span>. Please verify to continue.
+                    A link has been sent to <span className="text-black font-bold">{user?.email}</span>. Please verify your email, then refresh this page or log in again to continue.
                   </p>
                   
                   <div className="p-4 border border-black/10 bg-black/[0.02] flex items-center gap-3">
