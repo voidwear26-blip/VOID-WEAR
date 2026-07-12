@@ -52,6 +52,7 @@ service cloud.firestore {
     // --- CONFIG ---
     match /app_config/{configId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
 
     // --- STORIES ---
