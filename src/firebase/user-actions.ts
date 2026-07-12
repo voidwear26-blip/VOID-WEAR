@@ -27,8 +27,13 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
    * MASTER AUTHORITY SYNC:
    * Explicitly sets ADMIN role for hardcoded primary identities.
    */
-  const isMasterEmail = user.email?.toLowerCase() === 'voidwear26@gmail.com';
-  const isMasterUID = user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+  const isMasterEmail = 
+    user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+    user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com';
+  
+  const isMasterUID = 
+    user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' || 
+    user.uid === '0LvBBO9ySQdBKr3uwjcAjphMM8x1';
 
   if (isMasterEmail || isMasterUID) {
     dossierData.role = 'ADMIN';

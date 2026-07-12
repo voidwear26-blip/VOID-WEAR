@@ -68,7 +68,9 @@ export default function AdminDashboard() {
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user || isProfileLoading) return false;
     return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
+           user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com' ||
            user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+           user.uid === '0LvBBO9ySQdBKr3uwjcAjphMM8x1' ||
            profile?.role === 'ADMIN';
   }, [user, isUserLoading, profile, isProfileLoading]);
 

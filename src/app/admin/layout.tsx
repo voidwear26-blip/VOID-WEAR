@@ -28,8 +28,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isUserLoading || !user) return false;
     
     // Master identity checks (UID and Email)
-    const isMasterEmail = user.email?.toLowerCase() === 'voidwear26@gmail.com';
-    const isMasterUID = user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+    const isMasterEmail = 
+      user.email?.toLowerCase() === 'voidwear26@gmail.com' ||
+      user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com';
+      
+    const isMasterUID = 
+      user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
+      user.uid === '0LvBBO9ySQdBKr3uwjcAjphMM8x1';
     
     // Database-driven role check
     const hasAdminRole = profile?.role === 'ADMIN';
