@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useMemo } from 'react';
@@ -27,15 +26,11 @@ export function Hero() {
   const { data: config } = useDoc(configRef);
   const { data: profile } = useDoc(profileRef);
 
-  // Rules of Hooks: All hooks must be called before any early returns.
-  // Prioritize Profile Display Name, then Auth Display Name, then Email Prefix, finally 'OPERATOR'
   const greeting = useMemo(() => {
     if (!user) return 'OPERATOR';
     const profileName = profile?.displayName;
     const authName = user.displayName;
     const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'OPERATOR';
-    
-    // Explicit priority: Firestore Dossier > Auth Profile > Email Artifact
     return (profileName || authName || emailPrefix).toUpperCase();
   }, [user, profile]);
   
@@ -49,14 +44,12 @@ export function Hero() {
     setMounted(true);
   }, []);
 
-  // Early return placed after all hooks to prevent "Rules of Hooks" violations.
   if (!mounted) return null;
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
-      {/* Background Eclipse Effect */}
+    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-white">
       <motion.div 
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 4, ease: [0.22, 1, 0.36, 1] }}
         className="absolute inset-0 flex items-center justify-center z-10"
@@ -65,82 +58,77 @@ export function Hero() {
           <div className="eclipse-glow" />
           <motion.div 
             animate={{ rotate: 360 }}
-            transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 eclipse-logo"
+            transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 eclipse-logo border border-black/[0.02]"
           />
         </div>
       </motion.div>
 
       <div className="relative z-20 text-center space-y-12 w-full max-w-7xl px-6 pt-32 flex flex-col items-center">
         <div className="space-y-8 flex flex-col items-center w-full">
-          {/* Subtitle / Operator Tag */}
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1, duration: 1.5 }}
+            transition={{ delay: 1, duration: 1 }}
           >
-            <span className="text-[10px] md:text-xs font-bold tracking-[1.2em] text-white/80 uppercase">
+            <span className="text-[10px] md:text-xs font-bold tracking-[1em] text-black/40 uppercase">
               VOID WEAR // {content.subtitle}
             </span>
           </motion.div>
           
-          {/* Massive Logo and Title */}
           <motion.div 
-            initial={{ y: 30, opacity: 0 }}
+            initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1.3, duration: 1.5 }}
+            transition={{ delay: 1.2, duration: 1 }}
             className="flex flex-col items-center gap-6 w-full"
           >
-            <div className="relative h-[45vh] w-auto aspect-square">
+            <div className="relative h-[40vh] w-auto aspect-square">
               <Image 
                 src="/logo.png" 
-                alt="VOID WEAR LOGO" 
+                alt="LOGO" 
                 fill
-                className="object-contain brightness-200 grayscale opacity-100"
+                className="object-contain grayscale opacity-100"
                 priority
                 unoptimized
               />
             </div>
-            <div className="glow-text w-full overflow-hidden">
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[0.4em] uppercase leading-none whitespace-nowrap inline-block">
+            <div className="w-full overflow-hidden">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[0.4em] uppercase leading-none whitespace-nowrap inline-block text-black">
                 {content.title}
               </h1>
             </div>
           </motion.div>
           
-          {/* Slogan */}
           <motion.p 
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1.6, duration: 1.5 }}
-            className="text-[10px] md:text-xs text-white/90 max-w-2xl mx-auto tracking-[0.8em] uppercase font-light"
+            transition={{ delay: 1.4, duration: 1 }}
+            className="text-[10px] md:text-xs text-black/60 max-w-2xl mx-auto tracking-[0.6em] uppercase font-light"
           >
             {content.tagline}
           </motion.p>
         </div>
 
-        {/* Action Button */}
         <motion.div 
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 2, duration: 1.5 }}
+          transition={{ delay: 1.6, duration: 1 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
         >
-          <Button asChild className="bg-white text-black hover:bg-black hover:text-white border-white border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-700 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+          <Button asChild className="bg-black text-white hover:bg-black/80 border-black border px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm">
             <Link href="/products">ENTER SYSTEM</Link>
           </Button>
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 3, duration: 2 }}
+        transition={{ delay: 2.5, duration: 1 }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
       >
-        <div className="w-px h-16 bg-gradient-to-b from-white/80 to-transparent"></div>
-        <span className="text-[8px] tracking-[1.2em] text-white/60 uppercase font-bold">DESCEND</span>
+        <div className="w-px h-16 bg-gradient-to-b from-black/20 to-transparent"></div>
+        <span className="text-[8px] tracking-[1.2em] text-black/40 uppercase font-bold">DESCEND</span>
       </motion.div>
     </section>
   );

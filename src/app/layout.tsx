@@ -9,7 +9,7 @@ import Script from 'next/script';
 const siteUrl = 'https://voidwear.co.in';
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#ffffff',
   width: 'device-width',
   initialScale: 1,
 };
@@ -79,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="light">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -95,7 +95,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="antialiased bg-black text-white selection:bg-white selection:text-black overflow-x-hidden">
+      <body className="antialiased bg-white text-black selection:bg-black selection:text-white overflow-x-hidden">
         <FirebaseClientProvider>
           <div className="noise-overlay" />
           <Navbar />

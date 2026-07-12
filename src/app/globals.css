@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 2%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 60%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 60%;
-    --muted-foreground: 0 0% 90%;
-    --accent: 0 0% 100%;
-    --accent-foreground: 0 0% 0%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 0 0% 0%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 60%;
-    --input: 0 0% 60%;
-    --ring: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
     --radius: 0rem;
   }
 }
@@ -36,7 +36,7 @@
     overflow-x: hidden;
   }
   body {
-    @apply bg-background text-foreground selection:bg-white selection:text-black;
+    @apply bg-background text-foreground selection:bg-black selection:text-white;
     font-family: 'Space Grotesk', sans-serif;
     overflow-y: auto !important;
     min-height: 100vh;
@@ -57,52 +57,52 @@
   }
 }
 
-/* Cinematic Utilities */
+/* Cinematic Utilities (Refined for Light Theme) */
 .glow-text {
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4), 0 0 30px rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .glow-icon {
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.1));
   transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .glow-icon-hover:hover svg {
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2));
   transform: scale(1.1);
-  color: white !important;
+  color: black !important;
 }
 
 .glow-border {
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.02);
   transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .glow-border:hover {
-  box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .eclipse-logo {
-  background: black;
+  background: white;
   border-radius: 50%;
   box-shadow: 
-    0 0 100px 10px rgba(255, 255, 255, 0.25),
-    inset 0 0 40px rgba(255, 255, 255, 0.1);
+    0 0 100px 10px rgba(0, 0, 0, 0.05),
+    inset 0 0 40px rgba(0, 0, 0, 0.02);
   position: relative;
 }
 
 .eclipse-glow {
   position: absolute;
   inset: -30px;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 75%);
+  background: radial-gradient(circle at center, rgba(0,0,0,0.02) 0%, transparent 75%);
   filter: blur(40px);
   animation: breathing 5s ease-in-out infinite;
 }
 
 @keyframes breathing {
-  0%, 100% { transform: scale(1); opacity: 0.4; }
-  50% { transform: scale(1.15); opacity: 0.6; }
+  0%, 100% { transform: scale(1); opacity: 0.2; }
+  50% { transform: scale(1.1); opacity: 0.3; }
 }
 
 .noise-overlay {
@@ -112,25 +112,25 @@
   width: 100%;
   height: 100%;
   content: "";
-  opacity: 0.03;
+  opacity: 0.01;
   z-index: 9999;
   pointer-events: none;
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
 }
 
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.6);
-  border: 3px solid black;
+  background: rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.2);
 }

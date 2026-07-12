@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,15 +29,14 @@ export default function ContactPage() {
     if (!name || !email || !subject || !message) {
       toast({
         variant: "destructive",
-        title: "MISSING_DATA_NODES",
-        description: "PLEASE ENSURE ALL TRANSMISSION NODES ARE POPULATED.",
+        title: "INCOMPLETE",
+        description: "PLEASE FILL ALL FIELDS.",
       });
       return;
     }
 
     setIsPending(true);
     try {
-      // 1. LOG TO DATABASE (Backup & Audit)
       await addDoc(collection(db, 'contacts'), {
         name,
         email,
@@ -46,26 +45,17 @@ export default function ContactPage() {
         createdAt: new Date().toISOString()
       });
 
-      // 2. TRIGGER NEURAL RELAY (Email Transmission)
-      // Note: This relies on GMAIL_APP_PASSWORD being correctly configured in the environment.
-      const emailResult = await sendContactEmail({}, formData);
-      
-      if (!emailResult.success) {
-        console.warn('[UPLINK_WARNING] DATABASE_LOG_SECURED_BUT_EMAIL_RELAY_FAILED:', emailResult.message);
-        // We still show success because the message is saved in the database admin panel.
-      }
-
+      await sendContactEmail({}, formData);
       setSubmitted(true);
       toast({
-        title: "TRANSMISSION SECURED",
-        description: "YOUR MESSAGE HAS REACHED THE SYSTEM ARCHIVE.",
+        title: "SENT",
+        description: "MESSAGE RECEIVED.",
       });
     } catch (error) {
-      console.error('[UPLINK_FAILURE]', error);
       toast({
         variant: "destructive",
-        title: "UPLINK FAILURE",
-        description: "COULD NOT ESTABLISH CONNECTION TO THE VOID.",
+        title: "ERROR",
+        description: "CONNECTION FAILED.",
       });
     } finally {
       setIsPending(false);
@@ -73,73 +63,45 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-40 pb-32 bg-transparent min-h-screen text-white">
+    <div className="pt-40 pb-32 bg-white min-h-screen text-black">
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-24 max-w-6xl mx-auto">
           <div className="space-y-12">
             <div className="space-y-4">
-              <span className="text-xs font-bold tracking-[0.6em] text-white/40 uppercase">COMMUNICATION // UPLINK</span>
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight glow-text uppercase leading-none">Establish <br /> Connection</h1>
-              <p className="text-white/60 tracking-widest text-sm leading-relaxed uppercase max-w-md font-medium">
-                Reach out to our primary administrator for inquiries regarding orders, technical specifications, or reporting system anomalies.
+              <span className="text-xs font-bold tracking-[0.6em] text-black/40 uppercase">COMMUNICATION</span>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight uppercase leading-none text-black">Contact</h1>
+              <p className="text-black/60 tracking-widest text-sm leading-relaxed uppercase max-w-md font-light">
+                Reach out for inquiries or system support.
               </p>
             </div>
 
             <div className="space-y-8">
-              <div className="flex items-center gap-6 group">
-                <div className="w-12 h-12 border border-white/10 flex items-center justify-center group-hover:border-white transition-colors bg-white/[0.02]">
-                  <Mail className="w-5 h-5 text-white/40 group-hover:text-white transition-all" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">EMAIL PROTOCOL</p>
-                  <p className="text-xs tracking-widest uppercase text-white/90">voidwear26@gmail.com</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6 group">
-                <div className="w-12 h-12 border border-white/10 flex items-center justify-center group-hover:border-white transition-colors bg-white/[0.02]">
-                  <MessageSquare className="w-5 h-5 text-white/40 group-hover:text-white transition-all" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">SUPPORT CHANNEL</p>
-                  <p className="text-xs tracking-widest uppercase text-white/90">+91 94885 89972</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6 group">
-                <div className="w-12 h-12 border border-white/10 flex items-center justify-center group-hover:border-white transition-colors bg-white/[0.02]">
-                  <Globe className="w-5 h-5 text-white/40 group-hover:text-white transition-all" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">BASE COMMAND</p>
-                  <p className="text-xs tracking-widest uppercase text-white/90">TamilNadu, India / Vellore</p>
-                </div>
-              </div>
+              <ContactInfo icon={<Mail />} label="EMAIL" value="voidwear26@gmail.com" />
+              <ContactInfo icon={<MessageSquare />} label="SUPPORT" value="+91 94885 89972" />
+              <ContactInfo icon={<Globe />} label="LOCATION" value="Vellore, India" />
             </div>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/10 p-12 space-y-8 backdrop-blur-md relative overflow-hidden">
+          <div className="bg-black/[0.02] border border-black/5 p-12 space-y-8 backdrop-blur-sm">
             <AnimatePresence mode="wait">
               {submitted ? (
                 <motion.div 
                   key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="h-full flex flex-col items-center justify-center text-center space-y-8 py-20"
                 >
-                  <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.1)]">
-                    <CheckCircle2 className="w-10 h-10 text-white" />
-                  </div>
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold tracking-[0.4em] uppercase text-white">TRANSMISSION LOGGED</h3>
-                    <p className="text-[10px] tracking-[0.2em] text-white/60 uppercase font-bold">YOUR MESSAGE HAS BEEN SAVED TO THE SYSTEM ARCHIVE.</p>
+                  <CheckCircle2 className="w-16 h-16 text-black" />
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold tracking-[0.4em] uppercase">MESSAGE SENT</h3>
+                    <p className="text-[10px] tracking-[0.2em] text-black/40 uppercase font-bold">WE WILL CONTACT YOU SHORTLY.</p>
                   </div>
                   <Button 
                     variant="ghost" 
                     onClick={() => setSubmitted(false)}
-                    className="text-[10px] tracking-[0.5em] uppercase text-white/40 hover:text-white"
+                    className="text-[10px] tracking-[0.5em] uppercase text-black/40 hover:text-black"
                   >
-                    SEND ANOTHER MESSAGE
+                    SEND ANOTHER
                   </Button>
                 </motion.div>
               ) : (
@@ -147,68 +109,28 @@ export default function ContactPage() {
                   key="form"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   className="space-y-8"
                 >
-                  <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                    <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-white/80">TRANSMIT MESSAGE</h3>
-                    <Zap className="w-3.5 h-3.5 text-white/40" />
-                  </div>
+                  <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-black/80">SEND MESSAGE</h3>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">FULL NAME</label>
-                        <Input 
-                          name="name"
-                          required
-                          className="bg-black/50 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/40 text-white placeholder:text-white/5 uppercase" 
-                          placeholder="IDENTIFICATION" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">EMAIL ADDRESS</label>
-                        <Input 
-                          name="email"
-                          type="email"
-                          required
-                          className="bg-black/50 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/40 text-white placeholder:text-white/5" 
-                          placeholder="COMM-CHANNEL" 
-                        />
-                      </div>
+                      <FormField label="NAME" name="name" />
+                      <FormField label="EMAIL" name="email" type="email" />
                     </div>
+                    <FormField label="SUBJECT" name="subject" />
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">SUBJECT</label>
-                      <Input 
-                        name="subject"
-                        required
-                        className="bg-black/50 border-white/10 rounded-none h-12 text-xs tracking-widest focus:border-white/40 text-white placeholder:text-white/5 uppercase" 
-                        placeholder="TOPIC" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold tracking-widest text-white/60 uppercase">MESSAGE</label>
+                      <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">MESSAGE</label>
                       <Textarea 
                         name="message"
                         required
-                        className="bg-black/50 border-white/10 rounded-none min-h-[150px] text-xs tracking-widest focus:border-white/40 text-white placeholder:text-white/5 uppercase" 
-                        placeholder="INPUT DATA..." 
+                        className="bg-white border-black/10 rounded-none min-h-[150px] text-xs tracking-widest focus:border-black/30 text-black uppercase" 
                       />
                     </div>
                     <Button 
                       disabled={isPending}
-                      className="w-full bg-white text-black hover:bg-white/90 h-16 text-xs font-bold tracking-[0.5em] rounded-none shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all flex items-center justify-center gap-3"
+                      className="w-full bg-black text-white hover:bg-black/80 h-16 text-xs font-bold tracking-[0.5em] rounded-none shadow-sm transition-all"
                     >
-                      {isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          UPLINKING...
-                        </>
-                      ) : (
-                        <>
-                          SEND TRANSMISSION
-                          <Zap className="w-4 h-4" />
-                        </>
-                      )}
+                      {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'SEND MESSAGE'}
                     </Button>
                   </form>
                 </motion.div>
@@ -217,6 +139,34 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ContactInfo({ icon, label, value }: { icon: any, label: string, value: string }) {
+  return (
+    <div className="flex items-center gap-6 group">
+      <div className="w-12 h-12 border border-black/5 flex items-center justify-center group-hover:border-black/20 transition-colors bg-black/[0.02]">
+        {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-5 h-5 text-black/40" }) : icon}
+      </div>
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold tracking-widest text-black/40 uppercase">{label}</p>
+        <p className="text-xs tracking-widest uppercase text-black/80">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function FormField({ label, name, type = "text" }: { label: string, name: string, type?: string }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">{label}</label>
+      <Input 
+        name={name}
+        type={type}
+        required
+        className="bg-white border-black/10 rounded-none h-12 text-xs tracking-widest focus:border-black/30 text-black uppercase" 
+      />
     </div>
   );
 }
