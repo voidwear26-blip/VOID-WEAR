@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -51,13 +52,13 @@ export function PromoBanner() {
   const currentBanner = banners[currentIndex];
 
   const alignmentStyles = {
-    left: 'items-start text-left pl-12 md:pl-32',
+    left: 'items-start text-left pl-6 md:pl-32',
     center: 'items-center text-center',
-    right: 'items-end text-right pr-12 md:pr-32',
+    right: 'items-end text-right pr-6 md:pr-32',
   };
 
   return (
-    <section className="relative w-full h-[50vh] md:h-[60vh] overflow-hidden bg-black/5 border-y border-black/5 group/banner">
+    <section className="relative w-full aspect-video md:aspect-auto md:h-[60vh] overflow-hidden bg-black/5 border-y border-black/5 group/banner">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -85,16 +86,16 @@ export function PromoBanner() {
               "absolute inset-0 flex flex-col justify-center px-6 transition-all duration-1000",
               alignmentStyles[currentBanner.alignment || 'center']
             )}>
-              <div className="space-y-6 max-w-4xl">
+              <div className="space-y-4 md:space-y-6 max-w-4xl">
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.8 }}
-                  className="space-y-2"
+                  className="space-y-1 md:space-y-2"
                 >
                   {currentBanner.subtitle && (
                     <span 
-                      className="text-[10px] md:text-xs font-bold tracking-[0.8em] uppercase drop-shadow-sm"
+                      className="text-[8px] md:text-xs font-bold tracking-[0.8em] uppercase drop-shadow-sm"
                       style={{ color: currentBanner.textColor || '#FFFFFF' }}
                     >
                       {currentBanner.subtitle}
@@ -102,7 +103,7 @@ export function PromoBanner() {
                   )}
                   {currentBanner.title && (
                     <h2 
-                      className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none drop-shadow-md font-headline"
+                      className="text-2xl md:text-7xl font-black tracking-tight uppercase leading-none drop-shadow-md font-headline"
                       style={{ color: currentBanner.textColor || '#FFFFFF' }}
                     >
                       {currentBanner.title}
@@ -115,7 +116,7 @@ export function PromoBanner() {
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ delay: 0.6, duration: 1 }}
-                    className="h-[1px] w-24 opacity-60"
+                    className="h-[1px] w-16 md:w-24 opacity-60"
                     style={{ backgroundColor: currentBanner.textColor || '#FFFFFF' }}
                   />
                 )}
@@ -130,31 +131,31 @@ export function PromoBanner() {
         <>
           <button 
             onClick={prevSlide}
-            className="absolute left-6 top-1/2 -translate-y-1/2 z-40 p-4 border border-white/20 bg-white/10 backdrop-blur-md text-white opacity-0 group-hover/banner:opacity-100 transition-all hover:bg-white hover:text-black"
+            className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-40 p-2 md:p-4 border border-white/20 bg-white/10 backdrop-blur-md text-white opacity-40 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:bg-white hover:text-black"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </button>
           <button 
             onClick={nextSlide}
-            className="absolute right-6 top-1/2 -translate-y-1/2 z-40 p-4 border border-white/20 bg-white/10 backdrop-blur-md text-white opacity-0 group-hover/banner:opacity-100 transition-all hover:bg-white hover:text-black"
+            className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-40 p-2 md:p-4 border border-white/20 bg-white/10 backdrop-blur-md text-white opacity-40 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:bg-white hover:text-black"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </>
       )}
 
       {/* Progress Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+      <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3 z-30">
         {banners.map((_, i) => (
           <button 
             key={i} 
             onClick={() => setCurrentIndex(i)}
-            className={`h-1 transition-all duration-700 ${currentIndex === i ? 'w-16 bg-white' : 'w-6 bg-white/20'}`}
+            className={`h-0.5 md:h-1 transition-all duration-700 ${currentIndex === i ? 'w-10 md:w-16 bg-white' : 'w-4 md:w-6 bg-white/20'}`}
           />
         ))}
       </div>
 
-      <div className="absolute top-10 left-10 z-30 pointer-events-none hidden md:block">
+      <div className="absolute top-6 left-6 z-30 pointer-events-none hidden md:block">
          <span className="text-[10px] font-black tracking-[1.2em] text-white/30 uppercase">SYSTEM_BROADCAST</span>
       </div>
     </section>
