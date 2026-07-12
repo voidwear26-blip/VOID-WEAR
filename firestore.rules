@@ -2,19 +2,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
+    // --- System Authority Helpers ---
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isAdmin() {
       return isSignedIn() && (
-        // Master UIDs
-        request.auth.uid in ['A9vsqn10oddfmouKiKjWpTcFqZB2', '0LvBBO9ySQdBKr3uwjcAjphMM8x1'] ||
-        // Master Emails
+        // 1. Master UID Authority
+        request.auth.uid in [
+          'A9vsqn10oddfmouKiKjWpTcFqZB2', 
+          '0LvBBO9ySQdBKr3uwjcAjphMM8x1'
+        ] ||
+        // 2. Master Email Authority
         (request.auth.token.email != null && 
-         request.auth.token.email.lower() in ['voidwear26@gmail.com', 'shahabuddinosaid@gmail.com', 'voidwearoff26@gmail.com']) ||
-        // Database Role Check
+         request.auth.token.email.lower() in [
+           'voidwear26@gmail.com', 
+           'shahabuddinosaid@gmail.com', 
+           'voidwearoff26@gmail.com'
+         ]) ||
+        // 3. Database Role Authority
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN')
       );
@@ -24,75 +31,62 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- PRODUCTS (public) ---
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // --- MASTER OVERRIDE: Full Admin Control ---
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
 
-    // --- REVIEWS (public read, restricted write) ---
+    // --- Public & Restricted Access Rules ---
+    match /products/{productId} {
+      allow read: if true;
+    }
+
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
-    // CollectionGroup support for reviews
     match /{path=**}/reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
-    // --- CONTACTS ---
     match /contacts/{contactId} {
       allow create: if true;
-      allow read: if isAdmin();
     }
 
-    // --- CONFIG ---
     match /app_config/{configId} {
       allow read: if true;
-      allow write: if isAdmin();
     }
 
-    // --- STORIES ---
     match /stories/{storyId} {
       allow read: if true;
-      allow write: if isAdmin();
     }
 
-    // --- USERS ---
     match /users/{userId} {
-      allow get, list, create, update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow get, list, create, update: if isOwner(userId);
 
       match /carts/{cartId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-
+        allow read, write: if isOwner(userId);
         match /items/{itemId} {
-          allow read, write: if isOwner(userId) || isAdmin();
+          allow read, write: if isOwner(userId);
         }
       }
 
       match /wishlist/{productId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId);
       }
 
       match /orders/{orderId} {
-        allow read: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId);
         allow create: if isOwner(userId);
       }
     }
 
-    // --- COLLECTION GROUP: ORDERS ---
     match /{path=**}/orders/{orderId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-    }
-
-    // --- ADMIN CATCH-ALL ---
-    match /{document=**} {
-      allow read, write: if isAdmin();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
   }
 }

@@ -9,7 +9,7 @@ import { useEffect, useState, useMemo } from 'react';
 /**
  * ADMIN GATEWAY WRAPPER
  * Enforces strict identity verification before exposing administrative nodes.
- * Anchors master identities (Email/UID) as absolute overrides.
+ * Anchors master identities (Email/UID) as absolute system overrides.
  */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
     
-    // Master identity checks (UID and Email)
+    // Master identity checks (UID and Email) - ABSOLUTE OVERRIDES
     const isMasterEmail = 
       user.email?.toLowerCase() === 'voidwear26@gmail.com' ||
       user.email?.toLowerCase() === 'shahabuddinosaid@gmail.com' ||
