@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useMemo } from 'react';
@@ -47,7 +48,7 @@ export function Hero() {
   if (!mounted) return null;
 
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
+    <section className="relative min-h-[90vh] md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -64,8 +65,8 @@ export function Hero() {
         </div>
       </motion.div>
 
-      <div className="relative z-20 text-center space-y-12 w-full max-w-7xl px-6 pt-32 flex flex-col items-center">
-        <div className="space-y-8 flex flex-col items-center w-full">
+      <div className="relative z-20 text-center space-y-8 w-full max-w-7xl px-6 flex flex-col items-center">
+        <div className="space-y-6 flex flex-col items-center w-full">
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -82,7 +83,7 @@ export function Hero() {
             transition={{ delay: 1.2, duration: 1 }}
             className="flex flex-col items-center gap-6 w-full"
           >
-            <div className="relative h-[40vh] w-auto aspect-square">
+            <div className="relative h-[25vh] md:h-[30vh] w-auto aspect-square">
               <Image 
                 src="/logo.png" 
                 alt="LOGO" 
@@ -114,11 +115,12 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.5, duration: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
+        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 hidden md:flex"
       >
-        <div className="w-px h-16 bg-gradient-to-b from-black/20 to-transparent"></div>
+        <div className="w-px h-12 md:h-16 bg-gradient-to-b from-black/20 to-transparent"></div>
         <span className="text-[8px] tracking-[1.2em] text-black/60 uppercase font-bold">SCROLL</span>
       </motion.div>
     </section>
   );
 }
+

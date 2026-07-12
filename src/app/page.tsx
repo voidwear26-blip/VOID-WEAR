@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -80,9 +81,11 @@ export default function Home() {
     <div className="space-y-0 bg-background text-black">
       <Hero />
       
-      <PromoBanner />
+      <div className="mt-12 md:mt-20">
+        <PromoBanner />
+      </div>
 
-      <section className="py-12 flex justify-center border-b border-black/5 bg-black/[0.01]">
+      <section className="py-16 md:py-24 flex justify-center border-b border-black/5 bg-black/[0.01]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
