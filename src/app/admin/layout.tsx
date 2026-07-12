@@ -6,6 +6,11 @@ import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 
+/**
+ * ADMIN GATEWAY WRAPPER
+ * Enforces strict identity verification before exposing administrative nodes.
+ * Anchors master identities (Email/UID) as absolute overrides.
+ */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
@@ -21,9 +26,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const isAdmin = useMemo(() => {
     if (isUserLoading || !user) return false;
-    return user.email?.toLowerCase() === 'voidwear26@gmail.com' || 
-           user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2' ||
-           profile?.role === 'ADMIN';
+    
+    // Master identity checks (UID and Email)
+    const isMasterEmail = user.email?.toLowerCase() === 'voidwear26@gmail.com';
+    const isMasterUID = user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+    
+    // Database-driven role check
+    const hasAdminRole = profile?.role === 'ADMIN';
+
+    return isMasterEmail || isMasterUID || hasAdminRole;
   }, [user, isUserLoading, profile]);
 
   useEffect(() => {

@@ -23,8 +23,14 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     ...extraData
   };
 
-  // Only set role if explicit master authority
-  if (user.email?.toLowerCase() === 'voidwear26@gmail.com') {
+  /**
+   * MASTER AUTHORITY SYNC:
+   * Explicitly sets ADMIN role for hardcoded primary identities.
+   */
+  const isMasterEmail = user.email?.toLowerCase() === 'voidwear26@gmail.com';
+  const isMasterUID = user.uid === 'A9vsqn10oddfmouKiKjWpTcFqZB2';
+
+  if (isMasterEmail || isMasterUID) {
     dossierData.role = 'ADMIN';
   }
 
@@ -35,7 +41,6 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
   }
   
   // Only include createdAt if it was explicitly passed (e.g., during signup)
-  // This prevents standard logins from overwriting the original joined date
   if (extraData.createdAt) {
     dossierData.createdAt = extraData.createdAt;
   }
