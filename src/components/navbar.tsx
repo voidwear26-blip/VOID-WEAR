@@ -66,18 +66,17 @@ export function Navbar() {
     { name: 'CONTACT', href: '/contact' },
   ];
 
-  // Recalibrated icon class: Scale up and increase intensity without background artifacts
   const iconBaseClass = "text-black/60 hover:text-black hover:scale-110 bg-transparent hover:bg-transparent transition-all duration-300 transform active:scale-95";
 
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-[40] transition-all duration-700 ${scrolled ? 'bg-background/90 backdrop-blur-xl py-4 border-b border-black/5 shadow-sm' : 'bg-transparent py-10'}`}>
-        <div className="container mx-auto px-6 md:px-10 flex items-center justify-between">
-          <div className="flex items-center gap-4 md:gap-16">
+        <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-12">
             <div className="lg:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className={cn(iconBaseClass, "rounded-none w-10 h-10")}>
+                  <Button variant="ghost" size="icon" className={cn(iconBaseClass, "rounded-none w-8 h-8")}>
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
@@ -123,7 +122,7 @@ export function Navbar() {
               </Sheet>
             </div>
 
-            <Link href="/" className="group flex items-center gap-4">
+            <Link href="/" className="group flex items-center gap-2">
               <div className="flex items-center gap-4 hover:scale-[1.02] transition-transform duration-500">
                 <Image src="/logo.png" alt="VOID WEAR" width={40} height={40} className="h-8 w-auto object-contain grayscale" priority unoptimized />
                 <span className="text-[14px] font-black tracking-[0.4em] uppercase text-black hidden sm:block font-headline">VOID WEAR</span>
