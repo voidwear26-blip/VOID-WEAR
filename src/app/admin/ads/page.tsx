@@ -2,21 +2,37 @@
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Upload, Trash2, Link as LinkIcon, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Upload, Trash2, Link as LinkIcon, Image as ImageIcon, Sparkles, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { compressImage } from '@/lib/image-utils';
 import Image from 'next/image';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
+type Banner = {
+  url: string;
+  title: string;
+  subtitle: string;
+  alignment: 'left' | 'center' | 'right';
+};
 
 export default function AdvertisingControlPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [promoImages, setPromoImages] = useState<string[]>([]);
-  const [linkInput, setLinkInput] = useState('');
+  const [banners, setBanners] = useState<Banner[]>([]);
+  
+  const [newBanner, setNewBanner] = useState<Banner>({
+    url: '',
+    title: '',
+    subtitle: '',
+    alignment: 'center'
+  });
 
   const configRef = useMemoFirebase(() => {
     if (!db) return null;
@@ -26,8 +42,17 @@ export default function AdvertisingControlPage() {
   const { data: config, isLoading: configLoading } = useDoc(configRef);
 
   useEffect(() => {
-    if (config?.promoImages) {
-      setPromoImages(config.promoImages);
+    if (config?.promoBanners) {
+      setBanners(config.promoBanners);
+    } else if (config?.promoImages) {
+      // Legacy fallback for simple URL strings
+      const migrated = config.promoImages.map((url: string) => ({
+        url,
+        title: '',
+        subtitle: '',
+        alignment: 'center'
+      }));
+      setBanners(migrated);
     }
   }, [config]);
 
@@ -36,44 +61,56 @@ export default function AdvertisingControlPage() {
     if (file) {
       try {
         const compressed = await compressImage(file, 1920, 0.7);
-        setPromoImages(prev => [...prev, compressed]);
-        toast({ title: "ASSET COMPRESSED", description: "LOCAL BUFFER UPDATED." });
+        setNewBanner(prev => ({ ...prev, url: compressed }));
+        toast({ title: "ASSET COMPRESSED", description: "READY FOR DEPLOYMENT." });
       } catch (err) {
         toast({ variant: "destructive", title: "UPLOAD_FAILURE" });
       }
     }
   };
 
-  const handleLinkApply = () => {
-    if (!linkInput.trim()) return;
-    setPromoImages(prev => [...prev, linkInput.trim()]);
-    setLinkInput('');
-    toast({ title: "ASSET LINKED", description: "REMOTE UPLINK ESTABLISHED." });
+  const addBanner = () => {
+    if (!newBanner.url) {
+      toast({ variant: "destructive", title: "INCOMPLETE", description: "IMAGE URL IS REQUIRED." });
+      return;
+    }
+    setBanners(prev => [...prev, newBanner]);
+    setNewBanner({ url: '', title: '', subtitle: '', alignment: 'center' });
+    toast({ title: "BANNER ADDED", description: "LOCAL BUFFER UPDATED." });
   };
 
-  const removeImage = (idx: number) => {
-    setPromoImages(prev => prev.filter((_, i) => i !== idx));
+  const removeBanner = (idx: number) => {
+    setBanners(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!db) return;
 
     setLoading(true);
     const docRef = doc(db, 'app_config', 'global');
-    try {
-      await setDoc(docRef, { 
-        promoImages,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      toast({
-        title: "ADS DEPLOYED",
-        description: "HOMEPAGE BANNERS UPDATED GLOBALLY.",
+    const updateData = { 
+      promoBanners: banners,
+      updatedAt: new Date().toISOString()
+    };
+
+    setDoc(docRef, updateData, { merge: true })
+      .then(() => {
+        toast({
+          title: "ADS DEPLOYED",
+          description: "HOMEPAGE BANNERS UPDATED GLOBALLY.",
+        });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-    } catch (e) {
-      toast({ variant: "destructive", title: "DEPLOYMENT_FAILURE" });
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (configLoading) {
@@ -94,22 +131,26 @@ export default function AdvertisingControlPage() {
           </Link>
           <div className="flex items-center gap-6">
             <ImageIcon className="w-10 h-10 text-black/20" />
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline">Advertising</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none font-headline text-black">Advertising</h1>
           </div>
         </div>
 
-        <div className="bg-black/[0.01] border border-black/5 p-12 space-y-12 backdrop-blur-xl shadow-sm">
+        <div className="bg-black/[0.01] border border-black/10 p-12 space-y-16 backdrop-blur-xl shadow-sm">
           <div className="space-y-8">
             <div className="border-b border-black/10 pb-4">
                <h3 className="text-[10px] font-bold tracking-[0.5em] text-black/60 uppercase">ACTIVE BANNERS</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {promoImages.map((url, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              {banners.map((banner, idx) => (
                 <div key={idx} className="relative aspect-video bg-black/5 border border-black/10 group overflow-hidden">
-                  <Image src={url} alt={`Promo ${idx}`} fill className="object-cover grayscale" unoptimized />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button variant="ghost" size="icon" onClick={() => removeImage(idx)} className="text-white hover:text-red-500">
+                  <Image src={banner.url} alt={`Promo ${idx}`} fill className="object-cover grayscale" unoptimized />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center p-6 text-center space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-white tracking-widest uppercase">{banner.title || 'NO TITLE'}</p>
+                      <p className="text-[8px] text-white/60 tracking-[0.2em] uppercase">{banner.alignment.toUpperCase()} ALIGNED</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => removeBanner(idx)} className="text-white hover:text-red-500">
                       <Trash2 className="w-6 h-6" />
                     </Button>
                   </div>
@@ -118,7 +159,7 @@ export default function AdvertisingControlPage() {
                   </div>
                 </div>
               ))}
-              {promoImages.length === 0 && (
+              {banners.length === 0 && (
                 <div className="col-span-full py-20 border border-dashed border-black/10 flex flex-col items-center justify-center gap-4 opacity-40">
                   <ImageIcon className="w-12 h-12 stroke-[0.5px]" />
                   <p className="text-[10px] tracking-[1em] font-bold uppercase">NO BANNERS ACTIVE</p>
@@ -127,34 +168,67 @@ export default function AdvertisingControlPage() {
             </div>
           </div>
 
-          <div className="space-y-8 border-t border-black/10 pt-12">
-            <h3 className="text-[10px] font-bold tracking-[0.5em] text-black/60 uppercase">ADD NEW ASSET</h3>
-            <div className="grid md:grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <label className="text-[9px] font-bold tracking-[0.4em] text-black/40 uppercase">REMOTE UPLINK</label>
-                <div className="flex gap-4">
-                  <div className="relative flex-1">
-                    <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/20" />
+          <div className="space-y-12 border-t border-black/10 pt-16">
+            <h3 className="text-[10px] font-bold tracking-[0.5em] text-black/60 uppercase">CREATE CAMPAIGN ASSET</h3>
+            <div className="grid gap-10">
+              <div className="grid md:grid-cols-2 gap-10">
+                <div className="space-y-3">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">MAIN HEADLINE</label>
+                  <Input 
+                    value={newBanner.title}
+                    onChange={e => setNewBanner({ ...newBanner, title: e.target.value.toUpperCase() })}
+                    placeholder="E.G. SEASON 01 ARRIVAL"
+                    className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">SUBTITLE / TAGLINE</label>
+                  <Input 
+                    value={newBanner.subtitle}
+                    onChange={e => setNewBanner({ ...newBanner, subtitle: e.target.value.toUpperCase() })}
+                    placeholder="E.G. 20% CREDITS RECLAIMED"
+                    className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-10">
+                <div className="space-y-3 md:col-span-2">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">ASSET SOURCE (URL OR UPLOAD)</label>
+                  <div className="flex gap-4">
                     <Input 
-                      value={linkInput}
-                      onChange={e => setLinkInput(e.target.value)}
-                      placeholder="HTTPS://STORAGE.COM/BANNER.JPG"
-                      className="bg-white border-black/10 rounded-none h-14 pl-12 text-[10px] tracking-widest text-black"
+                      value={newBanner.url}
+                      onChange={e => setNewBanner({ ...newBanner, url: e.target.value })}
+                      placeholder="HTTPS://IMAGE-HOST.COM/CAMPAIGN.JPG"
+                      className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black"
                     />
+                    <div className="relative">
+                      <Button type="button" className="h-14 bg-black/5 border border-black/10 hover:bg-black hover:text-white rounded-none px-8 text-[9px] font-black tracking-widest text-black transition-all">UPLOAD</Button>
+                      <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                    </div>
                   </div>
-                  <Button type="button" onClick={handleLinkApply} className="bg-black/5 border border-black/10 rounded-none h-14 px-8 text-[10px] font-bold tracking-widest">LINK</Button>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[9px] font-bold tracking-[0.4em] text-black/60 uppercase">TEXT ALIGNMENT</label>
+                  <Select value={newBanner.alignment} onValueChange={(val: any) => setNewBanner({ ...newBanner, alignment: val })}>
+                    <SelectTrigger className="h-14 bg-white border-black/10 rounded-none text-[10px] tracking-widest uppercase text-black font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-black/10 text-black rounded-none">
+                      <SelectItem value="left" className="text-[10px] uppercase font-bold"><div className="flex items-center gap-2"><AlignLeft className="w-3 h-3" /> LEFT</div></SelectItem>
+                      <SelectItem value="center" className="text-[10px] uppercase font-bold"><div className="flex items-center gap-2"><AlignCenter className="w-3 h-3" /> CENTER</div></SelectItem>
+                      <SelectItem value="right" className="text-[10px] uppercase font-bold"><div className="flex items-center gap-2"><AlignRight className="w-3 h-3" /> RIGHT</div></SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div className="space-y-4">
-                <label className="text-[9px] font-bold tracking-[0.4em] text-black/40 uppercase">LOCAL UPLOAD</label>
-                <div className="relative">
-                  <div className="border border-dashed border-black/10 h-14 flex items-center justify-center gap-4 group cursor-pointer hover:bg-black/5 transition-all">
-                    <Upload className="w-4 h-4 text-black/20 group-hover:text-black transition-colors" />
-                    <span className="text-[10px] font-bold tracking-widest text-black/40 group-hover:text-black">SELECT IMAGE</span>
-                  </div>
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                </div>
-              </div>
+
+              <Button 
+                onClick={addBanner}
+                className="bg-black/5 hover:bg-black hover:text-white border border-black/10 rounded-none h-16 text-[10px] font-black tracking-[0.4em] uppercase transition-all"
+              >
+                ADD TO BUFFER
+              </Button>
             </div>
           </div>
 
@@ -164,16 +238,16 @@ export default function AdvertisingControlPage() {
               <span className="text-[9px] tracking-[0.3em] uppercase font-bold">SYSTEM ADVISORY</span>
             </div>
             <p className="text-[9px] text-black/60 tracking-widest leading-relaxed uppercase font-bold">
-              BANNERS APPEAR ON THE HOMEPAGE IMMEDIATELY AFTER DEPLOYMENT. RECOMMENDED ASPECT RATIO IS 21:9 FOR OPTIMAL MOBILE AND DESKTOP RENDERING.
+              ENSURE BANNERS ARE ADDED TO THE BUFFER BEFORE CLICKING DEPLOY. THE BUFFERED LIST REPRESENTS THE FINAL SEQUENCE FOR THE HOMEPAGE.
             </p>
           </div>
 
           <Button 
             disabled={loading}
             onClick={handleSubmit}
-            className="w-full bg-black text-white hover:bg-black/90 h-20 text-[11px] font-black tracking-[0.6em] rounded-none shadow-sm transition-all"
+            className="w-full bg-black text-white hover:bg-black/90 h-24 text-[12px] font-black tracking-[0.8em] rounded-none shadow-xl transition-all uppercase"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>DEPLOY BANNERS TO HOME</>}
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>DEPLOY ALL BANNERS</>}
           </Button>
         </div>
       </div>
