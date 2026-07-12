@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
 import { CartDrawer } from '@/components/cart-drawer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
@@ -59,17 +59,13 @@ export function Navbar() {
 
   if (!mounted) return null;
 
-  const iconMotionProps = {
-    whileHover: { scale: 1.1, filter: "drop-shadow(0 0 4px rgba(0, 0, 0, 0.1))" },
-    whileTap: { scale: 0.95 },
-    transition: { type: "spring", stiffness: 400, damping: 17 }
-  };
-
   const navLinks = [
     { name: 'COLLECTION', href: '/products' },
     { name: 'STORIES', href: '/story' },
     { name: 'CONTACT', href: '/contact' },
   ];
+
+  const iconBaseClass = "text-black/60 hover:text-black transition-all duration-300 transform active:scale-95";
 
   return (
     <>
@@ -126,10 +122,10 @@ export function Navbar() {
             </div>
 
             <Link href="/" className="group flex items-center gap-4">
-              <motion.div {...iconMotionProps} className="flex items-center gap-4">
+              <div className="flex items-center gap-4 hover:scale-[1.02] transition-transform duration-500">
                 <Image src="/logo.png" alt="VOID WEAR" width={40} height={40} className="h-8 w-auto object-contain grayscale" priority unoptimized />
                 <span className="text-[14px] font-black tracking-[0.4em] uppercase text-black hidden sm:block font-headline">VOID WEAR</span>
-              </motion.div>
+              </div>
             </Link>
 
             <div className="hidden lg:flex items-center gap-12 text-[10px] font-bold tracking-[0.5em] font-body">
@@ -148,27 +144,30 @@ export function Navbar() {
 
           <div className="flex items-center gap-1 md:gap-4">
             <Link href="/wishlist">
-              <Button variant="ghost" size="icon" className="hover:bg-black/5 h-10 w-10 md:h-12 md:w-12 text-black/60 hover:text-black rounded-none relative">
-                <motion.div {...iconMotionProps}>
+              <Button variant="ghost" size="icon" className={iconBaseClass}>
+                <div className="relative">
                   <Heart className="w-4 h-4 md:w-5 md:h-5" />
-                  {wishlistCount > 0 && <span className="absolute -top-1 -right-1 md:top-2 md:right-2 w-3 h-3 bg-black text-white text-[7px] font-black rounded-full flex items-center justify-center">{wishlistCount}</span>}
-                </motion.div>
+                  {wishlistCount > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-black text-white text-[7px] font-black rounded-full flex items-center justify-center">{wishlistCount}</span>}
+                </div>
               </Button>
             </Link>
 
             <Link href={user ? "/profile" : "/login"}>
-              <Button variant="ghost" size="icon" className={`h-10 w-10 md:h-12 md:w-12 rounded-none transition-all ${isAdmin ? 'text-black border border-black/10 shadow-sm' : 'text-black/60 hover:text-black'}`}>
-                <motion.div {...iconMotionProps}>
-                  {isAdmin ? <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-black" /> : <User className="w-4 h-4 md:w-5 md:h-5" />}
-                </motion.div>
+              <Button variant="ghost" size="icon" className={`${iconBaseClass} ${isAdmin ? 'border border-black/10' : ''}`}>
+                {isAdmin ? <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-black" /> : <User className="w-4 h-4 md:w-5 md:h-5" />}
               </Button>
             </Link>
             
-            <Button variant="ghost" size="icon" className="hover:bg-black/5 h-10 w-10 md:h-12 md:w-12 text-black relative group rounded-none" onClick={() => setIsCartOpen(true)}>
-              <motion.div {...iconMotionProps}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={iconBaseClass} 
+              onClick={() => setIsCartOpen(true)}
+            >
+              <div className="relative">
                 <ShoppingBag className="w-4 h-4 md:w-5 md:h-5" />
-                {itemCount > 0 && <span className="absolute -top-1 -right-1 md:top-2 md:right-2 w-4 h-4 bg-black text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-in zoom-in-50">{itemCount}</span>}
-              </motion.div>
+                {itemCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-black text-white text-[9px] font-bold rounded-full flex items-center justify-center">{itemCount}</span>}
+              </div>
             </Button>
           </div>
         </div>
