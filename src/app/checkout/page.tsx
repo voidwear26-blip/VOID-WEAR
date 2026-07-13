@@ -75,7 +75,6 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
   const taxableSubtotal = cartItems?.reduce((acc, item) => {
-    // Only apply tax if the item is explicitly taxable (default to true if undefined)
     if (item.isTaxable !== false) {
       return acc + (Number(item.price) * Number(item.quantity));
     }
@@ -134,9 +133,9 @@ export default function CheckoutPage() {
       email: formData.email,
       mobileNumber: formData.mobileNumber,
       items: cartItems,
-      subtotal: subtotal,
-      taxAmount: taxAmount,
-      shippingFee: shippingFee,
+      subtotal: Number(subtotal),
+      taxAmount: Number(taxAmount),
+      shippingFee: Number(shippingFee),
       totalAmount: Number(totalAmount), 
       orderDate: new Date().toISOString(),
       shippingStatus: 'processing',
@@ -154,7 +153,15 @@ export default function CheckoutPage() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        transaction.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
+        transaction.set(userRef, { 
+          ...formData, 
+          displayName: formData.displayName.toUpperCase(),
+          addressLine1: formData.addressLine1.toUpperCase(),
+          landmark: formData.landmark.toUpperCase(),
+          city: formData.city.toUpperCase(),
+          stateProvince: formData.stateProvince.toUpperCase(),
+          updatedAt: new Date().toISOString() 
+        }, { merge: true });
 
         for (const item of cartItems) {
           const productRef = doc(db, 'products', item.productId);
@@ -194,6 +201,7 @@ export default function CheckoutPage() {
         transaction.set(orderRef, newOrder);
       });
 
+      // Dispatch Notifications Post-Transaction
       sendOrderConfirmationNotifications(newOrder).catch(err => console.error('[NOTIF_RELAY_FAIL]', err));
 
       setOrderObject(newOrder);
