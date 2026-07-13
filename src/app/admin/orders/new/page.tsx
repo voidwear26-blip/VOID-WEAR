@@ -114,13 +114,15 @@ export default function NewOrderPage() {
   };
 
   useEffect(() => {
-    const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const subtotal = selectedItems.reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
+    
+    // STRICT FINANCIAL LOGIC: Only apply tax to authorized items
     const taxableSubtotal = selectedItems.reduce((acc, item) => {
-       return (item.isTaxable !== false) ? acc + (item.price * item.quantity) : acc;
+       return (item.isTaxable !== false) ? acc + (Number(item.price || 0) * Number(item.quantity || 0)) : acc;
     }, 0);
     
-    const totalUnits = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
-    const tax = taxableSubtotal * 0.05;
+    const totalUnits = selectedItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+    const tax = taxableSubtotal * 0.05; // 5% System Tax
     const shipping = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
     
     setOrderMetadata(prev => ({ 
@@ -307,7 +309,7 @@ export default function NewOrderPage() {
                       <span className="text-black">₹{orderMetadata.subtotal.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                      <span className="text-black/40">TAX</span>
+                      <span className="text-black/40">TAX (5%)</span>
                       <span className="text-black">₹{orderMetadata.taxAmount.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center text-[10px] font-bold uppercase">

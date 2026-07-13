@@ -73,16 +73,19 @@ export default function CheckoutPage() {
     }
   }, [user, profile]);
 
-  const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
+  // FINANCIAL PROTOCOL: Dynamic Tax & Shipping Calculations
+  const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 0)), 0) || 0;
+  
   const taxableSubtotal = cartItems?.reduce((acc, item) => {
+    // Strictly exclude items marked as non-taxable
     if (item.isTaxable !== false) {
-      return acc + (Number(item.price) * Number(item.quantity));
+      return acc + (Number(item.price || 0) * Number(item.quantity || 0));
     }
     return acc;
   }, 0) || 0;
   
-  const totalUnits = cartItems?.reduce((acc, item) => acc + Number(item.quantity), 0) || 0;
-  const taxAmount = taxableSubtotal * 0.05;
+  const totalUnits = cartItems?.reduce((acc, item) => acc + Number(item.quantity || 0), 0) || 0;
+  const taxAmount = taxableSubtotal * 0.05; // 5% System Tax
   const shippingFee = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
   const totalAmount = subtotal + taxAmount + shippingFee;
 
@@ -201,7 +204,6 @@ export default function CheckoutPage() {
         transaction.set(orderRef, newOrder);
       });
 
-      // Dispatch Notifications Post-Transaction
       sendOrderConfirmationNotifications(newOrder).catch(err => console.error('[NOTIF_RELAY_FAIL]', err));
 
       setOrderObject(newOrder);
@@ -479,7 +481,7 @@ export default function CheckoutPage() {
                      <span className="text-black">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                     <span className="text-black/40">ESTIMATED TAX</span>
+                     <span className="text-black/40">ESTIMATED TAX (5%)</span>
                      <span className="text-black">₹{taxAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
