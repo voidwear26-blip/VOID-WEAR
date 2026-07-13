@@ -20,7 +20,6 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     uid: user.uid,
     email: user.email,
     updatedAt: new Date().toISOString(),
-    role: 'OPERATOR', // Default role for all operators
     ...extraData
   };
 
@@ -39,12 +38,15 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
 
   if (isMasterEmail || isMasterUID) {
     dossierData.role = 'ADMIN';
+  } else if (!extraData.role) {
+    // Only set default OPERATOR if not already specified
+    dossierData.role = 'OPERATOR';
   }
 
   // Ensure mandatory fields have values only if they are not already set in extraData
   if (!dossierData.displayName && user.displayName) dossierData.displayName = user.displayName;
   if (!dossierData.displayName && !user.displayName && !extraData.displayName) {
-    dossierData.displayName = user.email?.split('@')[0].toUpperCase() || 'OPERATOR';
+    dossierData.displayName = user.email?.split('@')[0].toUpperCase() || 'USER';
   }
   
   // Only include createdAt if it was explicitly passed (e.g., during signup)
@@ -53,7 +55,7 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
   }
 
   // Perform set with merge protocol. 
-  setDoc(userRef, dossierData, { merge: true })
+  return setDoc(userRef, dossierData, { merge: true })
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: userRef.path,
@@ -61,7 +63,6 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
         requestResourceData: dossierData,
       } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
+      throw serverError;
     });
-
-  return Promise.resolve();
 }
