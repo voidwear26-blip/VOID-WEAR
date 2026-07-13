@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Hero } from '@/components/hero';
 import { PromoBanner } from '@/components/promo-banner';
 import { ProductCard } from '@/components/product-card';
@@ -8,16 +9,17 @@ import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where } from 'firebase/firestore';
 import { Package, ArrowRight, Star, User, Loader2, Sparkles } from 'lucide-react';
-import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const db = useFirestore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const reviewScrollRef = useRef<HTMLDivElement>(null);
+  const arrivalsContainerRef = useRef<HTMLDivElement>(null);
   
-  const [isPaused, setIsPaused] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [arrivalsWidth, setArrivalsWidth] = useState(0);
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
   
   const latestProductsQuery = useMemoFirebase(() => {
@@ -43,11 +45,9 @@ export default function Home() {
   const { data: topProducts, isLoading: topLoading } = useCollection(topProductsQuery);
   const { data: featuredReviews, isLoading: reviewsLoading } = useCollection(featuredReviewsQuery);
 
-  const displayProducts = latestProducts ? [...latestProducts, ...latestProducts] : [];
-
   useEffect(() => {
     if (scrollRef.current) {
-      setContainerWidth(scrollRef.current.scrollWidth / 2);
+      setArrivalsWidth(scrollRef.current.scrollWidth - scrollRef.current.offsetWidth);
     }
   }, [latestProducts]);
 
@@ -57,24 +57,12 @@ export default function Home() {
     }
   }, [featuredReviews]);
 
-  const x = useMotionValue(0);
-
-  useAnimationFrame((time, delta) => {
-    if (!latestLoading && containerWidth > 0) {
-      let currentX = x.get();
-      if (currentX <= -containerWidth) {
-        x.set(currentX + containerWidth);
-      } else if (currentX > 0) {
-        x.set(currentX - containerWidth);
-      }
-
-      if (!isPaused) {
-        const pixelsPerSecond = 30; 
-        const moveBy = (pixelsPerSecond * delta) / 1000;
-        x.set(x.get() - moveBy);
-      }
-    }
-  });
+  // Reorder topProducts for 3-1-2 layout: Rank 3, Rank 1, Rank 2
+  const rankedTopItems = useMemo(() => {
+    if (!topProducts || topProducts.length < 3) return topProducts || [];
+    // Assuming 0 is 1st, 1 is 2nd, 2 is 3rd
+    return [topProducts[2], topProducts[0], topProducts[1]];
+  }, [topProducts]);
 
   return (
     <div className="space-y-0 bg-background text-black">
@@ -96,32 +84,29 @@ export default function Home() {
         </motion.div>
       </section>
       
-      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden">
+      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden" ref={arrivalsContainerRef}>
         <div className="container mx-auto px-6 mb-8">
           <div className="flex items-end justify-between">
             <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
               ARRIVALS
             </h2>
             <Link href="/products" className="text-[9px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-1 uppercase flex items-center gap-2">
-              VIEW ALL
+              EXPLORE ALL
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
-        <div 
-          className="relative cursor-grab active:cursor-grabbing overflow-hidden"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
+        <div className="relative cursor-grab active:cursor-grabbing px-6 md:px-10 overflow-visible">
           <motion.div 
             ref={scrollRef}
-            style={{ x }}
-            className="flex gap-6 md:gap-10 whitespace-nowrap px-6 md:px-0"
+            drag="x"
+            dragConstraints={{ right: 0, left: -arrivalsWidth }}
+            className="flex gap-6 md:gap-10"
           >
             {latestLoading || !latestProducts ? (
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-[260px] md:w-[300px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse flex items-center justify-center">
+                <div key={i} className="min-w-[260px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse flex items-center justify-center">
                    <div className="space-y-4 w-full px-6">
                       <div className="w-full h-48 bg-black/5" />
                       <div className="w-3/4 h-4 bg-black/5" />
@@ -129,14 +114,14 @@ export default function Home() {
                    </div>
                 </div>
               ))
-            ) : displayProducts.length > 0 ? (
-              displayProducts.map((product, idx) => (
-                <div key={`${product.id}-${idx}`} className="w-[260px] md:w-[300px] shrink-0">
+            ) : latestProducts.length > 0 ? (
+              latestProducts.map((product) => (
+                <div key={product.id} className="min-w-[260px] md:min-w-[320px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
             ) : (
-              <div className="py-20 text-center opacity-20 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
+              <div className="py-20 text-center opacity-20 border border-dashed border-black/20 w-full flex flex-col items-center justify-center">
                 <Package className="w-12 h-12 stroke-[0.5px]" />
                 <p className="text-[10px] tracking-[1em] uppercase font-black mt-4">EMPTY</p>
               </div>
@@ -218,27 +203,54 @@ export default function Home() {
             <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 lg:gap-12 px-6">
             {topLoading || !topProducts ? (
               [1, 2, 3].map(i => (
-                <div key={i} className="aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
+                <div key={i} className="w-full max-w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
                    <div className="space-y-4 w-full px-10">
                       <div className="w-full h-64 bg-black/5" />
-                      <div className="w-3/4 h-4 bg-black/5" />
-                      <div className="w-1/2 h-3 bg-black/5" />
                    </div>
                 </div>
               ))
-            ) : topProducts.length > 0 ? (
-              topProducts.map((product, idx) => (
-                <div key={product.id} className="relative">
-                  <ProductCard product={product as any} />
-                  <div className="absolute -top-3 -left-3 w-10 h-10 border border-black/10 bg-background flex items-center justify-center text-[10px] font-black tracking-widest text-black/40 z-30 shadow-sm">
-                    0{idx + 1}
-                  </div>
+            ) : rankedTopItems.length >= 3 ? (
+              rankedTopItems.map((product, idx) => {
+                // idx 0 = Rank 3 (Left), idx 1 = Rank 1 (Center), idx 2 = Rank 2 (Right)
+                const isCenter = idx === 1;
+                const isLeft = idx === 0;
+                const isRight = idx === 2;
+
+                return (
+                  <motion.div 
+                    key={product.id} 
+                    className={cn(
+                      "relative w-full max-w-[380px] shrink-0 transition-all duration-700",
+                      isCenter ? "scale-110 z-20 order-2" : isRight ? "scale-100 z-10 order-3" : "scale-90 z-0 order-1"
+                    )}
+                    whileHover={{ scale: isCenter ? 1.15 : isRight ? 1.05 : 0.95 }}
+                  >
+                    <ProductCard product={product as any} />
+                    <div className={cn(
+                      "absolute -top-4 -left-4 w-12 h-12 border bg-background flex items-center justify-center text-xs font-black tracking-widest z-30 shadow-xl",
+                      isCenter ? "border-black text-black" : "border-black/10 text-black/20"
+                    )}>
+                      {isCenter ? "01" : isRight ? "02" : "03"}
+                    </div>
+                    {isCenter && (
+                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1.5 text-[8px] font-black tracking-[0.4em] uppercase z-30">
+                        TOP_ASSEMBLAGE
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })
+            ) : topProducts.map((product, idx) => (
+              <div key={product.id} className="relative w-full max-w-[320px]">
+                <ProductCard product={product as any} />
+                <div className="absolute -top-3 -left-3 w-10 h-10 border border-black/10 bg-background flex items-center justify-center text-[10px] font-black tracking-widest text-black/40 z-30 shadow-sm">
+                  0{idx + 1}
                 </div>
-              ))
-            ) : null}
+              </div>
+            ))}
           </div>
         </div>
       </section>

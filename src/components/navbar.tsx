@@ -88,46 +88,53 @@ export function Navbar() {
                     <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-background/95 border-r border-black/5 text-black p-0 backdrop-blur-3xl w-[300px]">
-                  <div className="p-10 space-y-16 pt-24">
+                <SheetContent side="left" className="bg-background/95 border-r border-black/5 text-black p-0 backdrop-blur-3xl w-[320px]">
+                  <div className="p-8 flex flex-col h-full pt-16">
                     <SheetTitle className="sr-only">MENU</SheetTitle>
-                    <div className="space-y-4">
+                    
+                    <div className="flex flex-col items-center gap-6 mb-16 text-center">
                        <Link 
                          href="/" 
                          onClick={() => setIsMobileMenuOpen(false)}
-                         className="flex items-center gap-4 mb-12 group"
+                         className="flex flex-col items-center gap-6 group"
                        >
-                         <Image src="/logo.png" alt="VOID WEAR" width={32} height={32} className="h-6 w-auto object-contain grayscale" unoptimized />
-                         <span className="text-lg font-black tracking-[0.4em] uppercase text-black font-headline">VOID WEAR</span>
+                         <div className="relative w-24 h-24">
+                           <Image src="/logo.png" alt="VOID WEAR" fill className="object-contain grayscale" unoptimized />
+                         </div>
+                         <span className="text-xl font-black tracking-[0.6em] uppercase text-black font-headline">VOID WEAR</span>
                        </Link>
+                    </div>
 
-                       <span className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase">NAVIGATION</span>
-                       <div className="flex flex-col gap-8">
-                         {navLinks.map((link, idx) => (
-                           <motion.div
-                             key={link.name}
-                             initial={{ x: -20, opacity: 0 }}
-                             animate={{ x: 0, opacity: 1 }}
-                             transition={{ delay: 0.1 * idx }}
-                           >
-                             <Link 
-                               href={link.href}
-                               onClick={() => setIsMobileMenuOpen(false)}
-                               className="text-lg font-bold tracking-[0.4em] hover:text-black/60 transition-all uppercase font-body"
-                             >
-                               {link.name}
-                             </Link>
-                           </motion.div>
-                         ))}
+                    <div className="space-y-12">
+                       <div className="space-y-4">
+                          <span className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase px-4">NAVIGATION</span>
+                          <div className="flex flex-col">
+                            {navLinks.map((link, idx) => (
+                              <motion.div
+                                key={link.name}
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.1 * idx }}
+                              >
+                                <Link 
+                                  href={link.href}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="text-lg font-bold tracking-[0.4em] hover:text-black/60 transition-all uppercase font-body block py-4 px-4"
+                                >
+                                  {link.name}
+                                </Link>
+                              </motion.div>
+                            ))}
+                          </div>
                        </div>
                     </div>
 
-                    <div className="pt-16 border-t border-black/5 space-y-8">
+                    <div className="mt-auto pt-16 border-t border-black/5 pb-8 px-4">
                        <div className="space-y-2">
-                          <p className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase">STATUS</p>
+                          <p className="text-[8px] font-black tracking-[0.5em] text-black/20 uppercase">SYSTEM STATUS</p>
                           <div className="flex items-center gap-3">
-                             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                             <span className="text-[10px] font-bold tracking-widest text-black/60 uppercase font-body">ONLINE</span>
+                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                             <span className="text-[10px] font-bold tracking-widest text-black/60 uppercase font-body">ACTIVE_LINK</span>
                           </div>
                        </div>
                     </div>
