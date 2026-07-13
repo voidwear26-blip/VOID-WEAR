@@ -32,8 +32,8 @@ service cloud.firestore {
     // --- Product & Catalog Nodes ---
     match /products/{productId} {
       allow read: if true;
-      allow update: if isSignedIn(); // Required for stock decrement
-      allow create, delete: if isAdmin();
+      allow update: if isSignedIn(); // Required for stock decrement during purchase
+      allow create, delete, write: if isAdmin();
     }
 
     match /app_config/{configId} {
@@ -48,8 +48,21 @@ service cloud.firestore {
 
     // --- User-Specific Archives (Orders, Profile, Bag) ---
     match /users/{userId} {
+      // Primary profile access
       allow read, write: if isOwner(userId) || isAdmin();
       
+      // Explicit sub-collection rules for performance
+      match /orders/{orderId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+      match /wishlist/{itemId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+      match /carts/{cartId}/items/{itemId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+      
+      // Fallback recursive wildcard
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }

@@ -157,14 +157,19 @@ export default function CheckoutPage() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. Bulk Review Phase: Pre-fetch all required metadata
+        // 1. Audit Phase: Pre-fetch all necessary metadata
         const productSnapshots = await Promise.all(
           cartItems.map(item => transaction.get(doc(db, 'products', item.productId)))
         );
+        
+        // Ensure user document exists or is updated
+        const userSnap = await transaction.get(userRef);
 
         // 2. Synthesis Phase: Update profile and reconcile inventory
         transaction.set(userRef, { 
           ...formData, 
+          uid: user.uid,
+          email: user.email,
           displayName: formData.displayName.toUpperCase(),
           addressLine1: formData.addressLine1.toUpperCase(),
           landmark: formData.landmark.toUpperCase(),
