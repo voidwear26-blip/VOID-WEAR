@@ -12,7 +12,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from './errors';
  * Uses a pure merge strategy to preserve existing fields like 'createdAt'.
  */
 export async function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
-  if (!user) return;
+  if (!user || !user.uid) return;
 
   const userRef = doc(db, 'users', user.uid);
   
@@ -20,6 +20,7 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     uid: user.uid,
     email: user.email,
     updatedAt: new Date().toISOString(),
+    role: 'OPERATOR', // Default role for all operators
     ...extraData
   };
 

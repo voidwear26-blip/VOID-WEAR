@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -119,7 +118,10 @@ export default function CheckoutPage() {
   };
 
   const finalizeOrderInFirestore = async (paymentId: string) => {
-    if (!user || !db || !cartItems || cartItems.length === 0) return;
+    if (!user || !user.uid || !db || !cartItems || cartItems.length === 0) {
+      toast({ variant: "destructive", title: "IDENTITY_FAILURE", description: "USER_UID_NOT_DETECTED." });
+      return;
+    }
     
     setLoading(true);
     const orderId = `VOID-${Date.now()}`;
@@ -155,10 +157,12 @@ export default function CheckoutPage() {
 
     try {
       await runTransaction(db, async (transaction) => {
+        // 1. Bulk Audit Phase: Pre-fetch all required metadata
         const productSnapshots = await Promise.all(
           cartItems.map(item => transaction.get(doc(db, 'products', item.productId)))
         );
 
+        // 2. Synthesis Phase: Update dossier and reconcile inventory
         transaction.set(userRef, { 
           ...formData, 
           displayName: formData.displayName.toUpperCase(),
@@ -198,26 +202,29 @@ export default function CheckoutPage() {
             }
           }
 
+          // Purge Bag Nodes
           const itemDocRef = doc(db, 'users', user.uid, 'carts', 'active_cart', 'items', item.id);
           transaction.delete(itemDocRef);
         });
 
+        // 3. Finalize Order
         transaction.set(orderRef, newOrder);
       });
 
+      // Post-Transaction Relay (Non-blocking)
       sendOrderConfirmationNotifications(newOrder).catch(err => console.error('[NOTIF_RELAY_FAIL]', err));
 
       setOrderObject(newOrder);
       setFinalOrderId(orderId);
       setFinalTransitionId(paymentId);
       setStep('success');
-      toast({ title: "ORDER SECURED", description: "LOGISTICS INITIATED." });
+      toast({ title: "ORDER SECURED", description: "TRANSMISSION SUCCESSFUL." });
     } catch (e: any) {
       console.error('[ORDER_TRANSACTION_FAILURE]', e);
       toast({
         variant: "destructive",
-        title: "SYSTEM_ERROR",
-        description: e.message || "TRANSACTION FAILED.",
+        title: "TRANSMISSION_FAILED",
+        description: e.message || "COULD NOT SECURE ORDER LOGS.",
       });
     } finally {
       setLoading(false);
