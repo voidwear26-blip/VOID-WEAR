@@ -1,13 +1,13 @@
 'use client';
 
-import { doc, getDoc, setDoc, updateDoc, Firestore } from 'firebase/firestore';
+import { doc, setDoc, increment, Firestore } from 'firebase/firestore';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 
 /**
  * VOID WEAR // BAG SYNCHRONIZATION
- * Adds a product to the user's active cart using the non-blocking protocol.
- * Stores essential metadata to avoid extra lookups in the cart view.
+ * Optimized for high-speed response by using atomic increments and avoiding pre-reads.
+ * Persists product selection with technical metadata.
  */
 export async function addToCart(
   db: Firestore, 
@@ -20,67 +20,40 @@ export async function addToCart(
   const cartItemId = `${product.id}_${size}_${product.color || 'DEFAULT'}`;
   const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
   
-  // getDoc MUST be awaited to determine creation vs update path
-  const itemSnap = await getDoc(itemRef).catch(error => {
-    errorEmitter.emit('permission-error', new FirestorePermissionError({
-      path: itemRef.path,
-      operation: 'get'
-    }));
-    throw error;
-  });
-
   // Extract clean metadata
   const price = Number(product.basePrice) || 0;
   const originalPrice = Number(product.originalPrice) || price;
   const image = product.imageUrls?.[0] || 'https://picsum.photos/seed/void/400/600';
   const color = product.color || 'UNSPECIFIED';
-  const isTaxable = product.isTaxable !== false; // Default true
+  const isTaxable = product.isTaxable !== false;
 
-  if (itemSnap.exists()) {
-    const currentQty = itemSnap.data().quantity || 0;
-    const updateData = {
-      quantity: currentQty + quantity,
-      price: price,
-      originalPrice: originalPrice,
-      image: image,
-      color: color,
-      isTaxable: isTaxable,
-      updatedAt: new Date().toISOString()
-    };
+  const setData: any = {
+    id: cartItemId,
+    productId: product.id,
+    name: product.name,
+    price: price,
+    originalPrice: originalPrice,
+    image: image,
+    size: size,
+    color: color,
+    isTaxable: isTaxable,
+    quantity: increment(quantity), // ATOMIC INCREMENT: Handles creation and updates without pre-read
+    updatedAt: new Date().toISOString()
+  };
 
-    // NON-BLOCKING UPDATE
-    updateDoc(itemRef, updateData).catch(async (serverError) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: itemRef.path,
-        operation: 'update',
-        requestResourceData: updateData,
-      }));
-    });
-  } else {
-    const setData = {
-      id: cartItemId,
-      productId: product.id,
-      name: product.name,
-      price: price,
-      originalPrice: originalPrice,
-      image: image,
-      size: size,
-      color: color,
-      isTaxable: isTaxable,
-      quantity: quantity,
-      addedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // NON-BLOCKING SET
-    setDoc(itemRef, setData).catch(async (serverError) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: itemRef.path,
-        operation: 'update', // Using update for consistency in rules debugging
-        requestResourceData: setData,
-      }));
-    });
-  }
+  /**
+   * ATOMIC UPSERT PROTOCOL:
+   * setDoc with merge: true creates the document if missing or updates specified fields.
+   * This is significantly faster as it avoids getDoc network latency.
+   */
+  return setDoc(itemRef, setData, { merge: true }).catch(async (error) => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+      path: itemRef.path,
+      operation: 'update',
+      requestResourceData: setData,
+    }));
+    throw error;
+  });
 }
 
 /**
@@ -90,10 +63,11 @@ export async function removeFromCart(db: Firestore, userId: string, cartItemId: 
   const itemRef = doc(db, 'users', userId, 'carts', 'active_cart', 'items', cartItemId);
   const { deleteDoc } = await import('firebase/firestore');
   
-  deleteDoc(itemRef).catch(async (error) => {
+  return deleteDoc(itemRef).catch(async (error) => {
     errorEmitter.emit('permission-error', new FirestorePermissionError({
       path: itemRef.path,
       operation: 'delete'
     }));
+    throw error;
   });
 }

@@ -240,10 +240,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     setAdding(true);
     try {
+      /**
+       * NON-BLOCKING UPLINK:
+       * The new addToCart protocol uses atomic increments, making it extremely fast.
+       */
       await addToCart(db, user!.uid, { ...product, id: product.id, color: selectedColor } as any, selectedSize);
       toast({ title: "ADDED TO BAG", description: "ITEM ADDED TO YOUR BAG." });
     } catch (e) {
       console.error(e);
+      toast({ variant: "destructive", title: "UPLINK FAILURE", description: "PLEASE TRY AGAIN." });
     } finally {
       setAdding(false);
     }
@@ -264,8 +269,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       router.push('/checkout');
     } catch (e) {
       console.error(e);
-    } finally {
       setBuying(false);
+      toast({ variant: "destructive", title: "UPLINK FAILURE" });
     }
   };
 
