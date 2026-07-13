@@ -16,7 +16,7 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
 
   const userRef = doc(db, 'users', user.uid);
   
-  const dossierData: any = {
+  const profileData: any = {
     uid: user.uid,
     email: user.email,
     updatedAt: new Date().toISOString(),
@@ -37,30 +37,30 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     user.uid === '0LvBBO9ySQdBKr3uwjcAjphMM8x1';
 
   if (isMasterEmail || isMasterUID) {
-    dossierData.role = 'ADMIN';
+    profileData.role = 'ADMIN';
   } else if (!extraData.role) {
     // Only set default OPERATOR if not already specified
-    dossierData.role = 'OPERATOR';
+    profileData.role = 'CUSTOMER';
   }
 
   // Ensure mandatory fields have values only if they are not already set in extraData
-  if (!dossierData.displayName && user.displayName) dossierData.displayName = user.displayName;
-  if (!dossierData.displayName && !user.displayName && !extraData.displayName) {
-    dossierData.displayName = user.email?.split('@')[0].toUpperCase() || 'USER';
+  if (!profileData.displayName && user.displayName) profileData.displayName = user.displayName;
+  if (!profileData.displayName && !user.displayName && !extraData.displayName) {
+    profileData.displayName = user.email?.split('@')[0].toUpperCase() || 'USER';
   }
   
   // Only include createdAt if it was explicitly passed (e.g., during signup)
   if (extraData.createdAt) {
-    dossierData.createdAt = extraData.createdAt;
+    profileData.createdAt = extraData.createdAt;
   }
 
   // Perform set with merge protocol. 
-  return setDoc(userRef, dossierData, { merge: true })
+  return setDoc(userRef, profileData, { merge: true })
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: userRef.path,
         operation: 'update',
-        requestResourceData: dossierData,
+        requestResourceData: profileData,
       } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
       throw serverError;

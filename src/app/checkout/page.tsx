@@ -224,7 +224,7 @@ export default function CheckoutPage() {
       toast({
         variant: "destructive",
         title: "ORDER FAILED",
-        description: e.message || "COULD NOT COMPLETE THE PURCHASE.",
+        description: e.message || "COULD NOT COMPLETE THE PURCHASE. PLEASE VERIFY PERMISSIONS.",
       });
     } finally {
       setLoading(false);

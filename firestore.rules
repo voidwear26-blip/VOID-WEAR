@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- System Authority Helpers ---
+    // --- Core Identity Helpers ---
     function isSignedIn() {
       return request.auth != null;
     }
@@ -11,11 +11,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Robust admin check: Master list OR Database role
+    // High-speed authority check using token metadata
     function isAdmin() {
       if (!isSignedIn()) return false;
       
-      // 1. Master List Check (Instant, no document reads)
       let masterUIDs = [
         'A9vsqn10oddfmouKiKjWpTcFqZB2', 
         '0LvBBO9ySQdBKr3uwjcAjphMM8x1'
@@ -26,19 +25,15 @@ service cloud.firestore {
         'voidwearoff26@gmail.com'
       ];
       
-      if (request.auth.uid in masterUIDs) return true;
-      if (request.auth.token.email != null && request.auth.token.email.lower() in masterEmails) return true;
-      
-      // 2. Database Role Check (Safely handled with default fallback)
-      let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(userDocPath) && get(userDocPath).data.get('role', 'OPERATOR') == 'ADMIN';
+      let email = request.auth.token.get('email', '').lower();
+      return (request.auth.uid in masterUIDs) || (email in masterEmails);
     }
 
-    // --- Product & Catalog Rules ---
+    // --- Product & Catalog Nodes ---
     match /products/{productId} {
       allow read: if true;
+      allow update: if isSignedIn(); // Required for stock decrement
       allow create, delete: if isAdmin();
-      allow update: if isSignedIn(); // Required for stock decrement or admin edits
     }
 
     match /app_config/{configId} {
@@ -51,36 +46,30 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // --- User-Specific Data Rules ---
+    // --- User-Specific Archives (Orders, Profile, Bag) ---
     match /users/{userId} {
-      // Users can manage their own profile
       allow read, write: if isOwner(userId) || isAdmin();
       
-      // Nested resources (Orders, Carts, Wishlist)
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
-    // --- Feedback & Communication ---
+    // --- Communication & Feedback ---
+    match /contacts/{contactId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    match /contacts/{contactId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-
-    // --- Collection Group Rules ---
+    // --- Collection Group Analytics ---
     match /{path=**}/orders/{orderId} {
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-    }
-    
-    match /{path=**}/reviews/{reviewId} {
-      allow read: if true;
     }
   }
 }
