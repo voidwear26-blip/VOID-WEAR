@@ -28,7 +28,7 @@ export default function ProfilePage() {
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('identity');
+  const [activeTab, setActiveTab] = useState('account');
   const [saving, setSaving] = useState(false);
 
   const profileRef = useMemoFirebase(() => {
@@ -103,7 +103,7 @@ export default function ProfilePage() {
       updateAuthProfile(user, { displayName: formData.displayName })
     ])
       .then(() => {
-        toast({ title: "PROFILE UPDATED", description: "ACCOUNT DETAILS SYNCHRONIZED." });
+        toast({ title: "PROFILE UPDATED", description: "ACCOUNT DETAILS SAVED." });
       })
       .catch(async (err) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -120,7 +120,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await initiateSignOut(auth);
-      toast({ title: "LOGGED OUT", description: "SESSION ENDED SUCCESSFULLY." });
+      toast({ title: "LOGGED OUT", description: "SESSION ENDED." });
       router.push('/');
     } catch (e) {
       console.error(e);
@@ -146,7 +146,7 @@ export default function ProfilePage() {
     );
   }
 
-  const displayTitle = formData.displayName || profile?.displayName || user.email?.split('@')[0].toUpperCase() || 'CUSTOMER';
+  const displayTitle = formData.displayName || profile?.displayName || user.email?.split('@')[0].toUpperCase() || 'USER';
 
   return (
     <div className="pt-48 pb-32 bg-transparent min-h-screen text-black">
@@ -171,7 +171,7 @@ export default function ProfilePage() {
             {isAdmin && (
               <Link href="/admin">
                 <Button className="w-full bg-black text-white hover:bg-black/90 rounded-none h-14 text-[10px] font-bold tracking-[0.4em] shadow-[0_0_20px_rgba(0,0,0,0.1)] uppercase">
-                  <Settings className="w-4 h-4 mr-3" /> COMMAND CENTER
+                  <Settings className="w-4 h-4 mr-3" /> ADMIN DASHBOARD
                 </Button>
               </Link>
             )}
@@ -179,18 +179,18 @@ export default function ProfilePage() {
             <div className="p-8 border border-black/5 bg-black/[0.01] space-y-6 backdrop-blur-sm">
               <div className="flex items-center gap-4 text-black/80">
                 <ShieldCheck className={`w-4 h-4 ${isAdmin ? 'text-black shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'text-black/40'}`} />
-                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ACCESS: {isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
+                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">ROLE: {isAdmin ? 'ADMIN' : 'CUSTOMER'}</span>
               </div>
               <div className="flex items-center gap-4 text-black/80">
                 <Calendar className="w-4 h-4 text-black/40" />
-                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">JOINED: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'INITIALIZING...'}</span>
+                <span className="text-[9px] tracking-[0.3em] uppercase font-bold">MEMBER SINCE: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'N/A'}</span>
               </div>
             </div>
             
             <nav className="flex flex-col gap-4 text-[10px] tracking-[0.5em] uppercase font-bold text-black/60">
               {[
-                { id: 'identity', label: 'IDENTITY', icon: <UserIcon className="w-3.5 h-3.5" /> },
-                { id: 'orders', label: 'ORDERS', icon: <Package className="w-3.5 h-3.5" /> },
+                { id: 'account', label: 'ACCOUNT', icon: <UserIcon className="w-3.5 h-3.5" /> },
+                { id: 'orders', label: 'MY ORDERS', icon: <Package className="w-3.5 h-3.5" /> },
                 { id: 'wishlist', label: 'WISHLIST', icon: <Heart className="w-3.5 h-3.5" /> }
               ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-4 transition-all duration-300 py-3 ${activeTab === tab.id ? 'text-black pl-4 border-l border-black' : 'hover:text-black/80'}`}>
@@ -202,10 +202,10 @@ export default function ProfilePage() {
 
           <div className="lg:col-span-3">
             <AnimatePresence mode="wait">
-              {activeTab === 'identity' && (
-                <motion.div key="identity" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+              {activeTab === 'account' && (
+                <motion.div key="account" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ACCOUNT DETAILS</h2>
+                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ACCOUNT INFORMATION</h2>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-xl">
@@ -247,7 +247,7 @@ export default function ProfilePage() {
                     </div>
 
                     <Button type="submit" disabled={saving} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>SAVE CHANGES <Save className="ml-3 w-4 h-4" /></>}
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>UPDATE DETAILS <Save className="ml-3 w-4 h-4" /></>}
                     </Button>
                   </form>
                 </motion.div>
@@ -257,11 +257,11 @@ export default function ProfilePage() {
                 <motion.div key="orders" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                   <div className="flex items-center justify-between border-b border-black/5 pb-8">
                     <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ORDER HISTORY</h2>
-                    <span className="text-[10px] text-black/60 font-bold uppercase">{orders?.length || 0} LOGS</span>
+                    <span className="text-[10px] text-black/60 font-bold uppercase">{orders?.length || 0} RECORDS</span>
                   </div>
                   <div className="space-y-8">
                     {orders?.map((order) => <OrderCard key={order.id} order={order} userId={user.uid} userName={displayTitle} db={db} />)}
-                    {orders?.length === 0 && <EmptyState icon={<ShoppingBag />} message="NO ORDERS LOGGED" />}
+                    {orders?.length === 0 && <EmptyState icon={<ShoppingBag />} message="NO ORDERS FOUND" />}
                   </div>
                 </motion.div>
               )}
@@ -328,7 +328,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
         createdAt: new Date().toISOString(),
         orderId: order.id
       });
-      toast({ title: "REVIEW SUBMITTED", description: `FEEDBACK LOGGED FOR ${productName.toUpperCase()}.` });
+      toast({ title: "REVIEW SUBMITTED", description: `FEEDBACK SAVED FOR ${productName.toUpperCase()}.` });
       setReviewComment('');
       setReviewOpen(false);
     } catch (e) {
@@ -348,11 +348,11 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
           </div>
           <div className="flex flex-wrap gap-8">
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">ORDER_DATE</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">DATE</p>
                 <p className="text-[10px] text-black/90 font-mono">{new Date(order.orderDate).toLocaleDateString()}</p>
              </div>
              <div className="space-y-1">
-                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">TOTAL_VALUE</p>
+                <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">TOTAL PRICE</p>
                 <p className="text-[10px] text-black font-black">₹{order.totalAmount}</p>
              </div>
              <div className="space-y-1">
@@ -397,7 +397,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                   <DialogHeader className="space-y-4 mb-8">
                     <DialogTitle className="text-xl font-black tracking-tight uppercase text-black font-headline">Submit Review</DialogTitle>
                     <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 leading-relaxed font-bold">
-                      YOUR FEEDBACK ON THE {item.name.toUpperCase()} MODULE.
+                      TELL US WHAT YOU THINK ABOUT THE {item.name.toUpperCase()}.
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -418,7 +418,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                       <Textarea 
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
-                        placeholder="TELL US WHAT YOU THINK..."
+                        placeholder="YOUR FEEDBACK..."
                         className="bg-black/5 border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase placeholder:text-black/20"
                       />
                     </div>
@@ -428,7 +428,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                       onClick={() => handleReviewSubmit(item.productId, item.name)}
                       className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase"
                     >
-                      {submittingReview ? <Loader2 className="animate-spin w-4 h-4" /> : <>SUBMIT REVIEW <Zap className="ml-3 w-4 h-4" /></>}
+                      {submittingReview ? <Loader2 className="animate-spin w-4 h-4" /> : <>SAVE REVIEW <Zap className="ml-3 w-4 h-4" /></>}
                     </Button>
                   </div>
                 </DialogContent>

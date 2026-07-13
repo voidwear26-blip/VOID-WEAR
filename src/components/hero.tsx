@@ -29,10 +29,10 @@ export function Hero() {
   }, []);
 
   const greeting = useMemo(() => {
-    if (!user) return 'OPERATOR';
+    if (!user) return 'WELCOME';
     const profileName = profile?.displayName;
     const authName = user.displayName;
-    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'OPERATOR';
+    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'WELCOME';
     return (profileName || authName || emailPrefix).toUpperCase();
   }, [user, profile]);
   

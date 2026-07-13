@@ -91,7 +91,7 @@ export default function AdminDashboard() {
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-6">
           <Loader2 className="w-10 h-10 animate-spin text-black/20" />
-          <div className="text-[10px] tracking-[1em] text-black/60 uppercase font-bold">Connecting to System...</div>
+          <div className="text-[10px] tracking-[1em] text-black/60 uppercase font-bold">Connecting to Dashboard...</div>
         </div>
       </div>
     );
@@ -105,11 +105,11 @@ export default function AdminDashboard() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <div className="space-y-4">
             <span className="text-[10px] font-bold tracking-[0.8em] text-black/40 uppercase">ADMIN PANEL // ONLINE</span>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none font-headline">Control Center</h1>
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none font-headline">Admin Dashboard</h1>
           </div>
           <div className="bg-black/5 border border-black/10 px-6 py-4 flex items-center gap-4 backdrop-blur-md">
             <ShieldCheck className="w-4 h-4 text-black/60" />
-            <span className="text-[10px] tracking-[0.3em] font-bold text-black/60 uppercase">SYSTEM SECURE</span>
+            <span className="text-[10px] tracking-[0.3em] font-bold text-black/60 uppercase">SYSTEM ONLINE</span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
               <div className="space-y-1">
                 <p className="text-[10px] tracking-widest font-black uppercase">DATABASE INDEX MISSING</p>
                 <p className="text-[9px] tracking-widest uppercase opacity-80 leading-relaxed max-w-2xl">
-                  Global order tracking requires a Collection Group index. Open the browser console and click the provided link to authorize this query.
+                  Order tracking requires a database index. Please open the browser console and follow the link to resolve this.
                 </p>
               </div>
             </div>
@@ -138,8 +138,8 @@ export default function AdminDashboard() {
           <div className="mb-12 p-6 border border-red-500/20 bg-red-500/5 flex items-center gap-4 text-red-600">
             <AlertCircle className="w-5 h-5" />
             <div className="space-y-1">
-              <p className="text-[10px] tracking-widest font-black uppercase">SYNC FAILURE</p>
-              <p className="text-[8px] tracking-widest uppercase opacity-60">RETRYING CONNECTION...</p>
+              <p className="text-[10px] tracking-widest font-black uppercase">SYNC ERROR</p>
+              <p className="text-[8px] tracking-widest uppercase opacity-60">RECONNECTING...</p>
             </div>
           </div>
         )}
@@ -151,22 +151,22 @@ export default function AdminDashboard() {
           <StatCard href="/admin/stories" icon={<Megaphone className="w-5 h-5" />} label="STORIES" value={counts.stories ? counts.stories.toString() : "..."} />
           <StatCard href="/admin/messages" icon={<MessageSquare className="w-5 h-5" />} label="MESSAGES" value={counts.messages ? counts.messages.toString() : "..."} />
           <StatCard href="/admin/reviews" icon={<Star className="w-5 h-5" />} label="REVIEWS" value={counts.reviews ? counts.reviews.toString() : "..."} />
-          <StatCard href="/admin/products" icon={<Package className="w-5 h-5" />} label="STOCK" value={productsLoading ? "..." : totalInventoryUnits.toString()} />
+          <StatCard href="/admin/products" icon={<Package className="w-5 h-5" />} label="INVENTORY" value={productsLoading ? "..." : totalInventoryUnits.toString()} />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
             <div className="bg-black/[0.01] border border-black/5 p-10 space-y-8 backdrop-blur-xl">
               <div className="flex justify-between items-center border-b border-black/10 pb-6">
-                <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-black/80">COMMAND MODULES</h3>
+                <h3 className="text-xs font-bold tracking-[0.4em] uppercase text-black/80">MANAGEMENT TOOLS</h3>
                 <Cpu className="w-4 h-4 text-black/20" />
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <QuickActionButton href="/admin/products" label="MANAGE PRODUCTS" description="EDIT CATALOGUE" icon={<Package className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/products" label="MANAGE PRODUCTS" description="CATALOG CONTROL" icon={<Package className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/stories" label="MANAGE STORIES" description="POST UPDATES" icon={<Megaphone className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/orders" label="MANAGE ORDERS" description="TRACK SALES" icon={<ShoppingBag className="w-4 h-4" />} />
-                <QuickActionButton href="/admin/users" label="CUSTOMER LIST" description="MANAGE PROFILES" icon={<Users className="w-4 h-4" />} />
-                <QuickActionButton href="/admin/messages" label="MESSAGES" description="CUSTOMER INQUIRIES" icon={<MessageSquare className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/users" label="USER LIST" description="MANAGE PROFILES" icon={<Users className="w-4 h-4" />} />
+                <QuickActionButton href="/admin/messages" label="MESSAGES" description="USER INQUIRIES" icon={<MessageSquare className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/reviews" label="REVIEWS" description="MANAGE FEEDBACK" icon={<Star className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/ads" label="ADVERTISING" description="MANAGE BANNERS" icon={<PlaySquare className="w-4 h-4" />} />
                 <QuickActionButton href="/admin/content" label="BRAND CONTROL" description="HOMEPAGE CONTENT" icon={<Settings className="w-4 h-4" />} />
