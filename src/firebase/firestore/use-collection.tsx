@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -21,8 +22,8 @@ export interface UseCollectionResult<T> {
 /**
  * STABILIZED DATA UPLINK HOOK
  * Synchronizes a collection or query in real-time.
- * Features protective logic to prevent Firestore Internal Assertion errors (ID: ca9)
- * by stabilizing the subscription lifecycle.
+ * Features protective logic to stabilize the subscription lifecycle and avoid
+ * internal SDK state assertion errors.
  */
 export function useCollection<T = any>(
     targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
@@ -30,15 +31,12 @@ export function useCollection<T = any>(
   const [data, setData] = useState<WithId<T>[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-  
-  // Use a ref to track the current active query to prevent race conditions during rapid re-renders
-  const activeQueryStr = useRef<string | null>(null);
 
   useEffect(() => {
     // 1. Initial State: If no query, we are effectively 'loading' the service uplink
     if (!targetRefOrQuery) {
       setData(null);
-      setIsLoading(true); // Keep loading true until service is ready
+      setIsLoading(true);
       setError(null);
       return;
     }
@@ -61,7 +59,7 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
-        // Log critical uplink errors for administrative review
+        // Log critical uplink errors for review but don't hang UI
         if (err.code !== 'cancelled') {
           console.error("🔥 SYSTEM_UPLINK_CRASH:", err);
           setError(err);

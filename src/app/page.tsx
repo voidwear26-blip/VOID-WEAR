@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
@@ -57,7 +58,7 @@ export default function Home() {
 
   // Reorder topProducts for 3-1-2 layout: Rank 3, Rank 1, Rank 2
   const rankedTopItems = useMemo(() => {
-    if (!topProducts || topProducts.length < 3) return topProducts || [];
+    if (!topProducts || topProducts.length < 3) return [];
     return [
       { ...topProducts[2], reason: rankReasons[2], rank: "03" },
       { ...topProducts[0], reason: rankReasons[0], rank: "01" },
@@ -108,15 +109,23 @@ export default function Home() {
               repeat: Infinity,
             }}
           >
-            {latestLoading || !latestProducts ? (
+            {latestLoading ? (
               [1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="min-w-[300px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse shrink-0" />
               ))
-            ) : [...latestProducts, ...latestProducts].map((product, idx) => (
-              <div key={`${product.id}-${idx}`} className="min-w-[300px] md:min-w-[320px] shrink-0">
-                <ProductCard product={product as any} />
-              </div>
-            ))}
+            ) : latestProducts && latestProducts.length > 0 ? (
+              [...latestProducts, ...latestProducts].map((product, idx) => (
+                <div key={`${product.id}-${idx}`} className="min-w-[300px] md:min-w-[320px] shrink-0">
+                  <ProductCard product={product as any} />
+                </div>
+              ))
+            ) : (
+               <div className="flex gap-8">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="min-w-[300px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 shrink-0" />
+                  ))}
+               </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -134,11 +143,11 @@ export default function Home() {
             dragElastic={0.1}
             className="flex gap-6 md:container md:mx-auto"
           >
-             {reviewsLoading || !featuredReviews ? (
+             {reviewsLoading ? (
                [1, 2, 3].map(i => (
-                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 p-8" />
+                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-[350px] bg-black/[0.03] animate-pulse border border-black/5 p-8" />
                ))
-             ) : featuredReviews.length > 0 ? (
+             ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review) => (
                  <Link key={review.id} href={`/products/${review.productId}`} className="w-[300px] md:w-[380px] shrink-0 block">
                    <div className="p-8 border border-black/10 bg-background flex flex-col h-[350px] hover:border-black/30 transition-all shadow-sm">
@@ -167,8 +176,10 @@ export default function Home() {
                  </Link>
                ))
              ) : (
-               <div className="w-full py-12 text-center opacity-20 border border-dashed border-black/10">
-                  <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">NO REPORTS</p>
+               <div className="flex gap-6">
+                 {[1, 2, 3].map(i => (
+                   <div key={i} className="min-w-[300px] md:min-w-[380px] h-[350px] bg-black/[0.01] border border-black/5 shrink-0" />
+                 ))}
                </div>
              )}
           </motion.div>
@@ -184,11 +195,20 @@ export default function Home() {
 
           <div className="relative flex flex-col items-center">
             <div className="flex flex-row items-center justify-center gap-4 md:gap-16 lg:gap-24 w-full max-w-7xl px-4 md:px-10">
-              {topLoading || !topProducts ? (
-                [1, 2, 3].map(i => (
-                  <div key={i} className="w-full max-w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5" />
-                ))
-              ) : rankedTopItems.map((product: any, idx) => {
+              {topLoading ? (
+                [1, 2, 3].map(i => {
+                   const isCenter = i === 2;
+                   return (
+                    <div 
+                      key={i} 
+                      className={cn(
+                        "bg-black/[0.03] animate-pulse border border-black/5 shrink-0",
+                        isCenter ? "z-30 scale-110 w-[240px] md:w-[380px] h-[350px] md:h-[500px]" : "z-10 scale-90 w-[180px] md:w-[280px] h-[300px] md:h-[450px]"
+                      )} 
+                    />
+                   );
+                })
+              ) : rankedTopItems.length > 0 ? rankedTopItems.map((product: any, idx) => {
                 const isCenter = idx === 1;
                 const isLeft = idx === 0;
                 const isRight = idx === 2;
@@ -200,14 +220,13 @@ export default function Home() {
                     onClick={() => setActiveTopIndex(idx)}
                     className={cn(
                       "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
-                      // Spacing calibration: Flanking items pushed outward
                       isLeft ? "md:-ml-12" : isRight ? "md:-mr-12" : "",
                       isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
                     )}
                     animate={{
                       scale: isActive ? 1.1 : isCenter ? 1.1 : 0.95,
-                      opacity: 1, // Purged transparency
-                      filter: "none" // Purged grayscale
+                      opacity: 1,
+                      filter: "none"
                     }}
                     whileHover={{ scale: isActive ? 1.15 : 1.05 }}
                   >
@@ -220,7 +239,13 @@ export default function Home() {
                     </div>
                   </motion.div>
                 );
-              })}
+              }) : (
+                <div className="flex gap-16 md:gap-24">
+                   {[1, 2, 3].map(i => (
+                     <div key={i} className="w-[180px] md:w-[320px] aspect-[3/4] bg-black/[0.01] border border-black/5 shrink-0" />
+                   ))}
+                </div>
+              )}
             </div>
 
             <AnimatePresence mode="wait">
