@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash, User as UserIcon, MapPin, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -29,6 +30,7 @@ export default function CheckoutPage() {
   const [finalOrderId, setFinalOrderId] = useState<string | null>(null);
   const [finalTransitionId, setFinalTransitionId] = useState<string | null>(null);
   const [orderObject, setOrderObject] = useState<any>(null);
+  const [dataConfirmed, setDataConfirmed] = useState(false);
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -145,10 +147,8 @@ export default function CheckoutPage() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. Sync User Dossier (ensures address is saved for future)
         transaction.set(userRef, { ...formData, updatedAt: new Date().toISOString() }, { merge: true });
 
-        // 2. Iterate Cart Items for Stock Management
         for (const item of cartItems) {
           const productRef = doc(db, 'products', item.productId);
           const productSnap = await transaction.get(productRef);
@@ -180,19 +180,15 @@ export default function CheckoutPage() {
             }
           }
 
-          // 3. Purge related item nodes (Cleanup)
           const itemDocRef = doc(db, 'users', user.uid, 'carts', 'active_cart', 'items', item.id);
           transaction.delete(itemDocRef);
         }
 
-        // 4. Anchor Global Order Log
         transaction.set(orderRef, newOrder);
       });
 
-      // 5. Trigger Dual-Relay Notification (Non-blocking)
       sendOrderConfirmationNotifications(newOrder).catch(err => console.error('[NOTIF_RELAY_FAIL]', err));
 
-      // 6. Transition to Success
       setOrderObject(newOrder);
       setFinalOrderId(orderId);
       setFinalTransitionId(paymentId);
@@ -211,6 +207,10 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentUplink = async () => {
+    if (!dataConfirmed) {
+      toast({ variant: "destructive", title: "CONFIRMATION REQUIRED", description: "PLEASE CONFIRM YOUR DELIVERY DATA." });
+      return;
+    }
     if (!user || !db || !cartItems || cartItems.length === 0) return;
     setLoading(true);
 
@@ -390,11 +390,16 @@ export default function CheckoutPage() {
                       </div>
 
                       <div className="pt-8 border-t border-black/5">
-                         <div className="p-6 bg-white/40 border border-black/5 flex items-center gap-4">
-                            <ShieldCheck className="w-5 h-5 text-black" />
-                            <p className="text-[9px] tracking-widest uppercase font-bold text-black/80 leading-relaxed">
+                         <div className="p-6 bg-white/40 border border-black/5 flex items-center gap-4 cursor-pointer" onClick={() => setDataConfirmed(!dataConfirmed)}>
+                            <Checkbox 
+                              id="confirmData" 
+                              checked={dataConfirmed} 
+                              onCheckedChange={(val: boolean) => setDataConfirmed(val)}
+                              className="border-black data-[state=checked]:bg-black"
+                            />
+                            <label htmlFor="confirmData" className="text-[9px] tracking-widest uppercase font-bold text-black/80 leading-relaxed cursor-pointer">
                                I CONFIRM THAT ALL SHIPPING DATA IS ACCURATE AND COMPLETE.
-                            </p>
+                            </label>
                          </div>
                       </div>
                    </div>
@@ -403,7 +408,11 @@ export default function CheckoutPage() {
                       <Button variant="ghost" onClick={() => setStep('shipping')} className="h-16 border border-black/10 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase px-12">
                          GO BACK
                       </Button>
-                      <Button onClick={() => setStep('payment')} className="flex-1 h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.5em] transition-all">
+                      <Button 
+                        disabled={!dataConfirmed}
+                        onClick={() => setStep('payment')} 
+                        className="flex-1 h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.5em] transition-all disabled:opacity-30"
+                      >
                          CONTINUE TO PAYMENT <ArrowRight className="ml-3 w-4 h-4" />
                       </Button>
                    </div>

@@ -42,7 +42,6 @@ export default function LoginPage() {
     if (user && !isUserLoading) {
       const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
       if (user.emailVerified || isGoogleUser) {
-        // Detect if this is the user's first time arriving
         const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
         const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
 
@@ -85,7 +84,6 @@ export default function LoginPage() {
         await updateAuthProfile(cred.user, { displayName });
         await initiateEmailVerification(cred.user);
         
-        // Flag this as a new registration for redirect after verification
         localStorage.setItem('void_new_reg', 'true');
 
         await saveUserToFirestore(db, cred.user, { 
@@ -103,8 +101,6 @@ export default function LoginPage() {
         } else {
           await saveUserToFirestore(db, cred.user);
           toast({ title: "LOGGED IN", description: "WELCOME BACK." });
-          
-          // Redirection handled by useEffect
         }
       }
     } catch (err: any) {
@@ -119,6 +115,9 @@ export default function LoginPage() {
       } else if (err.code === 'auth/weak-password') {
         errorTitle = "WEAK PASSWORD";
         errorDesc = "PASSWORD MUST BE AT LEAST 6 CHARACTERS.";
+      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        errorTitle = "INVALID CREDENTIALS";
+        errorDesc = "THE EMAIL OR PASSWORD PROVIDED IS INCORRECT.";
       } else if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false);
         return;
@@ -156,23 +155,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const cred = await initiateGoogleSignIn(auth);
-      
       const isNewUser = cred.user.metadata.creationTime === cred.user.metadata.lastSignInTime;
       const extraData: any = {};
       if (isNewUser) {
         extraData.createdAt = new Date().toISOString();
       }
-
       await saveUserToFirestore(db, cred.user, extraData);
       toast({ title: "LOGIN SUCCESSFUL" });
-
-      // useEffect will handle the redirect based on isNewUser
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false);
         return;
       }
-      console.error('[GOOGLE_AUTH_FAILURE]', err);
       toast({ variant: "destructive", title: "LOGIN FAILED" });
     } finally {
       setLoading(false);

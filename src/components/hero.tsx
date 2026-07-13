@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
 export function Hero() {
@@ -49,7 +49,6 @@ export function Hero() {
 
   return (
     <section className="relative min-h-[90vh] md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
-      {/* Cinematic Background Elements */}
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -66,7 +65,6 @@ export function Hero() {
         </div>
       </motion.div>
 
-      {/* Hero Narrative Layer */}
       <div className="relative z-20 text-center space-y-6 w-full max-w-7xl px-6 flex flex-col items-center">
         <div className="space-y-4 flex flex-col items-center w-full">
           <motion.div
@@ -85,7 +83,7 @@ export function Hero() {
             transition={{ delay: 1.2, duration: 1 }}
             className="flex flex-col items-center gap-4 w-full"
           >
-            <div className="relative h-[120px] md:h-[20vh] w-auto aspect-square">
+            <div className="relative h-[100px] md:h-[18vh] w-auto aspect-square">
               <Image 
                 src="/logo.png" 
                 alt="VOID WEAR LOGO" 
@@ -113,7 +111,6 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Scroll Indicator Node */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
