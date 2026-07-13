@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, runTransaction } from 'firebase/firestore';
+import { collection, doc, runTransaction, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash, User as UserIcon, MapPin, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -73,11 +74,9 @@ export default function CheckoutPage() {
     }
   }, [user, profile]);
 
-  // FINANCIAL PROTOCOL: Dynamic Tax & Shipping Calculations
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 0)), 0) || 0;
   
   const taxableSubtotal = cartItems?.reduce((acc, item) => {
-    // Strictly exclude items marked as non-taxable
     if (item.isTaxable !== false) {
       return acc + (Number(item.price || 0) * Number(item.quantity || 0));
     }
@@ -85,7 +84,7 @@ export default function CheckoutPage() {
   }, 0) || 0;
   
   const totalUnits = cartItems?.reduce((acc, item) => acc + Number(item.quantity || 0), 0) || 0;
-  const taxAmount = taxableSubtotal * 0.05; // 5% System Tax
+  const taxAmount = taxableSubtotal * 0.05; 
   const shippingFee = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
   const totalAmount = subtotal + taxAmount + shippingFee;
 
@@ -120,7 +119,7 @@ export default function CheckoutPage() {
   };
 
   const finalizeOrderInFirestore = async (paymentId: string) => {
-    if (!user || !db || !cartItems) return;
+    if (!user || !db || !cartItems || cartItems.length === 0) return;
     
     setLoading(true);
     const orderId = `VOID-${Date.now()}`;
@@ -155,7 +154,18 @@ export default function CheckoutPage() {
     };
 
     try {
+      /**
+       * ATOMIC TRANSACTION RE-ENGINEERING
+       * Re-calibrated to strict Read-Before-Write protocol for high-density environments.
+       */
       await runTransaction(db, async (transaction) => {
+        // STEP 01: BULK READ PHASE
+        const productSnapshots = await Promise.all(
+          cartItems.map(item => transaction.get(doc(db, 'products', item.productId)))
+        );
+
+        // STEP 02: SYNERGETIC WRITE PHASE
+        // a. Profile Synchronization
         transaction.set(userRef, { 
           ...formData, 
           displayName: formData.displayName.toUpperCase(),
@@ -166,10 +176,9 @@ export default function CheckoutPage() {
           updatedAt: new Date().toISOString() 
         }, { merge: true });
 
-        for (const item of cartItems) {
-          const productRef = doc(db, 'products', item.productId);
-          const productSnap = await transaction.get(productRef);
-          
+        // b. Inventory Calibration & Bag Purge
+        cartItems.forEach((item, idx) => {
+          const productSnap = productSnapshots[idx];
           if (productSnap.exists()) {
             const productData = productSnap.data();
             const matrix = productData.stockMatrix || {};
@@ -189,7 +198,7 @@ export default function CheckoutPage() {
                 });
               });
 
-              transaction.update(productRef, {
+              transaction.update(productSnap.ref, {
                 stockMatrix: matrix,
                 stockQuantity: newTotalStock,
                 updatedAt: new Date().toISOString()
@@ -199,8 +208,9 @@ export default function CheckoutPage() {
 
           const itemDocRef = doc(db, 'users', user.uid, 'carts', 'active_cart', 'items', item.id);
           transaction.delete(itemDocRef);
-        }
+        });
 
+        // c. Order Archival
         transaction.set(orderRef, newOrder);
       });
 
@@ -211,12 +221,12 @@ export default function CheckoutPage() {
       setFinalTransitionId(paymentId);
       setStep('success');
       toast({ title: "ORDER SECURED", description: "LOGISTICS INITIATED." });
-    } catch (e) {
-      console.error('[ORDER_TRANSACTION_FAILURE]', e);
+    } catch (e: any) {
+      console.error('[ORDER_TRANSACTION_FAILURE] Critical System Crash:', e);
       toast({
         variant: "destructive",
         title: "SYSTEM_ERROR",
-        description: "TRANSACTION FAILED. PLEASE CONTACT VOID WEAR SUPPORT.",
+        description: e.message || "TRANSACTION FAILED. PLEASE CONTACT VOID WEAR SUPPORT.",
       });
     } finally {
       setLoading(false);
@@ -263,11 +273,12 @@ export default function CheckoutPage() {
             if (verifyRes.ok) {
               await finalizeOrderInFirestore(response.razorpay_payment_id);
             } else {
-              toast({ variant: "destructive", title: "INTEGRITY_FAILURE" });
+              const verifyData = await verifyRes.json();
+              toast({ variant: "destructive", title: "INTEGRITY_FAILURE", description: verifyData.message || "SIGNATURE MISMATCH." });
               setLoading(false);
             }
           } catch (err) {
-            toast({ variant: "destructive", title: "RELAY_TIMEOUT" });
+            toast({ variant: "destructive", title: "RELAY_TIMEOUT", description: "CONNECTION TO GATEWAY LOST." });
             setLoading(false);
           }
         },
