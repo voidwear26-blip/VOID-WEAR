@@ -57,9 +57,8 @@ export function PromoBanner() {
 
   if (banners.length === 0) return null;
 
-  const currentBanner = banners[currentIndex];
-
   // Final safety check to prevent "url of undefined" error
+  const currentBanner = banners[currentIndex] || banners[0];
   if (!currentBanner) return null;
 
   const alignmentStyles = {

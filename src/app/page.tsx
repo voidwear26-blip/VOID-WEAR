@@ -16,6 +16,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import AutoScroll from "embla-carousel-auto-scroll";
 
 export default function Home() {
   const db = useFirestore();
@@ -26,7 +27,7 @@ export default function Home() {
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), limit(8));
+    return query(collection(db, 'products'), limit(12));
   }, [db]);
 
   const topProductsQuery = useMemoFirebase(() => {
@@ -113,6 +114,14 @@ export default function Home() {
               loop: true,
               dragFree: true,
             }}
+            plugins={[
+              AutoScroll({
+                playOnInit: true,
+                speed: 1,
+                stopOnInteraction: false,
+                stopOnMouseEnter: true,
+              }),
+            ]}
             className="w-full"
           >
             <CarouselContent className="-ml-8">
@@ -233,11 +242,12 @@ export default function Home() {
                     onClick={() => setActiveTopIndex(idx)}
                     className={cn(
                       "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
-                      isLeft ? "md:-mx-24" : isRight ? "md:-mx-24" : "", // Increased outward push
+                      isLeft ? "md:-mx-32 -mx-8" : isRight ? "md:-mx-32 -mx-8" : "",
                       isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
                     )}
                     animate={{
                       scale: isActive ? 1.1 : isCenter ? 1.1 : 0.95,
+                      x: (idx - activeTopIndex) * 20,
                       opacity: 1,
                       filter: "none"
                     }}
