@@ -80,11 +80,11 @@ export default function Home() {
     <div className="space-y-0 bg-background text-black">
       <Hero />
       
-      <div className="mt-4 md:mt-8">
+      <div className="mt-8">
         <PromoBanner />
       </div>
 
-      <section className="py-12 md:py-16 flex justify-center bg-black/[0.01]">
+      <section className="py-16 flex justify-center bg-black/[0.01]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -96,8 +96,8 @@ export default function Home() {
         </motion.div>
       </section>
       
-      <section className="py-4 md:py-8 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-6 mb-4">
+      <section className="py-8 bg-transparent relative overflow-hidden">
+        <div className="container mx-auto px-6 mb-8">
           <div className="flex items-end justify-between">
             <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
               ARRIVALS
@@ -122,7 +122,11 @@ export default function Home() {
             {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="w-[260px] md:w-[300px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse flex items-center justify-center">
-                   <Loader2 className="w-6 h-6 animate-spin text-black/10" />
+                   <div className="space-y-4 w-full px-6">
+                      <div className="w-full h-48 bg-black/5" />
+                      <div className="w-3/4 h-4 bg-black/5" />
+                      <div className="w-1/2 h-3 bg-black/5" />
+                   </div>
                 </div>
               ))
             ) : displayProducts.length > 0 ? (
@@ -141,8 +145,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-4 md:py-8 bg-black/[0.01] border-y border-black/5">
-        <div className="container mx-auto px-6 mb-4">
+      <section className="py-8 bg-black/[0.01] border-y border-black/5">
+        <div className="container mx-auto px-6 mb-8">
           <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
         </div>
 
@@ -156,8 +160,19 @@ export default function Home() {
           >
              {reviewsLoading ? (
                [1, 2, 3].map(i => (
-                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-black/10" />
+                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 p-8 space-y-6">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-black/5" />
+                      <div className="space-y-2 flex-1">
+                        <div className="w-1/2 h-2 bg-black/5" />
+                        <div className="w-1/3 h-2 bg-black/5" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="w-full h-2 bg-black/5" />
+                      <div className="w-full h-2 bg-black/5" />
+                      <div className="w-2/3 h-2 bg-black/5" />
+                    </div>
                  </div>
                ))
              ) : featuredReviews && featuredReviews.length > 0 ? (
@@ -197,10 +212,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-transparent">
+      <section className="py-20 md:py-32 bg-transparent">
         <div className="container mx-auto px-6">
-          <div className="text-center space-y-4 mb-12">
-            <span className="text-[9px] font-bold tracking-[1.2em] text-black/40 uppercase">BEST SELLERS</span>
+          <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
           </div>
 
@@ -208,7 +222,11 @@ export default function Home() {
             {topLoading ? (
               [1, 2, 3].map(i => (
                 <div key={i} className="aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
-                   <Loader2 className="w-6 h-6 animate-spin text-black/10" />
+                   <div className="space-y-4 w-full px-10">
+                      <div className="w-full h-64 bg-black/5" />
+                      <div className="w-3/4 h-4 bg-black/5" />
+                      <div className="w-1/2 h-3 bg-black/5" />
+                   </div>
                 </div>
               ))
             ) : topProducts && topProducts.length > 0 ? (

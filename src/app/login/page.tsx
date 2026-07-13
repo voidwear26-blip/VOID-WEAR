@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -40,10 +39,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      // Enhanced Google provider check across all linked accounts
-      const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+      // SCALING IDENTITY CHECK: Scan all linked providers for Google auth
+      const isGoogleLinked = user.providerData.some(p => p.providerId === 'google.com');
       
-      if (user.emailVerified || isGoogleUser) {
+      // Google users bypass manual verification for immediate system entry
+      if (user.emailVerified || isGoogleLinked) {
         const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
         const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
 
@@ -120,9 +120,6 @@ export default function LoginPage() {
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         errorTitle = "INVALID CREDENTIALS";
         errorDesc = "THE EMAIL OR PASSWORD PROVIDED IS INCORRECT.";
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        setLoading(false);
-        return;
       }
 
       toast({
@@ -164,7 +161,6 @@ export default function LoginPage() {
       }
       await saveUserToFirestore(db, cred.user, extraData);
       toast({ title: "LOGIN SUCCESSFUL" });
-      // Redirection is handled by the useEffect above
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false);

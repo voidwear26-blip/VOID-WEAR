@@ -76,11 +76,9 @@ export function PromoBanner() {
               unoptimized
               priority
             />
-            {/* Minimal Subsurface Gradients for Readability */}
             <div className="absolute inset-0 bg-black/5 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
 
-            {/* Text Content Layer */}
             <div className={cn(
               "absolute inset-0 flex flex-col justify-center px-6 transition-all duration-1000",
               alignmentStyles[currentBanner.alignment || 'center']
@@ -125,7 +123,6 @@ export function PromoBanner() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Manual Navigation Nodes */}
       {banners.length > 1 && (
         <>
           <button 
@@ -143,7 +140,6 @@ export function PromoBanner() {
         </>
       )}
 
-      {/* Progress Indicators */}
       <div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1 md:gap-3 z-30">
         {banners.map((_, i) => (
           <button 

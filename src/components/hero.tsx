@@ -29,10 +29,10 @@ export function Hero() {
   }, []);
 
   const greeting = useMemo(() => {
-    if (!user) return 'CUSTOMER';
+    if (!user) return 'OPERATOR';
     const profileName = profile?.displayName;
     const authName = user.displayName;
-    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'CUSTOMER';
+    const emailPrefix = user.email?.split('@')[0]?.toUpperCase() || 'OPERATOR';
     return (profileName || authName || emailPrefix).toUpperCase();
   }, [user, profile]);
   
@@ -52,7 +52,7 @@ export function Hero() {
         transition={{ duration: 4, ease: [0.22, 1, 0.36, 1] }}
         className="absolute inset-0 flex items-center justify-center z-10"
       >
-        <div className="relative w-[280px] h-[280px] md:w-[500px] md:h-[500px]">
+        <div className="relative w-[280px] h-[280px] md:w-[450px] md:h-[450px]">
           <div className="eclipse-glow" />
           <motion.div 
             animate={{ rotate: 360 }}
@@ -79,7 +79,7 @@ export function Hero() {
           transition={{ delay: 1.2, duration: 1 }}
           className="flex flex-col items-center gap-4 w-full"
         >
-          <div className="relative h-[120px] md:h-[180px] w-auto aspect-square">
+          <div className="relative h-[120px] md:h-[20vh] w-auto aspect-square">
             <Image 
               src="/logo.png" 
               alt="VOID WEAR LOGO" 
