@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Upload, Trash2, Image as ImageIcon, Sparkles, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Upload, Trash2, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -146,17 +146,8 @@ export default function AdvertisingControlPage() {
                       <Trash2 className="w-6 h-6" />
                     </Button>
                   </div>
-                  <div className="absolute bottom-4 left-4 bg-white/80 px-4 py-1 text-[8px] font-black tracking-widest uppercase">
-                    SLIDE {idx + 1}
-                  </div>
                 </div>
               ))}
-              {banners.length === 0 && (
-                <div className="col-span-full py-20 border border-dashed border-black/10 flex flex-col items-center justify-center gap-4 opacity-40">
-                  <ImageIcon className="w-12 h-12 stroke-[0.5px]" />
-                  <p className="text-[10px] tracking-[1em] font-bold uppercase">NO BANNERS ACTIVE</p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -239,16 +230,6 @@ export default function AdvertisingControlPage() {
                 ADD TO BUFFER
               </Button>
             </div>
-          </div>
-
-          <div className="p-8 border border-black/10 bg-black/5 space-y-4">
-            <div className="flex items-center gap-3 text-black/40">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[9px] tracking-[0.3em] uppercase font-bold">SYSTEM ADVISORY</span>
-            </div>
-            <p className="text-[9px] text-black/60 tracking-widest leading-relaxed uppercase font-bold">
-              ENSURE BANNERS ARE ADDED TO THE BUFFER BEFORE CLICKING DEPLOY. THE BUFFERED LIST REPRESENTS THE FINAL SEQUENCE FOR THE HOMEPAGE.
-            </p>
           </div>
 
           <Button 

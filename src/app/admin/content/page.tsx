@@ -2,7 +2,7 @@
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Sparkles } from 'lucide-react';
+import { ChevronLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ export default function BrandControlPage() {
       setFormData({
         heroTitle: config.heroTitle || 'VOID WEAR',
         heroSubtitle: config.heroSubtitle || 'AUTHENTICATED',
-        heroTagline: 'EMBRACE THE UNKNOWN',
+        heroTagline: config.heroTagline || 'EMBRACE THE UNKNOWN',
         activeSeason: config.activeSeason || 'SEASON 01',
       });
     }
@@ -134,16 +134,6 @@ export default function BrandControlPage() {
                 className="bg-black/5 border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black/40 cursor-not-allowed"
               />
             </div>
-          </div>
-
-          <div className="p-8 border border-black/10 bg-black/5 space-y-4">
-            <div className="flex items-center gap-3 text-black/40">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[9px] tracking-[0.3em] uppercase font-bold">SYSTEM ADVISORY</span>
-            </div>
-            <p className="text-[9px] text-black/60 tracking-widest leading-relaxed uppercase font-bold">
-              CHANGES MADE HERE ARE PUSHED IN REAL-TIME TO THE PRIMARY UPLINK (HOMEPAGE). ENSURE ALL BRAND ASSETS ALIGN WITH THE VOID WEAR AESTHETIC BEFORE DEPLOYMENT.
-            </p>
           </div>
 
           <Button 

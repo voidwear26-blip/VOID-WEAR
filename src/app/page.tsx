@@ -7,7 +7,7 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where } from 'firebase/firestore';
-import { Package, ArrowRight, Star, User, Loader2 } from 'lucide-react';
+import { Package, ArrowRight, Star, User, Loader2, Sparkles } from 'lucide-react';
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -84,7 +84,7 @@ export default function Home() {
         <PromoBanner />
       </div>
 
-      <section className="py-16 flex justify-center bg-black/[0.01]">
+      <section className="py-16 md:py-24 flex justify-center bg-transparent">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -96,7 +96,7 @@ export default function Home() {
         </motion.div>
       </section>
       
-      <section className="py-8 bg-transparent relative overflow-hidden">
+      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-8">
           <div className="flex items-end justify-between">
             <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
@@ -119,7 +119,7 @@ export default function Home() {
             style={{ x }}
             className="flex gap-6 md:gap-10 whitespace-nowrap px-6 md:px-0"
           >
-            {latestLoading ? (
+            {latestLoading || !latestProducts ? (
               [1, 2, 3, 4, 5].map(i => (
                 <div key={i} className="w-[260px] md:w-[300px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse flex items-center justify-center">
                    <div className="space-y-4 w-full px-6">
@@ -145,7 +145,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-8 bg-black/[0.01] border-y border-black/5">
+      <section className="py-8 md:py-12 bg-black/[0.01] border-y border-black/5">
         <div className="container mx-auto px-6 mb-8">
           <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
         </div>
@@ -158,7 +158,7 @@ export default function Home() {
             dragElastic={0.1}
             className="flex gap-6 md:container md:mx-auto"
           >
-             {reviewsLoading ? (
+             {reviewsLoading || !featuredReviews ? (
                [1, 2, 3].map(i => (
                  <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 p-8 space-y-6">
                     <div className="flex gap-3">
@@ -175,8 +175,8 @@ export default function Home() {
                     </div>
                  </div>
                ))
-             ) : featuredReviews && featuredReviews.length > 0 ? (
-               featuredReviews.map((review, idx) => (
+             ) : featuredReviews.length > 0 ? (
+               featuredReviews.map((review) => (
                  <Link key={review.id} href={`/products/${review.productId}`} className="w-[300px] md:w-[380px] shrink-0 block">
                    <div className="p-8 border border-black/10 bg-background flex flex-col h-[350px] hover:border-black/30 transition-all shadow-sm">
                       <div className="space-y-6 flex-1 overflow-hidden">
@@ -219,7 +219,7 @@ export default function Home() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-            {topLoading ? (
+            {topLoading || !topProducts ? (
               [1, 2, 3].map(i => (
                 <div key={i} className="aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
                    <div className="space-y-4 w-full px-10">
@@ -229,7 +229,7 @@ export default function Home() {
                    </div>
                 </div>
               ))
-            ) : topProducts && topProducts.length > 0 ? (
+            ) : topProducts.length > 0 ? (
               topProducts.map((product, idx) => (
                 <div key={product.id} className="relative">
                   <ProductCard product={product as any} />

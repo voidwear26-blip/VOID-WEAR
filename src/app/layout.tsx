@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'VOID WEAR | EMBRACE THE UNKNOWN',
     template: '%s | VOID WEAR'
   },
-  description: 'VOID WEAR provides high-performance technical assemblages for the modern environment. Cinematic aesthetics and architectural design.',
+  description: 'VOID WEAR | EMBRACE THE UNKNOWN. High-performance technical assemblages for the urban explorer.',
   keywords: ['VOID WEAR', 'EMBRACE THE UNKNOWN', 'technical apparel', 'modern style', 'urban fashion', 'minimalist clothing'],
   authors: [{ name: 'VOID WEAR collective' }],
   creator: 'VOID WEAR',
@@ -84,16 +84,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet" />
-        
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-XXXXXXX');
-          `}
-        </Script>
       </head>
       <body className="antialiased bg-background text-black selection:bg-black selection:text-white overflow-x-hidden">
         <FirebaseClientProvider>

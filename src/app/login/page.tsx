@@ -15,7 +15,7 @@ import { saveUserToFirestore } from '@/firebase/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Chrome, Eye, EyeOff, ShieldAlert, MailCheck, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Loader2, Chrome, Eye, EyeOff, MailCheck, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -39,16 +39,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      // SCALING IDENTITY CHECK: Scan all linked providers for Google auth
       const isGoogleLinked = user.providerData.some(p => p.providerId === 'google.com');
       
-      // Google users bypass manual verification for immediate system entry
       if (user.emailVerified || isGoogleLinked) {
-        const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
         const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
-
-        if (isNewUser || wasNewReg) {
-          if (wasNewReg) localStorage.removeItem('void_new_reg');
+        if (wasNewReg) {
+          localStorage.removeItem('void_new_reg');
           router.push('/profile');
         } else {
           router.push('/');
@@ -67,7 +63,7 @@ export default function LoginPage() {
       setLoading(true);
       try {
         await initiatePasswordReset(auth, email.trim());
-        toast({ title: "RESET LINK SENT", description: "CHECK YOUR EMAIL FOR THE RECOVERY LINK." });
+        toast({ title: "RESET LINK SENT", description: "CHECK YOUR EMAIL." });
         setMode('login');
       } catch (err) {
         toast({ variant: "destructive", title: "SEND FAILURE" });
@@ -85,47 +81,27 @@ export default function LoginPage() {
         const cred = await initiateEmailSignUp(auth, email.trim(), password);
         await updateAuthProfile(cred.user, { displayName });
         await initiateEmailVerification(cred.user);
-        
         localStorage.setItem('void_new_reg', 'true');
-
-        await saveUserToFirestore(db, cred.user, { 
-          displayName, 
-          mobileNumber, 
-          createdAt: new Date().toISOString() 
-        });
-        toast({ title: "ACCOUNT CREATED", description: "PLEASE VERIFY YOUR EMAIL TO PROCEED." });
+        await saveUserToFirestore(db, cred.user, { displayName, mobileNumber, createdAt: new Date().toISOString() });
         setMode('verify');
       } else {
         const cred = await initiateEmailSignIn(auth, email.trim(), password);
         if (!cred.user.emailVerified) {
           setMode('verify');
-          toast({ variant: "destructive", title: "EMAIL NOT VERIFIED", description: "PLEASE VERIFY YOUR ACCOUNT." });
         } else {
           await saveUserToFirestore(db, cred.user);
           toast({ title: "LOGGED IN", description: "WELCOME BACK." });
         }
       }
     } catch (err: any) {
-      console.error('[AUTH_FAILURE]', err);
-      
       let errorTitle = "LOGIN FAILED";
-      let errorDesc = "THE EMAIL OR PASSWORD PROVIDED IS INCORRECT.";
-
-      if (err.code === 'auth/email-already-in-use') {
-        errorTitle = "ACCOUNT EXISTS";
-        errorDesc = "THIS EMAIL IS ALREADY REGISTERED.";
-      } else if (err.code === 'auth/weak-password') {
-        errorTitle = "WEAK PASSWORD";
-        errorDesc = "PASSWORD MUST BE AT LEAST 6 CHARACTERS.";
-      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        errorTitle = "INVALID CREDENTIALS";
-        errorDesc = "THE EMAIL OR PASSWORD PROVIDED IS INCORRECT.";
-      }
-
+      if (err.code === 'auth/email-already-in-use') errorTitle = "ACCOUNT EXISTS";
+      if (err.code === 'auth/invalid-credential') errorTitle = "INVALID CREDENTIALS";
+      
       toast({
         variant: "destructive",
         title: errorTitle,
-        description: errorDesc,
+        description: "THE EMAIL OR PASSWORD PROVIDED IS INCORRECT.",
       });
     } finally {
       setLoading(false);
@@ -154,19 +130,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const cred = await initiateGoogleSignIn(auth);
-      const isNewUser = cred.user.metadata.creationTime === cred.user.metadata.lastSignInTime;
-      const extraData: any = {};
-      if (isNewUser) {
-        extraData.createdAt = new Date().toISOString();
-      }
-      await saveUserToFirestore(db, cred.user, extraData);
-      toast({ title: "LOGIN SUCCESSFUL" });
+      await saveUserToFirestore(db, cred.user);
     } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setLoading(false);
-        return;
+      if (err.code !== 'auth/popup-closed-by-user') {
+        toast({ variant: "destructive", title: "LOGIN FAILED" });
       }
-      toast({ variant: "destructive", title: "LOGIN FAILED" });
     } finally {
       setLoading(false);
     }
@@ -194,15 +162,8 @@ export default function LoginPage() {
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold tracking-[0.3em] uppercase text-black font-headline">VERIFY EMAIL</h3>
                   <p className="text-[10px] tracking-[0.2em] text-black/60 leading-relaxed uppercase font-medium">
-                    A link has been sent to <span className="text-black font-bold">{user?.email}</span>. Please verify your email, then refresh this page or log in again to continue.
+                    LINK SENT TO <span className="text-black font-bold">{user?.email}</span>.
                   </p>
-                  
-                  <div className="p-4 border border-black/10 bg-black/[0.02] flex items-center gap-3">
-                     <AlertTriangle className="w-4 h-4 text-black/40 shrink-0" />
-                     <p className="text-[8px] tracking-[0.2em] text-black/60 uppercase font-black text-left leading-relaxed">
-                        CHECK YOUR SPAM FOLDER IF YOU DON'T SEE IT.
-                     </p>
-                  </div>
                 </div>
                 <div className="flex flex-col gap-4">
                   <Button onClick={handleResendVerification} disabled={loading} variant="outline" className="h-14 border-black/10 text-[9px] tracking-[0.3em] font-black rounded-none bg-transparent hover:bg-black hover:text-white uppercase transition-all">
