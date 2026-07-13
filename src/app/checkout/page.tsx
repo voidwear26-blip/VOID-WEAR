@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -75,8 +74,16 @@ export default function CheckoutPage() {
   }, [user, profile]);
 
   const subtotal = cartItems?.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0) || 0;
+  const taxableSubtotal = cartItems?.reduce((acc, item) => {
+    // Only apply tax if the item is explicitly taxable (default to true if undefined)
+    if (item.isTaxable !== false) {
+      return acc + (Number(item.price) * Number(item.quantity));
+    }
+    return acc;
+  }, 0) || 0;
+  
   const totalUnits = cartItems?.reduce((acc, item) => acc + Number(item.quantity), 0) || 0;
-  const taxAmount = subtotal * 0.05;
+  const taxAmount = taxableSubtotal * 0.05;
   const shippingFee = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
   const totalAmount = subtotal + taxAmount + shippingFee;
 

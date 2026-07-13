@@ -56,7 +56,8 @@ export default function NewProductPage() {
     imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
     details: '',
-    isOutOfStock: false
+    isOutOfStock: false,
+    isTaxable: true
   });
 
   const [currentInputUrl, setCurrentInputUrl] = useState('');
@@ -135,6 +136,7 @@ export default function NewProductPage() {
       imageUrls: formData.imageUrls,
       colorImages: formData.colorImages,
       isOutOfStock: formData.isOutOfStock,
+      isTaxable: formData.isTaxable,
       stockMatrix: stockMatrix,
       stockQuantity: totalStock,
       sizes: Object.keys(stockMatrix).filter(s => Object.keys(stockMatrix[s]).length > 0),
@@ -160,7 +162,7 @@ export default function NewProductPage() {
     <div className="pt-40 pb-32 bg-transparent min-h-screen text-black font-body">
       <div className="container mx-auto px-6 max-w-5xl">
         <div className="space-y-4 mb-16">
-          <Link href="/admin/products" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4 font-bold">
+          <Link href="/admin/products" className="flex items-center gap-2 text-[10px] text-black/60 hover:text-black transition-colors uppercase tracking-widest mb-4">
             <ChevronLeft className="w-3 h-3" />
             BACK TO STOCK
           </Link>
@@ -168,12 +170,22 @@ export default function NewProductPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-black/[0.01] border border-black/5 p-12 space-y-12 backdrop-blur-xl shadow-sm">
-          <div className="p-8 border border-black/10 bg-black/5 flex items-center justify-between">
-             <div className="space-y-1">
-                <p className="text-[10px] font-black tracking-[0.4em] uppercase text-black">SET AS OUT OF STOCK</p>
-                <p className="text-[8px] tracking-widest uppercase text-black/60">Instantly hide this item from the storefront.</p>
-             </div>
-             <Switch checked={formData.isOutOfStock} onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })} />
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="p-8 border border-black/10 bg-black/5 flex items-center justify-between">
+               <div className="space-y-1">
+                  <p className="text-[10px] font-black tracking-[0.4em] uppercase text-black">SET AS OUT OF STOCK</p>
+                  <p className="text-[8px] tracking-widest uppercase text-black/60">Instantly hide this item from the storefront.</p>
+               </div>
+               <Switch checked={formData.isOutOfStock} onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })} />
+            </div>
+            
+            <div className="p-8 border border-black/10 bg-black/5 flex items-center justify-between">
+               <div className="space-y-1">
+                  <p className="text-[10px] font-black tracking-[0.4em] uppercase text-black">APPLY SYSTEM TAX (5%)</p>
+                  <p className="text-[8px] tracking-widest uppercase text-black/60">Include this module in tax calculations.</p>
+               </div>
+               <Switch checked={formData.isTaxable} onCheckedChange={(checked) => setFormData({ ...formData, isTaxable: checked })} />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-10">

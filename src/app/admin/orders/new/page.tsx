@@ -98,6 +98,7 @@ export default function NewOrderPage() {
       image: product.imageUrls?.[0] || 'https://picsum.photos/seed/void/200/300',
       size: size,
       color: color,
+      isTaxable: product.isTaxable !== false,
       quantity: 1
     };
     
@@ -114,8 +115,12 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     const subtotal = selectedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const taxableSubtotal = selectedItems.reduce((acc, item) => {
+       return (item.isTaxable !== false) ? acc + (item.price * item.quantity) : acc;
+    }, 0);
+    
     const totalUnits = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
-    const tax = subtotal * 0.05;
+    const tax = taxableSubtotal * 0.05;
     const shipping = (subtotal > 0 && totalUnits < 2) ? 60 : 0;
     
     setOrderMetadata(prev => ({ 

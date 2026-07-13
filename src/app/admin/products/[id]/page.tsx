@@ -60,7 +60,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     details: '',
     imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
-    isOutOfStock: false
+    isOutOfStock: false,
+    isTaxable: true
   });
 
   const [newImageUrl, setNewImageUrl] = useState('');
@@ -88,7 +89,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         details: Array.isArray(product.details) ? product.details.join('\n') : '',
         imageUrls: product.imageUrls || [],
         colorImages: product.colorImages || {},
-        isOutOfStock: product.isOutOfStock || false
+        isOutOfStock: product.isOutOfStock || false,
+        isTaxable: product.isTaxable !== false
       });
       if (product.stockMatrix) {
         const filteredMatrix: StockMatrix = { 'S': {}, 'M': {}, 'L': {}, 'XL': {} };
@@ -193,6 +195,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         imageUrls: formData.imageUrls,
         colorImages: formData.colorImages,
         isOutOfStock: formData.isOutOfStock,
+        isTaxable: formData.isTaxable,
         stockMatrix: stockMatrix,
         stockQuantity: totalStock,
         sizes: Object.keys(stockMatrix).filter(s => Object.keys(stockMatrix[s]).length > 0),
@@ -228,12 +231,22 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         </div>
 
         <form onSubmit={handleSubmit} className="bg-black/[0.01] border border-black/5 p-12 space-y-12 backdrop-blur-xl shadow-sm">
-          <div className="p-8 border border-red-100 bg-red-50 flex items-center justify-between">
-             <div className="space-y-1">
-                <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-600">OVERRIDE: OUT OF STOCK</p>
-                <p className="text-[8px] tracking-widest uppercase text-black/60">Manually set this item as unavailable for purchase.</p>
-             </div>
-             <Switch checked={formData.isOutOfStock} onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })} />
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="p-8 border border-red-100 bg-red-50 flex items-center justify-between">
+               <div className="space-y-1">
+                  <p className="text-[10px] font-black tracking-[0.4em] uppercase text-red-600">OVERRIDE: OUT OF STOCK</p>
+                  <p className="text-[8px] tracking-widest uppercase text-black/60">Manually set this item as unavailable for purchase.</p>
+               </div>
+               <Switch checked={formData.isOutOfStock} onCheckedChange={(checked) => setFormData({ ...formData, isOutOfStock: checked })} />
+            </div>
+
+            <div className="p-8 border border-black/10 bg-black/5 flex items-center justify-between">
+               <div className="space-y-1">
+                  <p className="text-[10px] font-black tracking-[0.4em] uppercase text-black">APPLY SYSTEM TAX (5%)</p>
+                  <p className="text-[8px] tracking-widest uppercase text-black/60">Include this module in tax calculations.</p>
+               </div>
+               <Switch checked={formData.isTaxable} onCheckedChange={(checked) => setFormData({ ...formData, isTaxable: checked })} />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-10">

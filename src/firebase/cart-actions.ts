@@ -1,4 +1,3 @@
-
 'use client';
 
 import { doc, getDoc, setDoc, updateDoc, Firestore } from 'firebase/firestore';
@@ -13,7 +12,7 @@ import { FirestorePermissionError } from './errors';
 export async function addToCart(
   db: Firestore, 
   userId: string, 
-  product: { id: string, name: string, basePrice: number, originalPrice?: number, imageUrls: string[], color?: string },
+  product: { id: string, name: string, basePrice: number, originalPrice?: number, imageUrls: string[], color?: string, isTaxable?: boolean },
   size: string,
   quantity: number = 1
 ) {
@@ -35,6 +34,7 @@ export async function addToCart(
   const originalPrice = Number(product.originalPrice) || price;
   const image = product.imageUrls?.[0] || 'https://picsum.photos/seed/void/400/600';
   const color = product.color || 'UNSPECIFIED';
+  const isTaxable = product.isTaxable !== false; // Default true
 
   if (itemSnap.exists()) {
     const currentQty = itemSnap.data().quantity || 0;
@@ -44,6 +44,7 @@ export async function addToCart(
       originalPrice: originalPrice,
       image: image,
       color: color,
+      isTaxable: isTaxable,
       updatedAt: new Date().toISOString()
     };
 
@@ -65,6 +66,7 @@ export async function addToCart(
       image: image,
       size: size,
       color: color,
+      isTaxable: isTaxable,
       quantity: quantity,
       addedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
