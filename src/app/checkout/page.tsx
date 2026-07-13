@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, runTransaction, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash, User as UserIcon, MapPin, Phone, Mail } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash, User as UserIcon, MapPin, Phone, Mail, HandCoins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,7 +17,7 @@ import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { sendOrderConfirmationNotifications } from '@/app/actions/order-notifications';
 
 type CheckoutStep = 'shipping' | 'review' | 'payment' | 'success';
-type PaymentMethod = 'card' | 'upi' | 'wallet';
+type PaymentMethod = 'card' | 'upi' | 'wallet' | 'cod';
 
 export default function CheckoutPage() {
   const { user, isUserLoading } = useUser();
@@ -141,7 +141,7 @@ export default function CheckoutPage() {
       totalAmount: Number(totalAmount), 
       orderDate: new Date().toISOString(),
       shippingStatus: 'processing',
-      paymentStatus: 'paid',
+      paymentStatus: selectedMethod === 'cod' ? 'pending' : 'paid',
       paymentProviderId: paymentId,
       paymentMethod: selectedMethod.toUpperCase(),
       addressLine1: formData.addressLine1.toUpperCase(),
@@ -154,18 +154,11 @@ export default function CheckoutPage() {
     };
 
     try {
-      /**
-       * ATOMIC TRANSACTION RE-ENGINEERING
-       * Re-calibrated to strict Read-Before-Write protocol for high-density environments.
-       */
       await runTransaction(db, async (transaction) => {
-        // STEP 01: BULK READ PHASE
         const productSnapshots = await Promise.all(
           cartItems.map(item => transaction.get(doc(db, 'products', item.productId)))
         );
 
-        // STEP 02: SYNERGETIC WRITE PHASE
-        // a. Profile Synchronization
         transaction.set(userRef, { 
           ...formData, 
           displayName: formData.displayName.toUpperCase(),
@@ -176,7 +169,6 @@ export default function CheckoutPage() {
           updatedAt: new Date().toISOString() 
         }, { merge: true });
 
-        // b. Inventory Calibration & Bag Purge
         cartItems.forEach((item, idx) => {
           const productSnap = productSnapshots[idx];
           if (productSnap.exists()) {
@@ -210,7 +202,6 @@ export default function CheckoutPage() {
           transaction.delete(itemDocRef);
         });
 
-        // c. Order Archival
         transaction.set(orderRef, newOrder);
       });
 
@@ -222,11 +213,11 @@ export default function CheckoutPage() {
       setStep('success');
       toast({ title: "ORDER SECURED", description: "LOGISTICS INITIATED." });
     } catch (e: any) {
-      console.error('[ORDER_TRANSACTION_FAILURE] Critical System Crash:', e);
+      console.error('[ORDER_TRANSACTION_FAILURE]', e);
       toast({
         variant: "destructive",
         title: "SYSTEM_ERROR",
-        description: e.message || "TRANSACTION FAILED. PLEASE CONTACT VOID WEAR SUPPORT.",
+        description: e.message || "TRANSACTION FAILED.",
       });
     } finally {
       setLoading(false);
@@ -239,6 +230,12 @@ export default function CheckoutPage() {
       return;
     }
     if (!user || !db || !cartItems || cartItems.length === 0) return;
+
+    if (selectedMethod === 'cod') {
+      await finalizeOrderInFirestore(`VOID-COD-${Date.now()}`);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -274,11 +271,11 @@ export default function CheckoutPage() {
               await finalizeOrderInFirestore(response.razorpay_payment_id);
             } else {
               const verifyData = await verifyRes.json();
-              toast({ variant: "destructive", title: "INTEGRITY_FAILURE", description: verifyData.message || "SIGNATURE MISMATCH." });
+              toast({ variant: "destructive", title: "INTEGRITY_FAILURE", description: verifyData.message });
               setLoading(false);
             }
           } catch (err) {
-            toast({ variant: "destructive", title: "RELAY_TIMEOUT", description: "CONNECTION TO GATEWAY LOST." });
+            toast({ variant: "destructive", title: "RELAY_TIMEOUT" });
             setLoading(false);
           }
         },
@@ -451,8 +448,9 @@ export default function CheckoutPage() {
                 <motion.div key="pay" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
                    <h2 className="text-3xl font-black tracking-tighter uppercase font-headline">Gateway Node</h2>
                    <div className="grid gap-4">
-                      <PaymentOption label="UPI TRANSMISSION" selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
-                      <PaymentOption label="CREDIT / DEBIT MODULE" selected={selectedMethod === 'card'} onClick={() => setSelectedMethod('card')} />
+                      <PaymentOption label="UPI TRANSMISSION" icon={<Zap className="w-4 h-4" />} selected={selectedMethod === 'upi'} onClick={() => setSelectedMethod('upi')} />
+                      <PaymentOption label="CREDIT / DEBIT MODULE" icon={<CreditCard className="w-4 h-4" />} selected={selectedMethod === 'card'} onClick={() => setSelectedMethod('card')} />
+                      <PaymentOption label="CASH ON DELIVERY" icon={<HandCoins className="w-4 h-4" />} selected={selectedMethod === 'cod'} onClick={() => setSelectedMethod('cod')} />
                    </div>
                    <Button onClick={handlePaymentUplink} disabled={loading} className="w-full h-16 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-bold tracking-[0.5em] shadow-xl">
                       {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>INITIALIZE UPLINK <Zap className="ml-3 w-4 h-4" /></>}
@@ -524,10 +522,14 @@ function Field({ label, value, onChange, placeholder }: { label: string, value: 
   );
 }
 
-function PaymentOption({ label, selected, onClick }: { label: string, selected?: boolean, onClick: () => void }) {
+function PaymentOption({ label, icon, selected, onClick }: { label: string, icon: React.ReactNode, selected?: boolean, onClick: () => void }) {
   return (
-    <div onClick={onClick} className={`p-6 border cursor-pointer transition-all ${selected ? 'border-black bg-black/5' : 'border-black/10 hover:border-black/40 bg-white/40'}`}>
-       <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-black' : 'text-black/40'}`}>{label}</span>
+    <div onClick={onClick} className={`p-6 border cursor-pointer transition-all flex items-center justify-between ${selected ? 'border-black bg-black/5' : 'border-black/10 hover:border-black/40 bg-white/40'}`}>
+       <div className="flex items-center gap-4">
+          <div className={selected ? 'text-black' : 'text-black/20'}>{icon}</div>
+          <span className={`text-[10px] font-bold tracking-widest uppercase ${selected ? 'text-black' : 'text-black/40'}`}>{label}</span>
+       </div>
+       {selected && <div className="w-2 h-2 bg-black rounded-full" />}
     </div>
   );
 }
