@@ -12,6 +12,11 @@ import { Package, ArrowRight, Star, User, Loader2, Sparkles, Zap, Info } from 'l
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 export default function Home() {
   const db = useFirestore();
@@ -87,11 +92,14 @@ export default function Home() {
       </section>
       
       <section className="py-8 md:py-12 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-6 mb-8">
-          <div className="flex items-end justify-between">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
-              ARRIVALS
-            </h2>
+        <div className="container mx-auto px-6 mb-12">
+          <div className="flex items-end justify-between border-b border-black/5 pb-6">
+            <div className="space-y-2">
+              <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
+                ARRIVALS
+              </h2>
+              <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-black">LATEST SYSTEM MODULES</p>
+            </div>
             <Link href="/products" className="text-[9px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-1 uppercase flex items-center gap-2">
               EXPLORE ALL
               <ArrowRight className="w-3.5 h-3.5" />
@@ -99,40 +107,46 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden w-full py-4">
-          <motion.div 
-            className="flex gap-8 whitespace-nowrap"
-            animate={{ x: ["0%", "-100%"] }}
-            transition={{
-              duration: 30,
-              ease: "linear",
-              repeat: Infinity,
+        <div className="px-6 md:px-10">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+              dragFree: true,
             }}
+            className="w-full"
           >
-            {latestLoading ? (
-              [1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="min-w-[300px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse shrink-0" />
-              ))
-            ) : latestProducts && latestProducts.length > 0 ? (
-              [...latestProducts, ...latestProducts].map((product, idx) => (
-                <div key={`${product.id}-${idx}`} className="min-w-[300px] md:min-w-[320px] shrink-0">
-                  <ProductCard product={product as any} />
-                </div>
-              ))
-            ) : (
-               <div className="flex gap-8">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="min-w-[300px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 shrink-0" />
-                  ))}
-               </div>
-            )}
-          </motion.div>
+            <CarouselContent className="-ml-8">
+              {latestLoading ? (
+                [1, 2, 3, 4].map(i => (
+                  <CarouselItem key={i} className="pl-8 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <div className="aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse" />
+                  </CarouselItem>
+                ))
+              ) : latestProducts && latestProducts.length > 0 ? (
+                latestProducts.map((product) => (
+                  <CarouselItem key={product.id} className="pl-8 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <ProductCard product={product as any} />
+                  </CarouselItem>
+                ))
+              ) : (
+                [1, 2, 3, 4].map(i => (
+                  <CarouselItem key={i} className="pl-8 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <div className="aspect-[3/4] bg-black/[0.01] border border-black/5" />
+                  </CarouselItem>
+                ))
+              )}
+            </CarouselContent>
+          </Carousel>
         </div>
       </section>
 
-      <section className="py-8 md:py-12 bg-black/[0.01] border-y border-black/5">
-        <div className="container mx-auto px-6 mb-8">
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
+      <section className="py-20 md:py-32 bg-black/[0.01] border-y border-black/5">
+        <div className="container mx-auto px-6 mb-12">
+          <div className="space-y-2">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
+            <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-black">OPERATOR EXPERIENCES</p>
+          </div>
         </div>
 
         <div className="relative overflow-hidden cursor-grab active:cursor-grabbing px-6 md:px-0">
