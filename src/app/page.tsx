@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -7,8 +6,8 @@ import { PromoBanner } from '@/components/promo-banner';
 import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, limit, query, where, orderBy } from 'firebase/firestore';
-import { Package, ArrowRight, Zap, Star, MessageSquare, User, Loader2 } from 'lucide-react';
+import { collection, limit, query, where } from 'firebase/firestore';
+import { Package, ArrowRight, Star, User, Loader2 } from 'lucide-react';
 import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
@@ -21,7 +20,6 @@ export default function Home() {
   const [containerWidth, setContainerWidth] = useState(0);
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
   
-  // High-Priority Data Uplink
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, 'products'), limit(8));
@@ -80,21 +78,17 @@ export default function Home() {
 
   return (
     <div className="space-y-0 bg-background text-black">
-      {/* 01. Brand Identity Node */}
       <Hero />
       
-      {/* 02. Campaign Broadcast Node */}
-      <div className="mt-8 md:mt-12">
+      <div className="mt-4 md:mt-8">
         <PromoBanner />
       </div>
 
-      {/* 03. Tactical Acquisition Uplink (View Collection) */}
-      <section className="py-8 md:py-12 flex justify-center border-b border-black/5 bg-black/[0.01]">
+      <section className="py-12 md:py-16 flex justify-center bg-black/[0.01]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
         >
           <Button asChild className="bg-black text-white hover:bg-black/80 px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm uppercase">
             <Link href="/products">VIEW COLLECTION</Link>
@@ -102,18 +96,15 @@ export default function Home() {
         </motion.div>
       </section>
       
-      {/* 04. Recent Arrivals Node */}
-      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden">
-        <div className="container mx-auto px-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="space-y-4">
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none text-black font-headline">
-                RECENT <br /> ARRIVALS
-              </h2>
-            </div>
-            <Link href="/products" className="text-[10px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-2 w-fit uppercase flex items-center gap-4">
+      <section className="py-4 md:py-8 bg-transparent relative overflow-hidden">
+        <div className="container mx-auto px-6 mb-4">
+          <div className="flex items-end justify-between">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
+              ARRIVALS
+            </h2>
+            <Link href="/products" className="text-[9px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-1 uppercase flex items-center gap-2">
               VIEW ALL
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -126,23 +117,23 @@ export default function Home() {
           <motion.div 
             ref={scrollRef}
             style={{ x }}
-            className="flex gap-8 md:gap-12 whitespace-nowrap px-6 md:px-0"
+            className="flex gap-6 md:gap-10 whitespace-nowrap px-6 md:px-0"
           >
             {latestLoading ? (
               [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="w-[280px] md:w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex flex-col items-center justify-center">
+                <div key={i} className="w-[260px] md:w-[300px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse flex items-center justify-center">
                    <Loader2 className="w-6 h-6 animate-spin text-black/10" />
                 </div>
               ))
             ) : displayProducts.length > 0 ? (
               displayProducts.map((product, idx) => (
-                <div key={`${product.id}-${idx}`} className="w-[280px] md:w-[320px] shrink-0">
+                <div key={`${product.id}-${idx}`} className="w-[260px] md:w-[300px] shrink-0">
                   <ProductCard product={product as any} />
                 </div>
               ))
             ) : (
-              <div className="py-24 text-center opacity-20 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
-                <Package className="w-16 h-16 stroke-[0.5px]" />
+              <div className="py-20 text-center opacity-20 border border-dashed border-black/20 w-screen flex flex-col items-center justify-center">
+                <Package className="w-12 h-12 stroke-[0.5px]" />
                 <p className="text-[10px] tracking-[1em] uppercase font-black mt-4">EMPTY</p>
               </div>
             )}
@@ -150,14 +141,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 05. Field Reports Node (Reviews) */}
-      <section className="py-8 md:py-12 bg-black/[0.01] border-y border-black/5">
-        <div className="container mx-auto px-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-             <div className="space-y-4">
-                <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">CUSTOMER <br /> FEEDBACK</h2>
-             </div>
-          </div>
+      <section className="py-4 md:py-8 bg-black/[0.01] border-y border-black/5">
+        <div className="container mx-auto px-6 mb-4">
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
         </div>
 
         <div className="relative overflow-hidden cursor-grab active:cursor-grabbing px-6 md:px-0">
@@ -166,79 +152,59 @@ export default function Home() {
             drag="x"
             dragConstraints={{ right: 0, left: -reviewContainerWidth }}
             dragElastic={0.1}
-            className="flex gap-8 md:container md:mx-auto"
+            className="flex gap-6 md:container md:mx-auto"
           >
              {reviewsLoading ? (
                [1, 2, 3].map(i => (
-                 <div key={i} className="min-w-[320px] md:min-w-[400px] h-64 bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
+                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
                     <Loader2 className="w-6 h-6 animate-spin text-black/10" />
                  </div>
                ))
              ) : featuredReviews && featuredReviews.length > 0 ? (
                featuredReviews.map((review, idx) => (
-                 <Link key={review.id} href={`/products/${review.productId}`} className="w-[320px] md:w-[420px] shrink-0 block">
-                   <motion.div 
-                     initial={{ opacity: 0, scale: 0.98 }}
-                     whileInView={{ opacity: 1, scale: 1 }}
-                     transition={{ delay: idx * 0.1 }}
-                     viewport={{ once: true }}
-                     className="p-10 border border-black/10 bg-background flex flex-col h-[400px] hover:border-black/30 transition-all group select-none shadow-sm"
-                   >
+                 <Link key={review.id} href={`/products/${review.productId}`} className="w-[300px] md:w-[380px] shrink-0 block">
+                   <div className="p-8 border border-black/10 bg-background flex flex-col h-[350px] hover:border-black/30 transition-all shadow-sm">
                       <div className="space-y-6 flex-1 overflow-hidden">
                         <div className="flex justify-between items-start">
-                           <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 border border-black/10 flex items-center justify-center bg-black/5">
-                                 <User className="w-4 h-4 text-black/40" />
+                           <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 border border-black/10 flex items-center justify-center bg-black/5">
+                                 <User className="w-3 h-3 text-black/40" />
                               </div>
                               <div>
-                                 <p className="text-[10px] font-black tracking-widest uppercase text-black">{review.userName}</p>
-                                 <p className="text-[8px] tracking-widest text-black/40 uppercase font-bold">VERIFIED PURCHASE</p>
+                                 <p className="text-[9px] font-black tracking-widest uppercase text-black">{review.userName}</p>
+                                 <p className="text-[7px] tracking-widest text-black/40 uppercase font-bold">VERIFIED</p>
                               </div>
                            </div>
-                           <div className="flex gap-1">
+                           <div className="flex gap-0.5">
                               {[...Array(5)].map((_, i) => (
-                                <Star key={i} className={`w-2.5 h-2.5 ${i < review.rating ? 'text-[#facc15] fill-current' : 'text-black/5'}`} />
+                                <Star key={i} className={`w-2 h-2 ${i < review.rating ? 'text-[#facc15] fill-current' : 'text-black/5'}`} />
                               ))}
                            </div>
                         </div>
-
-                        <div className="space-y-2">
-                           <p className="text-[7px] font-black tracking-[0.2em] uppercase text-black/40">ITEM: {review.productName}</p>
-                           <p className="text-[11px] tracking-widest leading-relaxed uppercase text-black/80 font-medium line-clamp-4 group-hover:text-black transition-colors">
-                              "{review.comment}"
-                           </p>
-                        </div>
+                        <p className="text-[10px] tracking-widest leading-relaxed uppercase text-black/80 font-medium line-clamp-4">
+                           "{review.comment}"
+                        </p>
                       </div>
-
-                      {review.adminReply && (
-                        <div className="mt-6 p-4 bg-black/[0.02] border border-black/10 space-y-1">
-                           <p className="text-[7px] text-black/60 font-black tracking-[0.2em] uppercase">REPLY:</p>
-                           <p className="text-[9px] text-black/80 tracking-widest uppercase font-medium line-clamp-2">
-                             {review.adminReply}
-                           </p>
-                        </div>
-                      )}
-                   </motion.div>
+                   </div>
                  </Link>
                ))
              ) : (
-               <div className="w-full py-16 text-center opacity-20 border border-dashed border-black/10">
-                  <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">NO REVIEWS YET</p>
+               <div className="w-full py-12 text-center opacity-20 border border-dashed border-black/10">
+                  <p className="text-[10px] tracking-[1em] uppercase font-bold text-black">NO REPORTS</p>
                </div>
              )}
           </motion.div>
         </div>
       </section>
 
-      {/* 06. System Protocol Node (Best Sellers) */}
-      <section className="py-24 md:py-32 bg-transparent">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto px-6">
-          <div className="text-center space-y-8 mb-16">
-            <span className="text-[10px] font-bold tracking-[1.2em] text-black/40 uppercase">BEST SELLERS</span>
-            <h2 className="text-4xl md:text-7xl font-black tracking-tight uppercase leading-none text-black font-headline">Top Items</h2>
+          <div className="text-center space-y-4 mb-12">
+            <span className="text-[9px] font-bold tracking-[1.2em] text-black/40 uppercase">BEST SELLERS</span>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
             {topLoading ? (
               [1, 2, 3].map(i => (
                 <div key={i} className="aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
@@ -247,27 +213,14 @@ export default function Home() {
               ))
             ) : topProducts && topProducts.length > 0 ? (
               topProducts.map((product, idx) => (
-                <div key={product.id} className="relative group">
+                <div key={product.id} className="relative">
                   <ProductCard product={product as any} />
-                  <div className="absolute -top-4 -left-4 w-12 h-12 border border-black/10 bg-background flex items-center justify-center text-[11px] font-black tracking-widest text-black/40 z-30 shadow-sm">
+                  <div className="absolute -top-3 -left-3 w-10 h-10 border border-black/10 bg-background flex items-center justify-center text-[10px] font-black tracking-widest text-black/40 z-30 shadow-sm">
                     0{idx + 1}
                   </div>
                 </div>
               ))
             ) : null}
-          </div>
-        </div>
-      </section>
-
-      {/* 07. Manifesto Node */}
-      <section className="py-32 md:py-48 bg-background overflow-hidden border-t border-black/5">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-16">
-            <span className="text-[10px] tracking-widest text-black/40 uppercase font-black">MANIFESTO</span>
-            <h3 className="text-2xl md:text-5xl font-light tracking-[0.1em] leading-relaxed uppercase text-black">
-              WE PROVIDE <span className="text-black font-black">PREMIUM APPAREL</span> <br /> FOR YOUR EVERYDAY LIFE. 
-            </h3>
-            <div className="w-[1px] h-32 bg-gradient-to-b from-black/20 to-transparent mx-auto"></div>
           </div>
         </div>
       </section>

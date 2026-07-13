@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -36,7 +35,7 @@ export default function BrandControlPage() {
       setFormData({
         heroTitle: config.heroTitle || 'VOID WEAR',
         heroSubtitle: config.heroSubtitle || 'AUTHENTICATED',
-        heroTagline: config.heroTagline || 'EMBRACE THE UNKNOWN',
+        heroTagline: 'EMBRACE THE UNKNOWN',
         activeSeason: config.activeSeason || 'SEASON 01',
       });
     }
@@ -50,6 +49,7 @@ export default function BrandControlPage() {
     const docRef = doc(db, 'app_config', 'global');
     const updateData = {
       ...formData,
+      heroTagline: 'EMBRACE THE UNKNOWN',
       updatedAt: new Date().toISOString()
     };
 
@@ -90,7 +90,7 @@ export default function BrandControlPage() {
             BACK TO SYSTEM
           </Link>
           <div className="flex items-center">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight glow-text uppercase leading-none text-black font-headline">Brand Control</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">Brand Control</h1>
           </div>
         </div>
 
@@ -126,13 +126,12 @@ export default function BrandControlPage() {
                 className="bg-black/5 border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black"
               />
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">HERO TAGLINE</label>
+            <div className="space-y-3 opacity-50">
+              <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">HERO TAGLINE (LOCKED)</label>
               <Input 
-                required
-                value={formData.heroTagline}
-                onChange={e => setFormData({ ...formData, heroTagline: e.target.value.toUpperCase() })}
-                className="bg-black/5 border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black"
+                readOnly
+                value="EMBRACE THE UNKNOWN"
+                className="bg-black/5 border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black/40 cursor-not-allowed"
               />
             </div>
           </div>
