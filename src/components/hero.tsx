@@ -42,7 +42,7 @@ export function Hero() {
   const content = useMemo(() => ({
     title: config?.heroTitle || "VOID WEAR",
     subtitle: greeting,
-    tagline: 'EMBRACE THE KNOWN'
+    tagline: config?.heroTagline || 'EMBRACE THE UNKNOWN'
   }), [config, greeting]);
 
   if (!mounted) return null;

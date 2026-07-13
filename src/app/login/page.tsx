@@ -40,7 +40,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
+      // Enhanced Google provider check across all linked accounts
+      const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+      
       if (user.emailVerified || isGoogleUser) {
         const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
         const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
@@ -107,7 +109,7 @@ export default function LoginPage() {
       console.error('[AUTH_FAILURE]', err);
       
       let errorTitle = "LOGIN FAILED";
-      let errorDesc = "INVALID EMAIL OR PASSWORD.";
+      let errorDesc = "THE EMAIL OR PASSWORD PROVIDED IS INCORRECT.";
 
       if (err.code === 'auth/email-already-in-use') {
         errorTitle = "ACCOUNT EXISTS";
@@ -162,6 +164,7 @@ export default function LoginPage() {
       }
       await saveUserToFirestore(db, cred.user, extraData);
       toast({ title: "LOGIN SUCCESSFUL" });
+      // Redirection is handled by the useEffect above
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false);

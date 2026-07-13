@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -26,7 +27,7 @@ export default function BrandControlPage() {
   const [formData, setFormData] = useState({
     heroTitle: 'VOID WEAR',
     heroSubtitle: 'AUTHENTICATED',
-    heroTagline: 'EMBRACE THE KNOWN',
+    heroTagline: 'EMBRACE THE UNKNOWN',
     activeSeason: 'SEASON 01',
   });
 
@@ -35,7 +36,7 @@ export default function BrandControlPage() {
       setFormData({
         heroTitle: config.heroTitle || 'VOID WEAR',
         heroSubtitle: config.heroSubtitle || 'AUTHENTICATED',
-        heroTagline: config.heroTagline || 'EMBRACE THE KNOWN',
+        heroTagline: config.heroTagline || 'EMBRACE THE UNKNOWN',
         activeSeason: config.activeSeason || 'SEASON 01',
       });
     }
