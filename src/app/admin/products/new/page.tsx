@@ -2,7 +2,7 @@
 
 import { useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, addDoc, doc } from 'firebase/firestore';
-import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, Palette, Percent } from 'lucide-react';
+import { ChevronLeft, Sparkles, Loader2, Upload, Trash2, Plus, X, Palette, Percent, ImageIcon, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -95,6 +95,28 @@ export default function NewProductPage() {
     setStockMatrix(prev => ({ ...prev, [size]: { ...prev[size], [color]: Math.max(0, qty) } }));
   };
 
+  const addImageUrl = () => {
+    if (!currentInputUrl.trim()) return;
+    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, currentInputUrl.trim()] }));
+    setCurrentInputUrl('');
+  };
+
+  const removeImageUrl = (idx: number) => {
+    setFormData(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, i) => i !== idx) }));
+  };
+
+  const handleLocalDefaultUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, compressed] }));
+      toast({ title: "ASSET COMPRESSED" });
+    } catch (err) {
+      toast({ variant: "destructive", title: "UPLOAD ERROR" });
+    }
+  };
+
   const addColorImageUrl = (color: string) => {
     const url = colorInputUrl[color]?.trim();
     if (!url) return;
@@ -108,9 +130,14 @@ export default function NewProductPage() {
     try {
       const compressed = await compressImage(file);
       setFormData(prev => ({ ...prev, colorImages: { ...prev.colorImages, [color]: [...(prev.colorImages[color] || []), compressed] } }));
+      toast({ title: "ASSET COMPRESSED" });
     } catch (err) {
       toast({ variant: "destructive", title: "UPLOAD ERROR" });
     }
+  };
+
+  const removeColorImageUrl = (color: string, idx: number) => {
+    setFormData(prev => ({ ...prev, colorImages: { ...prev.colorImages, [color]: prev.colorImages[color].filter((_, i) => i !== idx) } }));
   };
 
   const calculateTotalStock = () => {
@@ -214,6 +241,43 @@ export default function NewProductPage() {
             <div className="space-y-3">
               <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">SALE PRICE (₹)</label>
               <Input required type="number" value={formData.basePrice} onChange={e => setFormData({ ...formData, basePrice: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black font-black" placeholder="0.00" />
+            </div>
+          </div>
+
+          <div className="space-y-12">
+            <div className="border-b border-black/10 pb-4 flex items-center gap-4">
+              <ImageIcon className="w-4 h-4 text-black/40" />
+              <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">DEFAULT ASSET GALLERY</label>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+              {formData.imageUrls.map((url, i) => (
+                <div key={i} className="relative aspect-[3/4] bg-black/5 border border-black/10 group overflow-hidden">
+                  <Image src={url} alt={`Module Asset ${i}`} fill className="object-cover" unoptimized />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button type="button" onClick={() => removeImageUrl(i)} className="p-3 bg-red-600 text-white hover:bg-red-700 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div className="relative aspect-[3/4] bg-black/[0.02] border border-dashed border-black/10 flex flex-col items-center justify-center space-y-2 group cursor-pointer hover:border-black/30 transition-all">
+                <Upload className="w-6 h-6 text-black/20 group-hover:text-black/40" />
+                <p className="text-[7px] font-black tracking-widest uppercase text-black/30 group-hover:text-black/50 text-center px-4">UPLOAD LOCAL ASSET</p>
+                <input type="file" accept="image/*" onChange={handleLocalDefaultUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20" />
+                <Input 
+                  value={currentInputUrl} 
+                  onChange={e => setCurrentInputUrl(e.target.value)} 
+                  className="bg-white border-black/10 rounded-none h-14 pl-12 text-[10px] tracking-widest text-black" 
+                  placeholder="LINK EXTERNAL ASSET URL..." 
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
+                />
+              </div>
+              <Button type="button" onClick={addImageUrl} className="h-14 bg-black/5 border border-black/10 rounded-none px-8 text-[10px] font-bold tracking-widest text-black hover:bg-black hover:text-white transition-all">LINK URL</Button>
             </div>
           </div>
 
