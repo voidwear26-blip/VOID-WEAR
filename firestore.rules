@@ -7,7 +7,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // High-speed authority check using token metadata to avoid database lookups
+    // High-speed authority check using token metadata
     function isAdmin() {
       if (!isSignedIn()) return false;
       
@@ -42,12 +42,23 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // --- User-Specific Archive (Orders, Profile, Bag) ---
-    // ABSOLUTE PERMISSION: Owners have total access to their own data tree.
+    // --- User-Specific Archives (Profile, Orders, Carts, Wishlist) ---
+    // Using explicit paths to prevent recursive wildcard evaluation errors in transactions.
     match /users/{userId} {
       allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       
-      match /{allSubcollections=**} {
+      match /orders/{orderId} {
+        allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      }
+      
+      match /carts/{cartId} {
+        allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        match /items/{itemId} {
+           allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        }
+      }
+      
+      match /wishlist/{itemId} {
         allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       }
     }
@@ -64,7 +75,7 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    // --- Collection Group Analytics ---
+    // --- Collection Group Access ---
     match /{path=**}/orders/{orderId} {
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }

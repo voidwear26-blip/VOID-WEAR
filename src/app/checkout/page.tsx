@@ -222,13 +222,13 @@ export default function CheckoutPage() {
       setFinalOrderId(orderId);
       setFinalTransitionId(paymentId);
       setStep('success');
-      toast({ title: "ORDER CONFIRMED", description: "TRANSMISSION SECURED." });
+      toast({ title: "ORDER CONFIRMED", description: "TRANSACTION SUCCESSFUL." });
     } catch (e: any) {
       console.error('[ORDER_TRANSACTION_FAILURE]', e);
       toast({
         variant: "destructive",
         title: "ORDER FAILED",
-        description: "TRANSACTION_ERROR: " + (e.message || "UNABLE_TO_SECURE_RECORD"),
+        description: "TRANSACTION ERROR: " + (e.message || "UNABLE TO SECURE RECORD"),
       });
     } finally {
       setLoading(false);
@@ -260,7 +260,7 @@ export default function CheckoutPage() {
       });
 
       const orderData = await res.json();
-      if (!res.ok) throw new Error(orderData.message || 'GATEWAY_ERROR');
+      if (!res.ok) throw new Error(orderData.message || 'GATEWAY ERROR');
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

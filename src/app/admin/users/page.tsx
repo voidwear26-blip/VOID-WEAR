@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
@@ -104,37 +103,37 @@ export default function AdminUsersPage() {
                 {isCollectionLoading ? (
                   <tr><td colSpan={6} className="px-10 py-32 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-black/20" /></td></tr>
                 ) : filteredUsers.length > 0 ? (
-                  filteredUsers.map((entity) => (
-                    <tr key={entity.id} className="hover:bg-black/[0.02] transition-colors group">
+                  filteredUsers.map((userEntity) => (
+                    <tr key={userEntity.id} className="hover:bg-black/[0.02] transition-colors group">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 border border-black/10 bg-black/5 flex items-center justify-center">
                             <UserIcon className="w-4 h-4 text-black/40" />
                           </div>
-                          <span className="text-[10px] font-bold tracking-widest text-black uppercase">{entity.displayName || 'UNNAMED'}</span>
+                          <span className="text-[10px] font-bold tracking-widest text-black uppercase">{userEntity.displayName || 'UNNAMED'}</span>
                         </div>
                       </td>
                       <td className="px-10 py-8">
-                        <p className="text-[9px] text-black/80 tracking-widest font-bold">{entity.email}</p>
+                        <p className="text-[9px] text-black/80 tracking-widest font-bold">{userEntity.email}</p>
                       </td>
                       <td className="px-10 py-8">
-                        <p className="text-[9px] text-black/60 tracking-widest font-bold uppercase">{entity.mobileNumber || 'N/A'}</p>
+                        <p className="text-[9px] text-black/60 tracking-widest font-bold uppercase">{userEntity.mobileNumber || 'N/A'}</p>
                       </td>
                       <td className="px-10 py-8">
                         <span className={cn(
                           "text-[8px] font-black tracking-[0.2em] px-3 py-1 border uppercase",
-                          entity.role === 'ADMIN' ? "border-black bg-black text-white" : "border-black/10 text-black/60"
+                          userEntity.role === 'ADMIN' ? "border-black bg-black text-white" : "border-black/10 text-black/60"
                         )}>
-                          {entity.role || 'OPERATOR'}
+                          {userEntity.role || 'CUSTOMER'}
                         </span>
                       </td>
                       <td className="px-10 py-8">
                         <p className="text-[9px] text-black/40 tracking-widest font-mono">
-                          {entity.createdAt ? new Date(entity.createdAt).toLocaleDateString() : '---'}
+                          {userEntity.createdAt ? new Date(userEntity.createdAt).toLocaleDateString() : '---'}
                         </p>
                       </td>
                       <td className="px-10 py-8 text-right">
-                        <Link href={`/admin/users/${entity.id}`}>
+                        <Link href={`/admin/users/${userEntity.id}`}>
                           <Button variant="ghost" size="icon" className="text-black/40 hover:text-black transition-all hover:scale-125 bg-transparent hover:bg-transparent">
                             <UserCog className="w-4 h-4" />
                           </Button>
