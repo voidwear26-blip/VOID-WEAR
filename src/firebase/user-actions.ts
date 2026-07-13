@@ -9,7 +9,6 @@ import { FirestorePermissionError, type SecurityRuleContext } from './errors';
  * VOID WEAR // CUSTOMER PROFILE SYNCHRONIZATION
  * Persists customer identity metadata to the Firestore database.
  * Optimized for reliability and preventing silent write failures.
- * Uses a pure merge strategy to preserve existing fields like 'createdAt'.
  */
 export async function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
   if (!user || !user.uid) return;
@@ -39,17 +38,16 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
   if (isMasterEmail || isMasterUID) {
     profileData.role = 'ADMIN';
   } else if (!extraData.role) {
-    // Only set default OPERATOR if not already specified
+    // Standard user role
     profileData.role = 'CUSTOMER';
   }
 
-  // Ensure mandatory fields have values only if they are not already set in extraData
+  // Ensure mandatory fields have values
   if (!profileData.displayName && user.displayName) profileData.displayName = user.displayName;
   if (!profileData.displayName && !user.displayName && !extraData.displayName) {
-    profileData.displayName = user.email?.split('@')[0].toUpperCase() || 'USER';
+    profileData.displayName = user.email?.split('@')[0].toUpperCase() || 'CUSTOMER';
   }
   
-  // Only include createdAt if it was explicitly passed (e.g., during signup)
   if (extraData.createdAt) {
     profileData.createdAt = extraData.createdAt;
   }

@@ -119,7 +119,7 @@ export default function CheckoutPage() {
 
   const finalizeOrderInFirestore = async (paymentId: string) => {
     if (!user || !user.uid || !db || !cartItems || cartItems.length === 0) {
-      toast({ variant: "destructive", title: "ERROR", description: "USER NOT IDENTIFIED." });
+      toast({ variant: "destructive", title: "ERROR", description: "AUTHENTICATION_REQUIRED" });
       return;
     }
     
@@ -157,15 +157,13 @@ export default function CheckoutPage() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. Audit Phase: Pre-fetch all necessary metadata
+        // Phase 1: Bulk Read
         const productSnapshots = await Promise.all(
           cartItems.map(item => transaction.get(doc(db, 'products', item.productId)))
         );
         
-        // Ensure user document exists or is updated
-        const userSnap = await transaction.get(userRef);
-
-        // 2. Synthesis Phase: Update profile and reconcile inventory
+        // Phase 2: Bulk Write
+        // Create/Update User Profile first to ensure consistency
         transaction.set(userRef, { 
           ...formData, 
           uid: user.uid,
@@ -178,6 +176,7 @@ export default function CheckoutPage() {
           updatedAt: new Date().toISOString() 
         }, { merge: true });
 
+        // Update Stock
         cartItems.forEach((item, idx) => {
           const productSnap = productSnapshots[idx];
           if (productSnap.exists()) {
@@ -212,24 +211,24 @@ export default function CheckoutPage() {
           transaction.delete(itemDocRef);
         });
 
-        // 3. Finalize Order
+        // Finalize Order Document
         transaction.set(orderRef, newOrder);
       });
 
-      // Post-Transaction Notification (Non-blocking)
+      // Async Notifications
       sendOrderConfirmationNotifications(newOrder).catch(err => console.error('[NOTIF_FAIL]', err));
 
       setOrderObject(newOrder);
       setFinalOrderId(orderId);
       setFinalTransitionId(paymentId);
       setStep('success');
-      toast({ title: "ORDER CONFIRMED", description: "PURCHASE SUCCESSFUL." });
+      toast({ title: "ORDER CONFIRMED", description: "TRANSMISSION SECURED." });
     } catch (e: any) {
       console.error('[ORDER_TRANSACTION_FAILURE]', e);
       toast({
         variant: "destructive",
         title: "ORDER FAILED",
-        description: e.message || "COULD NOT COMPLETE THE PURCHASE. PLEASE VERIFY PERMISSIONS.",
+        description: "TRANSACTION_ERROR: " + (e.message || "UNABLE_TO_SECURE_RECORD"),
       });
     } finally {
       setLoading(false);

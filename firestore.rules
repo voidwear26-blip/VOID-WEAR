@@ -7,11 +7,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // High-speed authority check using token metadata
+    // High-speed authority check using token metadata to avoid database lookups
     function isAdmin() {
       if (!isSignedIn()) return false;
       
@@ -46,25 +42,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // --- User-Specific Archives (Orders, Profile, Bag) ---
+    // --- User-Specific Archive (Orders, Profile, Bag) ---
+    // ABSOLUTE PERMISSION: Owners have total access to their own data tree.
     match /users/{userId} {
-      // Primary profile access
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       
-      // Explicit sub-collection rules for performance
-      match /orders/{orderId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-      match /wishlist/{itemId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-      match /carts/{cartId}/items/{itemId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-      
-      // Fallback recursive wildcard
       match /{allSubcollections=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       }
     }
 
