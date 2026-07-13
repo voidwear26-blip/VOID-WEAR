@@ -153,8 +153,8 @@ export function ProductCard({ product }: ProductCardProps) {
           }}
         />
 
-        {/* 80% Image Section */}
-        <Link href={`/products/${product.id}`} className="block relative h-[80%] overflow-hidden shrink-0 border-b border-black/5">
+        {/* 75% Image Section */}
+        <Link href={`/products/${product.id}`} className="block relative h-[75%] overflow-hidden shrink-0 border-b border-black/5">
           <Image
             src={displayImage}
             alt={product.name}
@@ -204,26 +204,27 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </Link>
 
-        {/* 20% Metadata Section */}
-        <Link href={`/products/${product.id}`} className="h-[20%] p-5 flex flex-col justify-center">
-          <div className="flex items-center justify-between gap-4">
+        {/* 25% Metadata Section */}
+        <Link href={`/products/${product.id}`} className="h-[25%] p-5 flex flex-col justify-between">
+          <div className="space-y-2">
             <h3 className={cn(
-              "text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1 flex-1",
+              "text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1",
               isSoldOut && "opacity-40"
             )}>
               {product.name}
             </h3>
-            <div className="flex items-center gap-4 shrink-0">
-               <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-bold whitespace-nowrap">
-                  {isSoldOut ? 'UNAVAILABLE' : 'AVAILABLE'}
-               </p>
-               <div className="flex items-center gap-2">
-                  {hasDiscount && (
-                    <span className="text-[9px] line-through text-black/20">₹{product.originalPrice}</span>
-                  )}
-                  <span className="text-[11px] md:text-xs font-black tracking-widest text-black">₹{product.basePrice}</span>
-               </div>
-            </div>
+          </div>
+          
+          <div className="flex items-center justify-between gap-4 border-t border-black/5 pt-4 mt-auto">
+             <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-bold whitespace-nowrap">
+                {isSoldOut ? 'UNAVAILABLE' : 'AVAILABLE'}
+             </p>
+             <div className="flex items-center gap-2">
+                {hasDiscount && (
+                  <span className="text-[9px] line-through text-black/20">₹{product.originalPrice}</span>
+                )}
+                <span className="text-[11px] md:text-xs font-black tracking-widest text-black">₹{product.basePrice}</span>
+             </div>
           </div>
         </Link>
       </div>
