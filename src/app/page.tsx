@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
@@ -65,9 +64,9 @@ export default function Home() {
   const rankedTopItems = useMemo(() => {
     if (!topProducts || topProducts.length < 3) return [];
     return [
-      { ...topProducts[2], reason: rankReasons[2], rank: "03" },
-      { ...topProducts[0], reason: rankReasons[0], rank: "01" },
-      { ...topProducts[1], reason: rankReasons[1], rank: "02" }
+      { ...topProducts[2], reason: rankReasons[2], rank: "03" }, // Index 0 (Left)
+      { ...topProducts[0], reason: rankReasons[0], rank: "01" }, // Index 1 (Center)
+      { ...topProducts[1], reason: rankReasons[1], rank: "02" }  // Index 2 (Right)
     ];
   }, [topProducts]);
 
@@ -234,7 +233,7 @@ export default function Home() {
                     onClick={() => setActiveTopIndex(idx)}
                     className={cn(
                       "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
-                      isLeft ? "md:-ml-12" : isRight ? "md:-mr-12" : "",
+                      isLeft ? "md:-mx-24" : isRight ? "md:-mx-24" : "", // Increased outward push
                       isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
                     )}
                     animate={{

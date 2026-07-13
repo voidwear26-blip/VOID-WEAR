@@ -28,15 +28,24 @@ export function PromoBanner() {
   const { data: config } = useDoc(configRef);
   
   const banners: Banner[] = useMemo(() => {
-    if (config?.promoBanners) return config.promoBanners;
+    if (config?.promoBanners && Array.isArray(config.promoBanners)) return config.promoBanners;
     return [];
   }, [config]);
 
+  // Safety: Reset index if banners change and current index is out of bounds
+  useEffect(() => {
+    if (banners.length > 0 && currentIndex >= banners.length) {
+      setCurrentIndex(0);
+    }
+  }, [banners.length, currentIndex]);
+
   const nextSlide = useCallback(() => {
+    if (banners.length === 0) return;
     setCurrentIndex((prev) => (prev + 1) % banners.length);
   }, [banners.length]);
 
   const prevSlide = useCallback(() => {
+    if (banners.length === 0) return;
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
   }, [banners.length]);
 
@@ -49,6 +58,9 @@ export function PromoBanner() {
   if (banners.length === 0) return null;
 
   const currentBanner = banners[currentIndex];
+
+  // Final safety check to prevent "url of undefined" error
+  if (!currentBanner) return null;
 
   const alignmentStyles = {
     left: 'items-start text-left pl-6 md:pl-32',

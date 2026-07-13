@@ -142,7 +142,7 @@ export function ProductCard({ product }: ProductCardProps) {
         rotateX,
         transformStyle: "preserve-3d",
       }}
-      className="group relative h-[450px] md:h-[500px] flex flex-col"
+      className="group relative h-[500px] flex flex-col"
     >
       <div className="flex flex-col h-full bg-black/[0.02] border border-black/5 group-hover:border-black/10 transition-all duration-300 overflow-hidden relative">
         {/* Shine Overlay */}
@@ -206,7 +206,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* 25% Metadata Section */}
         <Link href={`/products/${product.id}`} className="h-[25%] p-5 flex flex-col justify-between">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <h3 className={cn(
               "text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1",
               isSoldOut && "opacity-40"
