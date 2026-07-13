@@ -8,8 +8,8 @@ import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where } from 'firebase/firestore';
-import { Package, ArrowRight, Star, User, Loader2, Sparkles } from 'lucide-react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { Package, ArrowRight, Star, User, Loader2, Sparkles, Zap, Info } from 'lucide-react';
+import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -17,10 +17,10 @@ export default function Home() {
   const db = useFirestore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const reviewScrollRef = useRef<HTMLDivElement>(null);
-  const arrivalsContainerRef = useRef<HTMLDivElement>(null);
+  const marqueeRef = useRef<HTMLDivElement>(null);
   
-  const [arrivalsWidth, setArrivalsWidth] = useState(0);
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
+  const [activeTopIndex, setActiveTopIndex] = useState(1); // Rank 1 is middle
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -46,22 +46,26 @@ export default function Home() {
   const { data: featuredReviews, isLoading: reviewsLoading } = useCollection(featuredReviewsQuery);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      setArrivalsWidth(scrollRef.current.scrollWidth - scrollRef.current.offsetWidth);
-    }
-  }, [latestProducts]);
-
-  useEffect(() => {
     if (reviewScrollRef.current && featuredReviews) {
       setReviewContainerWidth(reviewScrollRef.current.scrollWidth - reviewScrollRef.current.offsetWidth);
     }
   }, [featuredReviews]);
 
+  // Elite Rank Narratives
+  const rankReasons = [
+    "Maximum urban resilience via Grade-A ballistic materials.",
+    "Integrated neural thermal regulation for adaptive environments.",
+    "Geometric architectural modularity for the modern explorer."
+  ];
+
   // Reorder topProducts for 3-1-2 layout: Rank 3, Rank 1, Rank 2
   const rankedTopItems = useMemo(() => {
     if (!topProducts || topProducts.length < 3) return topProducts || [];
-    // Assuming 0 is 1st, 1 is 2nd, 2 is 3rd
-    return [topProducts[2], topProducts[0], topProducts[1]];
+    return [
+      { ...topProducts[2], reason: rankReasons[2], rank: "03" },
+      { ...topProducts[0], reason: rankReasons[0], rank: "01" },
+      { ...topProducts[1], reason: rankReasons[1], rank: "02" }
+    ];
   }, [topProducts]);
 
   return (
@@ -84,7 +88,7 @@ export default function Home() {
         </motion.div>
       </section>
       
-      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden" ref={arrivalsContainerRef}>
+      <section className="py-8 md:py-12 bg-transparent relative overflow-hidden">
         <div className="container mx-auto px-6 mb-8">
           <div className="flex items-end justify-between">
             <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
@@ -97,36 +101,100 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative cursor-grab active:cursor-grabbing px-6 md:px-10 overflow-visible">
+        <div className="relative overflow-hidden w-full py-4">
           <motion.div 
-            ref={scrollRef}
-            drag="x"
-            dragConstraints={{ right: 0, left: -arrivalsWidth }}
-            className="flex gap-6 md:gap-10"
+            className="flex gap-8 whitespace-nowrap"
+            animate={{ x: ["0%", "-100%"] }}
+            transition={{
+              duration: 30,
+              ease: "linear",
+              repeat: Infinity,
+            }}
           >
             {latestLoading || !latestProducts ? (
-              [1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="min-w-[260px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse flex items-center justify-center">
-                   <div className="space-y-4 w-full px-6">
-                      <div className="w-full h-48 bg-black/5" />
-                      <div className="w-3/4 h-4 bg-black/5" />
-                      <div className="w-1/2 h-3 bg-black/5" />
-                   </div>
-                </div>
+              [1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="min-w-[300px] md:min-w-[320px] aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse shrink-0" />
               ))
-            ) : latestProducts.length > 0 ? (
-              latestProducts.map((product) => (
-                <div key={product.id} className="min-w-[260px] md:min-w-[320px] shrink-0">
-                  <ProductCard product={product as any} />
-                </div>
-              ))
-            ) : (
-              <div className="py-20 text-center opacity-20 border border-dashed border-black/20 w-full flex flex-col items-center justify-center">
-                <Package className="w-12 h-12 stroke-[0.5px]" />
-                <p className="text-[10px] tracking-[1em] uppercase font-black mt-4">EMPTY</p>
+            ) : [...latestProducts, ...latestProducts].map((product, idx) => (
+              <div key={`${product.id}-${idx}`} className="min-w-[300px] md:min-w-[320px] shrink-0">
+                <ProductCard product={product as any} />
               </div>
-            )}
+            ))}
           </motion.div>
+        </div>
+      </section>
+
+      <section className="py-20 md:py-32 bg-transparent overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="text-center space-y-4 mb-24">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
+            <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black">ELITE SYSTEM SELECTIONS</p>
+          </div>
+
+          <div className="relative flex flex-col items-center">
+            <div className="flex flex-row items-center justify-center gap-2 md:gap-8 lg:gap-16 w-full max-w-6xl px-4 md:px-10">
+              {topLoading || !topProducts ? (
+                [1, 2, 3].map(i => (
+                  <div key={i} className="w-full max-w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5" />
+                ))
+              ) : rankedTopItems.map((product: any, idx) => {
+                const isCenter = idx === 1;
+                const isLeft = idx === 0;
+                const isRight = idx === 2;
+                const isActive = activeTopIndex === idx;
+
+                return (
+                  <motion.div 
+                    key={product.id} 
+                    onClick={() => setActiveTopIndex(idx)}
+                    className={cn(
+                      "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
+                      // Mobile Overlap Stack
+                      "max-md:-mx-8 max-md:first:ml-0 max-md:last:mr-0",
+                      isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
+                    )}
+                    animate={{
+                      scale: isActive ? 1.1 : isCenter ? 1.1 : 0.95,
+                      filter: isActive ? "grayscale(0%)" : "grayscale(0.5)",
+                      opacity: isActive ? 1 : 0.8
+                    }}
+                    whileHover={{ scale: isActive ? 1.15 : 1.05 }}
+                  >
+                    <ProductCard product={product as any} />
+                    <div className={cn(
+                      "absolute -top-4 -left-4 w-10 h-10 md:w-12 md:h-12 border bg-background flex items-center justify-center text-xs font-black tracking-widest z-40 shadow-xl",
+                      isActive ? "border-black text-black" : "border-black/10 text-black/20"
+                    )}>
+                      {product.rank}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {rankedTopItems.length > 0 && (
+                <motion.div 
+                  key={activeTopIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="mt-20 text-center space-y-6 max-w-xl px-6"
+                >
+                   <div className="flex items-center justify-center gap-3 text-[10px] font-black tracking-[0.4em] text-black/40 uppercase">
+                      <Zap className="w-3 h-3" />
+                      <span>RANK_{rankedTopItems[activeTopIndex].rank}_ANALYSIS</span>
+                   </div>
+                   <h3 className="text-xl md:text-2xl font-black tracking-widest uppercase">
+                     {rankedTopItems[activeTopIndex].name}
+                   </h3>
+                   <p className="text-[11px] md:text-xs text-black/60 tracking-[0.2em] leading-relaxed uppercase font-medium">
+                     {rankedTopItems[activeTopIndex].reason}
+                   </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </section>
 
@@ -145,20 +213,7 @@ export default function Home() {
           >
              {reviewsLoading || !featuredReviews ? (
                [1, 2, 3].map(i => (
-                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 p-8 space-y-6">
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-black/5" />
-                      <div className="space-y-2 flex-1">
-                        <div className="w-1/2 h-2 bg-black/5" />
-                        <div className="w-1/3 h-2 bg-black/5" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="w-full h-2 bg-black/5" />
-                      <div className="w-full h-2 bg-black/5" />
-                      <div className="w-2/3 h-2 bg-black/5" />
-                    </div>
-                 </div>
+                 <div key={i} className="min-w-[300px] md:min-w-[380px] h-60 bg-black/[0.03] animate-pulse border border-black/5 p-8" />
                ))
              ) : featuredReviews.length > 0 ? (
                featuredReviews.map((review) => (
@@ -194,64 +249,6 @@ export default function Home() {
                </div>
              )}
           </motion.div>
-        </div>
-      </section>
-
-      <section className="py-20 md:py-32 bg-transparent">
-        <div className="container mx-auto px-6">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 lg:gap-12 px-6">
-            {topLoading || !topProducts ? (
-              [1, 2, 3].map(i => (
-                <div key={i} className="w-full max-w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5 flex items-center justify-center">
-                   <div className="space-y-4 w-full px-10">
-                      <div className="w-full h-64 bg-black/5" />
-                   </div>
-                </div>
-              ))
-            ) : rankedTopItems.length >= 3 ? (
-              rankedTopItems.map((product, idx) => {
-                // idx 0 = Rank 3 (Left), idx 1 = Rank 1 (Center), idx 2 = Rank 2 (Right)
-                const isCenter = idx === 1;
-                const isLeft = idx === 0;
-                const isRight = idx === 2;
-
-                return (
-                  <motion.div 
-                    key={product.id} 
-                    className={cn(
-                      "relative w-full max-w-[380px] shrink-0 transition-all duration-700",
-                      isCenter ? "scale-110 z-20 order-2" : isRight ? "scale-100 z-10 order-3" : "scale-90 z-0 order-1"
-                    )}
-                    whileHover={{ scale: isCenter ? 1.15 : isRight ? 1.05 : 0.95 }}
-                  >
-                    <ProductCard product={product as any} />
-                    <div className={cn(
-                      "absolute -top-4 -left-4 w-12 h-12 border bg-background flex items-center justify-center text-xs font-black tracking-widest z-30 shadow-xl",
-                      isCenter ? "border-black text-black" : "border-black/10 text-black/20"
-                    )}>
-                      {isCenter ? "01" : isRight ? "02" : "03"}
-                    </div>
-                    {isCenter && (
-                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1.5 text-[8px] font-black tracking-[0.4em] uppercase z-30">
-                        TOP_ASSEMBLAGE
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })
-            ) : topProducts.map((product, idx) => (
-              <div key={product.id} className="relative w-full max-w-[320px]">
-                <ProductCard product={product as any} />
-                <div className="absolute -top-3 -left-3 w-10 h-10 border border-black/10 bg-background flex items-center justify-center text-[10px] font-black tracking-widest text-black/40 z-30 shadow-sm">
-                  0{idx + 1}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
     </div>

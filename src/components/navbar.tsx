@@ -89,19 +89,19 @@ export function Navbar() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="bg-background/95 border-r border-black/5 text-black p-0 backdrop-blur-3xl w-[320px]">
-                  <div className="p-8 flex flex-col h-full pt-16">
+                  <div className="p-8 flex flex-col h-full pt-12">
                     <SheetTitle className="sr-only">MENU</SheetTitle>
                     
-                    <div className="flex flex-col items-center gap-6 mb-16 text-center">
+                    <div className="flex flex-col items-center mb-20 text-center">
                        <Link 
                          href="/" 
                          onClick={() => setIsMobileMenuOpen(false)}
                          className="flex flex-col items-center gap-6 group"
                        >
-                         <div className="relative w-24 h-24">
+                         <div className="relative w-24 h-24 mb-2">
                            <Image src="/logo.png" alt="VOID WEAR" fill className="object-contain grayscale" unoptimized />
                          </div>
-                         <span className="text-xl font-black tracking-[0.6em] uppercase text-black font-headline">VOID WEAR</span>
+                         <h2 className="text-xl font-black tracking-[0.6em] uppercase text-black font-headline whitespace-nowrap">VOID WEAR</h2>
                        </Link>
                     </div>
 
