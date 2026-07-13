@@ -35,14 +35,19 @@ export function ProductCard({ product }: ProductCardProps) {
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
 
+  // Kinetic Tilt Logic
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
   const mouseXSpring = useSpring(x);
   const mouseYSpring = useSpring(y);
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
+
+  // Shine Logic
+  const shineX = useTransform(mouseXSpring, [-0.5, 0.5], ["0%", "100%"]);
+  const shineY = useTransform(mouseYSpring, [-0.5, 0.5], ["0%", "100%"]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -137,10 +142,19 @@ export function ProductCard({ product }: ProductCardProps) {
         rotateX,
         transformStyle: "preserve-3d",
       }}
-      className="group relative h-full flex flex-col"
+      className="group relative h-[450px] md:h-[500px] flex flex-col"
     >
-      <div className="flex flex-col h-full bg-black/[0.02] border border-black/5 group-hover:border-black/10 transition-all duration-300 overflow-hidden">
-        <Link href={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden shrink-0">
+      <div className="flex flex-col h-full bg-black/[0.02] border border-black/5 group-hover:border-black/10 transition-all duration-300 overflow-hidden relative">
+        {/* Shine Overlay */}
+        <motion.div 
+          className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at ${shineX} ${shineY}, rgba(255,255,255,0.15) 0%, transparent 60%)`
+          }}
+        />
+
+        {/* 80% Image Section */}
+        <Link href={`/products/${product.id}`} className="block relative h-[80%] overflow-hidden shrink-0 border-b border-black/5">
           <Image
             src={displayImage}
             alt={product.name}
@@ -190,23 +204,24 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </Link>
 
-        <Link href={`/products/${product.id}`} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-          <div className="space-y-2">
+        {/* 20% Metadata Section */}
+        <Link href={`/products/${product.id}`} className="h-[20%] p-5 flex flex-col justify-center">
+          <div className="flex items-center justify-between gap-4">
             <h3 className={cn(
-              "text-lg font-bold tracking-tight uppercase text-black line-clamp-1",
+              "text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1 flex-1",
               isSoldOut && "opacity-40"
             )}>
               {product.name}
             </h3>
-            <div className="flex items-center justify-between">
-               <p className="text-[9px] tracking-[0.2em] text-black/40 uppercase font-bold">
+            <div className="flex items-center gap-4 shrink-0">
+               <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-bold whitespace-nowrap">
                   {isSoldOut ? 'UNAVAILABLE' : 'AVAILABLE'}
                </p>
                <div className="flex items-center gap-2">
                   {hasDiscount && (
-                    <span className="text-[10px] line-through text-black/20">₹{product.originalPrice}</span>
+                    <span className="text-[9px] line-through text-black/20">₹{product.originalPrice}</span>
                   )}
-                  <span className="text-sm font-black tracking-widest text-black">₹{product.basePrice}</span>
+                  <span className="text-[11px] md:text-xs font-black tracking-widest text-black">₹{product.basePrice}</span>
                </div>
             </div>
           </div>

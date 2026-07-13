@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
@@ -9,15 +8,13 @@ import Link from 'next/link';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, limit, query, where } from 'firebase/firestore';
 import { Package, ArrowRight, Star, User, Loader2, Sparkles, Zap, Info } from 'lucide-react';
-import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
   const db = useFirestore();
-  const scrollRef = useRef<HTMLDivElement>(null);
   const reviewScrollRef = useRef<HTMLDivElement>(null);
-  const marqueeRef = useRef<HTMLDivElement>(null);
   
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
   const [activeTopIndex, setActiveTopIndex] = useState(1); // Rank 1 is middle
@@ -124,80 +121,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 md:py-32 bg-transparent overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="text-center space-y-4 mb-24">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
-            <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black">ELITE SYSTEM SELECTIONS</p>
-          </div>
-
-          <div className="relative flex flex-col items-center">
-            <div className="flex flex-row items-center justify-center gap-2 md:gap-8 lg:gap-16 w-full max-w-6xl px-4 md:px-10">
-              {topLoading || !topProducts ? (
-                [1, 2, 3].map(i => (
-                  <div key={i} className="w-full max-w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5" />
-                ))
-              ) : rankedTopItems.map((product: any, idx) => {
-                const isCenter = idx === 1;
-                const isLeft = idx === 0;
-                const isRight = idx === 2;
-                const isActive = activeTopIndex === idx;
-
-                return (
-                  <motion.div 
-                    key={product.id} 
-                    onClick={() => setActiveTopIndex(idx)}
-                    className={cn(
-                      "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
-                      // Mobile Overlap Stack
-                      "max-md:-mx-8 max-md:first:ml-0 max-md:last:mr-0",
-                      isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
-                    )}
-                    animate={{
-                      scale: isActive ? 1.1 : isCenter ? 1.1 : 0.95,
-                      filter: isActive ? "grayscale(0%)" : "grayscale(0.5)",
-                      opacity: isActive ? 1 : 0.8
-                    }}
-                    whileHover={{ scale: isActive ? 1.15 : 1.05 }}
-                  >
-                    <ProductCard product={product as any} />
-                    <div className={cn(
-                      "absolute -top-4 -left-4 w-10 h-10 md:w-12 md:h-12 border bg-background flex items-center justify-center text-xs font-black tracking-widest z-40 shadow-xl",
-                      isActive ? "border-black text-black" : "border-black/10 text-black/20"
-                    )}>
-                      {product.rank}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            <AnimatePresence mode="wait">
-              {rankedTopItems.length > 0 && (
-                <motion.div 
-                  key={activeTopIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="mt-20 text-center space-y-6 max-w-xl px-6"
-                >
-                   <div className="flex items-center justify-center gap-3 text-[10px] font-black tracking-[0.4em] text-black/40 uppercase">
-                      <Zap className="w-3 h-3" />
-                      <span>RANK_{rankedTopItems[activeTopIndex].rank}_ANALYSIS</span>
-                   </div>
-                   <h3 className="text-xl md:text-2xl font-black tracking-widest uppercase">
-                     {rankedTopItems[activeTopIndex].name}
-                   </h3>
-                   <p className="text-[11px] md:text-xs text-black/60 tracking-[0.2em] leading-relaxed uppercase font-medium">
-                     {rankedTopItems[activeTopIndex].reason}
-                   </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </section>
-
       <section className="py-8 md:py-12 bg-black/[0.01] border-y border-black/5">
         <div className="container mx-auto px-6 mb-8">
           <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
@@ -249,6 +172,80 @@ export default function Home() {
                </div>
              )}
           </motion.div>
+        </div>
+      </section>
+
+      <section className="py-20 md:py-32 bg-transparent overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="text-center space-y-4 mb-24">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
+            <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black">ELITE SYSTEM SELECTIONS</p>
+          </div>
+
+          <div className="relative flex flex-col items-center">
+            <div className="flex flex-row items-center justify-center gap-4 md:gap-16 lg:gap-24 w-full max-w-7xl px-4 md:px-10">
+              {topLoading || !topProducts ? (
+                [1, 2, 3].map(i => (
+                  <div key={i} className="w-full max-w-[320px] aspect-[3/4] bg-black/[0.03] animate-pulse border border-black/5" />
+                ))
+              ) : rankedTopItems.map((product: any, idx) => {
+                const isCenter = idx === 1;
+                const isLeft = idx === 0;
+                const isRight = idx === 2;
+                const isActive = activeTopIndex === idx;
+
+                return (
+                  <motion.div 
+                    key={product.id} 
+                    onClick={() => setActiveTopIndex(idx)}
+                    className={cn(
+                      "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
+                      // Spacing calibration: Flanking items pushed outward
+                      isLeft ? "md:-ml-12" : isRight ? "md:-mr-12" : "",
+                      isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
+                    )}
+                    animate={{
+                      scale: isActive ? 1.1 : isCenter ? 1.1 : 0.95,
+                      opacity: 1, // Purged transparency
+                      filter: "none" // Purged grayscale
+                    }}
+                    whileHover={{ scale: isActive ? 1.15 : 1.05 }}
+                  >
+                    <ProductCard product={product as any} />
+                    <div className={cn(
+                      "absolute -top-4 -left-4 w-10 h-10 md:w-12 md:h-12 border bg-background flex items-center justify-center text-xs font-black tracking-widest z-40 shadow-xl",
+                      isActive ? "border-black text-black" : "border-black/10 text-black/20"
+                    )}>
+                      {product.rank}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {rankedTopItems.length > 0 && (
+                <motion.div 
+                  key={activeTopIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="mt-20 text-center space-y-6 max-w-xl px-6"
+                >
+                   <div className="flex items-center justify-center gap-3 text-[10px] font-black tracking-[0.4em] text-black/40 uppercase">
+                      <Zap className="w-3 h-3" />
+                      <span>RANK_{rankedTopItems[activeTopIndex].rank}_ANALYSIS</span>
+                   </div>
+                   <h3 className="text-xl md:text-2xl font-black tracking-widest uppercase">
+                     {rankedTopItems[activeTopIndex].name}
+                   </h3>
+                   <p className="text-[11px] md:text-xs text-black/60 tracking-[0.2em] leading-relaxed uppercase font-medium">
+                     {rankedTopItems[activeTopIndex].reason}
+                   </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </section>
     </div>
