@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ProductCard } from '@/components/product-card';
@@ -10,6 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc' | 'newest';
 
+/**
+ * COLLECTION PORTAL
+ * Optimized for performance: Fetches only a lightweight initial batch (24 items).
+ * Future implementation can add "Load More" to satisfy deep searches.
+ */
 export default function ProductsPage() {
   const db = useFirestore();
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,7 +23,11 @@ export default function ProductsPage() {
 
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), limit(100));
+    /**
+     * PAGINATION PROTOCOL:
+     * Restricting initial scan to 24 modules to ensure fast interaction.
+     */
+    return query(collection(db, 'products'), limit(24));
   }, [db]);
 
   const { data: dbProducts, isLoading } = useCollection(productsQuery);

@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, query, limit, getDocs } from 'firebase/firestore';
 import { generateOutfitSuggestion, StylistOutput } from '@/ai/flows/generate-outfit-suggestion';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
@@ -11,27 +12,34 @@ import { Loader2, Zap, Send, Info, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * NEURAL STYLIST INTERFACE
+ * Optimized for performance: Only fetches catalog data when a request is initiated.
+ */
 export function AIAssistant() {
   const db = useFirestore();
   const { toast } = useToast();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<StylistOutput | null>(null);
-
-  const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collection(db, 'products');
-  }, [db]);
-
-  const { data: products } = useCollection(productsQuery);
+  const [matchedProducts, setMatchedProducts] = useState<any[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim() || !products) return;
+    if (!prompt.trim() || !db) return;
 
     setLoading(true);
     try {
-      const catalog = products.map(p => ({
+      /**
+       * TARGETED FETCH PROTOCOL:
+       * Fetching a limited snapshot of the collection only during the request cycle.
+       * This prevents massive data usage on page mount.
+       */
+      const catalogQuery = query(collection(db, 'products'), limit(40));
+      const snapshot = await getDocs(catalogQuery);
+      const rawProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const catalog = rawProducts.map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description,
@@ -45,6 +53,10 @@ export function AIAssistant() {
       });
 
       setResult(suggestion);
+      // Synchronize visual components with the suggestion
+      const filtered = rawProducts.filter((p: any) => suggestion.suggestedProductIds.includes(p.id));
+      setMatchedProducts(filtered);
+
       toast({ title: "COMPLETE", description: "OUTFIT SUGGESTION GENERATED." });
     } catch (err) {
       console.error(err);
@@ -57,8 +69,6 @@ export function AIAssistant() {
       setLoading(false);
     }
   };
-
-  const recommendedProducts = products?.filter(p => result?.suggestedProductIds.includes(p.id)) || [];
 
   return (
     <div className="space-y-16">
@@ -128,7 +138,7 @@ export function AIAssistant() {
 
               <div className="bg-white/5 border border-white/10 p-10 space-y-6 flex flex-col justify-center text-center backdrop-blur-md">
                  <ShoppingBag className="w-10 h-10 mx-auto text-white/20 mb-2" />
-                 <p className="text-[9px] tracking-[0.4em] font-black uppercase text-white">MATCHED PRODUCTS: {recommendedProducts.length}</p>
+                 <p className="text-[9px] tracking-[0.4em] font-black uppercase text-white">MATCHED PRODUCTS: {matchedProducts.length}</p>
                  <div className="h-px bg-white/10 w-full" />
                  <p className="text-[8px] tracking-[0.2em] uppercase leading-relaxed text-white/40">
                     THESE ITEMS HAVE BEEN SELECTED AS THE PERFECT BASE FOR YOUR LOOK.
@@ -139,7 +149,7 @@ export function AIAssistant() {
             <div className="space-y-8">
               <h3 className="text-[10px] font-bold tracking-[0.5em] text-white/40 uppercase">RECOMMENDED ITEMS</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                {recommendedProducts.map(product => (
+                {matchedProducts.map(product => (
                   <ProductCard key={product.id} product={product as any} />
                 ))}
               </div>
