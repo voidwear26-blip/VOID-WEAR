@@ -28,13 +28,12 @@ export function useCollection<T = any>(
     targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
 ): UseCollectionResult<T> {
   const [data, setData] = useState<WithId<T>[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!!targetRefOrQuery);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Initial State: If no query, we are effectively 'not loading' any active service
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
@@ -43,9 +42,7 @@ export function useCollection<T = any>(
     }
 
     setIsLoading(true);
-    setError(null);
 
-    // 2. Establish persistent real-time listener
     const unsubscribe = onSnapshot(
       targetRefOrQuery,
       { includeMetadataChanges: false },
@@ -64,7 +61,6 @@ export function useCollection<T = any>(
       (err: FirestoreError) => {
         if (!isMounted) return;
 
-        // Log critical uplink errors for review but don't hang UI
         if (err.code !== 'cancelled') {
           console.error("🔥 SYSTEM_UPLINK_CRASH:", err);
           setError(err);
@@ -73,7 +69,6 @@ export function useCollection<T = any>(
       }
     );
 
-    // 3. Purge listener on node unmount
     return () => {
       isMounted = false;
       unsubscribe();

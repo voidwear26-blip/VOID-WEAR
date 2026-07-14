@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collectionGroup, query, limit, updateDoc, doc } from 'firebase/firestore';
+import { collectionGroup, query, limit, updateDoc, doc, orderBy } from 'firebase/firestore';
 import { ShoppingBag, ChevronLeft, ShieldAlert, Hash, Info, Loader2, Zap, Search, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -36,13 +35,21 @@ export default function AdminOrdersPage() {
            profile?.role === 'ADMIN';
   }, [user, isUserLoading, profile, isProfileLoading]);
 
+  /**
+   * ADMIN ORDER QUERY
+   * Stabilized with useMemo to prevent redundant SDK re-subscriptions.
+   */
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
     try {
-      return query(collectionGroup(db, 'orders'), limit(150));
+      return query(
+        collectionGroup(db, 'orders'), 
+        orderBy('orderDate', 'desc'),
+        limit(150)
+      );
     } catch (e) {
-      console.error('[AdminOrdersPage] SYNC_FAILURE:', e);
-      return null;
+      // Fallback if index is not ready
+      return query(collectionGroup(db, 'orders'), limit(150));
     }
   }, [db, isAdmin, mounted]);
 
@@ -64,6 +71,7 @@ export default function AdminOrdersPage() {
       );
     }
 
+    // Secondary sort in case index is missing
     return result.sort((a, b) => 
       new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime()
     );
@@ -83,11 +91,6 @@ export default function AdminOrdersPage() {
       });
     } catch (e) {
       console.error('[STATUS_UPDATE_FAILURE]', e);
-      toast({
-        variant: "destructive",
-        title: "FAILURE",
-        description: "COULD NOT UPDATE STATUS.",
-      });
     }
   };
 
