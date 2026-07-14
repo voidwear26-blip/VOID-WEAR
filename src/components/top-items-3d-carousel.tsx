@@ -14,6 +14,7 @@ interface TopItems3DCarouselProps {
 /**
  * STACKED CARD INTERFACE
  * Layered module configuration with physical offsets and 5-second timed transitions.
+ * Enhanced tilt and proportions to prevent subject cropping.
  */
 export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -42,9 +43,9 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
   return (
     <div className="grid lg:grid-cols-12 gap-16 md:gap-24 items-center">
       {/* Left Node: Stacked Interaction */}
-      <div className="lg:col-span-7 relative h-[600px] flex items-center justify-center overflow-visible">
+      <div className="lg:col-span-7 relative h-[700px] flex items-center justify-center overflow-visible">
         <div 
-          className="relative w-[280px] md:w-[350px] h-[450px]"
+          className="relative w-[300px] md:w-[400px] h-[600px]"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
@@ -61,32 +62,33 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
                   key={product.id}
                   initial={false}
                   animate={{
-                    scale: 1 - stackIdx * 0.05,
-                    y: stackIdx * 20,
-                    x: stackIdx * 25,
-                    rotate: stackIdx * 2,
+                    scale: 1 - stackIdx * 0.08,
+                    y: stackIdx * 15,
+                    x: stackIdx * 60,
+                    rotate: stackIdx * 12,
                     zIndex: n - stackIdx,
-                    opacity: 1 - stackIdx * 0.2,
+                    opacity: 1 - stackIdx * 0.25,
                   }}
                   transition={{
                     type: 'spring',
-                    stiffness: 260,
-                    damping: 20
+                    stiffness: 200,
+                    damping: 25
+                  }}
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transformOrigin: 'bottom center',
                   }}
                   onClick={() => setActiveIndex(idx)}
                   className={cn(
                     "absolute inset-0 cursor-pointer transition-shadow duration-500",
-                    stackIdx === 0 ? "shadow-[0_40px_100px_rgba(0,0,0,0.1)]" : "shadow-sm"
+                    stackIdx === 0 ? "shadow-[0_40px_120px_rgba(0,0,0,0.15)]" : "shadow-md"
                   )}
-                  style={{
-                    transformStyle: 'preserve-3d',
-                  }}
                 >
                   <div className={cn(
                     "w-full h-full bg-white border border-black/5 overflow-hidden",
                     stackIdx !== 0 && "pointer-events-none" // Only the top card allows internal interaction
                   )}>
-                    <ProductCard product={product} />
+                    <ProductCard product={product} className="h-full" />
                   </div>
                   
                   {/* Interaction Overlay for back cards */}
@@ -100,7 +102,7 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
         </div>
         
         {/* Ground Depth Glow */}
-        <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 w-[500px] h-[100px] bg-black/[0.02] blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 w-[600px] h-[120px] bg-black/[0.03] blur-3xl rounded-full pointer-events-none" />
       </div>
 
       {/* Right Node: Narrative */}

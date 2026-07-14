@@ -19,9 +19,10 @@ interface ProductCardProps {
     originalPrice?: number;
     discountPercentage?: number;
   };
+  className?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, className }: ProductCardProps) {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
@@ -142,7 +143,7 @@ export function ProductCard({ product }: ProductCardProps) {
         rotateX,
         transformStyle: "preserve-3d",
       }}
-      className="group relative h-[500px] flex flex-col"
+      className={cn("group relative h-[600px] flex flex-col", className)}
     >
       <div className="flex flex-col h-full bg-black/[0.02] border border-black/5 group-hover:border-black/10 transition-all duration-300 overflow-hidden relative">
         {/* Shine Overlay */}
@@ -153,8 +154,8 @@ export function ProductCard({ product }: ProductCardProps) {
           }}
         />
 
-        {/* 75% Image Section */}
-        <Link href={`/products/${product.id}`} className="block relative h-[75%] overflow-hidden shrink-0 border-b border-black/5">
+        {/* 82% Image Section */}
+        <Link href={`/products/${product.id}`} className="block relative h-[82%] overflow-hidden shrink-0 border-b border-black/5">
           <Image
             src={displayImage}
             alt={product.name}
@@ -204,8 +205,8 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </Link>
 
-        {/* 25% Metadata Section */}
-        <Link href={`/products/${product.id}`} className="h-[25%] p-5 flex flex-col justify-between">
+        {/* 18% Metadata Section */}
+        <Link href={`/products/${product.id}`} className="h-[18%] p-5 flex flex-col justify-center">
           <div className="space-y-1">
             <h3 className={cn(
               "text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1",
@@ -215,7 +216,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </h3>
           </div>
           
-          <div className="flex items-center justify-between gap-4 border-t border-black/5 pt-4 mt-auto">
+          <div className="flex items-center justify-between gap-4 border-t border-black/5 pt-4 mt-3">
              <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-bold whitespace-nowrap">
                 {isSoldOut ? 'UNAVAILABLE' : 'AVAILABLE'}
              </p>
