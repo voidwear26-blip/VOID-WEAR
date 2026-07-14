@@ -200,28 +200,26 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 md:py-32 bg-transparent overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="text-center space-y-4 mb-24">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
-            <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black font-body">ELITE SYSTEM SELECTIONS</p>
-          </div>
+      {(topLoading || (topProducts && topProducts.length > 0)) && (
+        <section className="py-20 md:py-32 bg-transparent overflow-hidden">
+          <div className="container mx-auto px-6">
+            <div className="text-center space-y-4 mb-24">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
+              <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black font-body">ELITE SYSTEM SELECTIONS</p>
+            </div>
 
-          <div className="relative">
-            {topLoading ? (
-              <div className="h-[600px] flex items-center justify-center opacity-20">
-                <Loader2 className="w-12 h-12 animate-spin" />
-              </div>
-            ) : topProducts && topProducts.length > 0 ? (
-              <TopItems3DCarousel products={topProducts} />
-            ) : (
-              <div className="h-[400px] border border-dashed border-black/10 flex items-center justify-center opacity-40">
-                <p className="text-[10px] tracking-widest uppercase font-bold font-body">No Top Items Authorized</p>
-              </div>
-            )}
+            <div className="relative">
+              {topLoading ? (
+                <div className="h-[600px] flex items-center justify-center opacity-20">
+                  <Loader2 className="w-12 h-12 animate-spin" />
+                </div>
+              ) : (
+                <TopItems3DCarousel products={topProducts || []} />
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
