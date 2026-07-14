@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
@@ -32,7 +33,15 @@ export default function Home() {
 
   const topProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), limit(6)); // Increased limit for better 3D carousel ring
+    /**
+     * TOP MODULE QUERY:
+     * Only fetches items where isTopItem flag is enabled by administration.
+     */
+    return query(
+      collection(db, 'products'), 
+      where('isTopItem', '==', true),
+      limit(8)
+    );
   }, [db]);
 
   const featuredReviewsQuery = useMemoFirebase(() => {
@@ -207,19 +216,9 @@ export default function Home() {
               <TopItems3DCarousel products={topProducts} />
             ) : (
               <div className="h-[400px] border border-dashed border-black/10 flex items-center justify-center opacity-40">
-                <p className="text-[10px] tracking-widest uppercase font-bold font-body">No Top Items Configured</p>
+                <p className="text-[10px] tracking-widest uppercase font-bold font-body">No Top Items Authorized</p>
               </div>
             )}
-          </div>
-          
-          <div className="mt-20 text-center space-y-6 max-w-xl mx-auto px-6">
-             <div className="flex items-center justify-center gap-3 text-[10px] font-black tracking-[0.4em] text-black/40 uppercase font-body">
-                <Zap className="w-3 h-3" />
-                <span>ELITE_RANK_ANALYSIS</span>
-             </div>
-             <p className="text-[11px] md:text-xs text-black/60 tracking-[0.2em] leading-relaxed uppercase font-medium font-body">
-               Curated selections based on urban resilience, material integrity, and architectural modularity. Interact with the carousel to inspect individual modules.
-             </p>
           </div>
         </div>
       </section>

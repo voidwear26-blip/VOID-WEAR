@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
@@ -13,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { compressImage } from '@/lib/image-utils';
 import Image from 'next/image';
+import { AnimatePresence } from 'framer-motion';
 
 type StockMatrix = {
   [size: string]: {
@@ -57,7 +59,9 @@ export default function NewProductPage() {
     colorImages: {} as { [color: string]: string[] },
     details: '',
     isOutOfStock: false,
-    isTaxable: true
+    isTaxable: true,
+    isTopItem: false,
+    topItemDescription: ''
   });
 
   const [currentInputUrl, setCurrentInputUrl] = useState('');
@@ -164,6 +168,8 @@ export default function NewProductPage() {
       colorImages: formData.colorImages,
       isOutOfStock: formData.isOutOfStock,
       isTaxable: formData.isTaxable,
+      isTopItem: formData.isTopItem,
+      topItemDescription: formData.topItemDescription,
       stockMatrix: stockMatrix,
       stockQuantity: totalStock,
       sizes: Object.keys(stockMatrix).filter(s => Object.keys(stockMatrix[s]).length > 0),
@@ -213,6 +219,29 @@ export default function NewProductPage() {
                </div>
                <Switch checked={formData.isTaxable} onCheckedChange={(checked) => setFormData({ ...formData, isTaxable: checked })} />
             </div>
+          </div>
+
+          <div className="p-10 border border-black/10 bg-black/[0.02] space-y-10">
+             <div className="flex items-center justify-between border-b border-black/10 pb-6">
+                <div className="flex items-center gap-4 text-black">
+                   <Sparkles className="w-5 h-5 text-black" />
+                   <h3 className="text-sm font-black tracking-[0.4em] uppercase">FEATURE IN TOP CAROUSEL</h3>
+                </div>
+                <Switch checked={formData.isTopItem} onCheckedChange={(checked) => setFormData({ ...formData, isTopItem: checked })} />
+             </div>
+             <AnimatePresence>
+               {formData.isTopItem && (
+                 <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">HOMEPAGE NARRATIVE</label>
+                    <Textarea 
+                      value={formData.topItemDescription} 
+                      onChange={e => setFormData({ ...formData, topItemDescription: e.target.value })}
+                      placeholder="ENTER THE CINEMATIC DESCRIPTION FOR THE HOMEPAGE 3D CAROUSEL..."
+                      className="bg-white border-black/10 rounded-none h-24 text-[10px] tracking-widest focus:border-black/40 text-black uppercase"
+                    />
+                 </div>
+               )}
+             </AnimatePresence>
           </div>
 
           <div className="grid md:grid-cols-2 gap-10">

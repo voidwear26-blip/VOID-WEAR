@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, Palette, Percent, ZapOff, ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { ChevronLeft, Save, Loader2, Trash2, Plus, X, Upload, Palette, Percent, ZapOff, ImageIcon, Link as LinkIcon, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,7 +62,9 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
     imageUrls: [] as string[],
     colorImages: {} as { [color: string]: string[] },
     isOutOfStock: false,
-    isTaxable: true
+    isTaxable: true,
+    isTopItem: false,
+    topItemDescription: ''
   });
 
   const [newImageUrl, setNewImageUrl] = useState('');
@@ -90,7 +93,9 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         imageUrls: product.imageUrls || [],
         colorImages: product.colorImages || {},
         isOutOfStock: product.isOutOfStock || false,
-        isTaxable: product.isTaxable !== false
+        isTaxable: product.isTaxable !== false,
+        isTopItem: product.isTopItem || false,
+        topItemDescription: product.topItemDescription || ''
       });
       if (product.stockMatrix) {
         const filteredMatrix: StockMatrix = { 'S': {}, 'M': {}, 'L': {}, 'XL': {} };
@@ -198,6 +203,8 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
         colorImages: formData.colorImages,
         isOutOfStock: formData.isOutOfStock,
         isTaxable: formData.isTaxable,
+        isTopItem: formData.isTopItem,
+        topItemDescription: formData.topItemDescription,
         stockMatrix: stockMatrix,
         stockQuantity: totalStock,
         sizes: Object.keys(stockMatrix).filter(s => Object.keys(stockMatrix[s]).length > 0),
@@ -249,6 +256,29 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                </div>
                <Switch checked={formData.isTaxable} onCheckedChange={(checked) => setFormData({ ...formData, isTaxable: checked })} />
             </div>
+          </div>
+
+          <div className="p-10 border border-black/10 bg-black/[0.02] space-y-10">
+             <div className="flex items-center justify-between border-b border-black/10 pb-6">
+                <div className="flex items-center gap-4 text-black">
+                   <Sparkles className="w-5 h-5 text-black" />
+                   <h3 className="text-sm font-black tracking-[0.4em] uppercase">TOP ITEM CONFIGURATION</h3>
+                </div>
+                <Switch checked={formData.isTopItem} onCheckedChange={(checked) => setFormData({ ...formData, isTopItem: checked })} />
+             </div>
+             <AnimatePresence>
+               {formData.isTopItem && (
+                 <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">CAROUSEL NARRATIVE</label>
+                    <Textarea 
+                      value={formData.topItemDescription} 
+                      onChange={e => setFormData({ ...formData, topItemDescription: e.target.value })}
+                      placeholder="ENTER THE CINEMATIC DESCRIPTION FOR THE HOMEPAGE 3D CAROUSEL..."
+                      className="bg-white border-black/10 rounded-none h-24 text-[10px] tracking-widest focus:border-black/40 text-black uppercase"
+                    />
+                 </div>
+               )}
+             </AnimatePresence>
           </div>
 
           <div className="grid md:grid-cols-2 gap-10">

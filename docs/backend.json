@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents an operator identity with logistical coordinates for module transmission.",
+      "description": "Represents a user profile with shipping and contact information.",
       "properties": {
         "uid": {
           "type": "string"
@@ -37,7 +37,7 @@
         },
         "role": {
           "type": "string",
-          "enum": ["OPERATOR", "ADMIN", "COURIER"]
+          "enum": ["CUSTOMER", "ADMIN", "COURIER"]
         },
         "isBlocked": {
           "type": "boolean"
@@ -98,6 +98,14 @@
         "stockMatrix": {
           "type": "object"
         },
+        "isTopItem": {
+          "type": "boolean",
+          "description": "Determines if product appears in the homepage 3D carousel."
+        },
+        "topItemDescription": {
+          "type": "string",
+          "description": "Short narrative for the homepage 3D carousel display."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -112,16 +120,16 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "A confirmed transmission log with dual identifiers for logistics and verification.",
+      "description": "A confirmed order record with payment and shipping status.",
       "properties": {
         "id": { "type": "string" },
         "order_ID": { 
           "type": "string", 
-          "description": "Logistical identifier for tracking (VOID-prefix)." 
+          "description": "Unique order identifier (VOID-prefix)." 
         },
         "transition_ID": { 
           "type": "string", 
-          "description": "Financial identifier for amount verification (Razorpay ID)." 
+          "description": "Payment gateway reference (Razorpay ID)." 
         },
         "userId": { "type": "string" },
         "totalAmount": { "type": "number" },
@@ -136,7 +144,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Contact",
       "type": "object",
-      "description": "An incoming transmission log from the contact node.",
+      "description": "An incoming message from the contact form.",
       "properties": {
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
@@ -159,7 +167,7 @@
         "definition": {
           "entityName": "User",
           "schema": { "$ref": "#/backend/entities/User" },
-          "description": "Operator dossiers."
+          "description": "Customer profiles."
         }
       },
       {
@@ -175,7 +183,7 @@
         "definition": {
           "entityName": "Product",
           "schema": { "$ref": "#/backend/entities/Product" },
-          "description": "Master catalogue."
+          "description": "Master product catalog."
         }
       },
       {
@@ -183,7 +191,7 @@
         "definition": {
           "entityName": "Contact",
           "schema": { "$ref": "#/backend/entities/Contact" },
-          "description": "Incoming transmissions from contact form."
+          "description": "Incoming support messages."
         }
       }
     ]
