@@ -20,8 +20,8 @@ export interface UseDocResult<T> {
 }
 
 /**
- * Stabilized React hook to subscribe to a single Firestore document.
- * Features protection against internal SDK state conflicts by tracking mount state.
+ * STABILIZED DOCUMENT SYNC HOOK
+ * Features a delayed-engagement guard to protect against internal SDK state conflicts (ID: ca9).
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
@@ -32,6 +32,7 @@ export function useDoc<T = any>(
 
   useEffect(() => {
     let isMounted = true;
+    let unsubscribe: (() => void) | null = null;
 
     if (!memoizedDocRef) {
       setData(null);
@@ -42,40 +43,54 @@ export function useDoc<T = any>(
 
     setIsLoading(true);
 
-    const unsubscribe = onSnapshot(
-      memoizedDocRef,
-      (snapshot: DocumentSnapshot<DocumentData>) => {
-        if (!isMounted) return;
+    const engagementTimer = setTimeout(() => {
+      if (!isMounted) return;
 
-        if (snapshot.exists()) {
-          setData({ ...(snapshot.data() as T), id: snapshot.id });
-        } else {
-          setData(null);
-        }
-        setError(null);
-        setIsLoading(false);
-      },
-      (error: FirestoreError) => {
-        if (!isMounted) return;
+      try {
+        unsubscribe = onSnapshot(
+          memoizedDocRef,
+          (snapshot: DocumentSnapshot<DocumentData>) => {
+            if (!isMounted) return;
 
-        if (error.code === 'permission-denied') {
-          const contextualError = new FirestorePermissionError({
-            operation: 'get',
-            path: memoizedDocRef.path,
-          });
-          setError(contextualError);
-          errorEmitter.emit('permission-error', contextualError);
-        } else {
-          setError(error);
+            if (snapshot.exists()) {
+              setData({ ...(snapshot.data() as T), id: snapshot.id });
+            } else {
+              setData(null);
+            }
+            setError(null);
+            setIsLoading(false);
+          },
+          (error: FirestoreError) => {
+            if (!isMounted) return;
+
+            if (error.code === 'permission-denied') {
+              const contextualError = new FirestorePermissionError({
+                operation: 'get',
+                path: memoizedDocRef.path,
+              });
+              setError(contextualError);
+              errorEmitter.emit('permission-error', contextualError);
+            } else {
+              setError(error);
+            }
+            setData(null);
+            setIsLoading(false);
+          }
+        );
+      } catch (e: any) {
+        if (isMounted) {
+          setError(e);
+          setIsLoading(false);
         }
-        setData(null);
-        setIsLoading(false);
       }
-    );
+    }, 0);
 
     return () => {
       isMounted = false;
-      unsubscribe();
+      clearTimeout(engagementTimer);
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [memoizedDocRef]);
 

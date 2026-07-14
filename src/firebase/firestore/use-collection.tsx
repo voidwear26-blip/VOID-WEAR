@@ -21,8 +21,8 @@ export interface UseCollectionResult<T> {
 /**
  * STABILIZED DATA UPLINK HOOK
  * Synchronizes a collection or query in real-time.
- * Features protective logic to stabilize the subscription lifecycle and avoid
- * internal SDK state assertion errors (e.g. ID: ca9).
+ * Features a delayed-engagement guard to avoid internal SDK state assertion errors (e.g. ID: ca9)
+ * during rapid component re-mounting or development refreshes.
  */
 export function useCollection<T = any>(
     targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
@@ -33,6 +33,7 @@ export function useCollection<T = any>(
 
   useEffect(() => {
     let isMounted = true;
+    let unsubscribe: (() => void) | null = null;
 
     if (!targetRefOrQuery) {
       setData(null);
@@ -43,35 +44,51 @@ export function useCollection<T = any>(
 
     setIsLoading(true);
 
-    const unsubscribe = onSnapshot(
-      targetRefOrQuery,
-      { includeMetadataChanges: false },
-      (snapshot: QuerySnapshot<DocumentData>) => {
-        if (!isMounted) return;
+    // Use a zero-delay timeout to ensure the component lifecycle has settled
+    // before establishing the real-time uplink.
+    const engagementTimer = setTimeout(() => {
+      if (!isMounted) return;
 
-        const results = snapshot.docs.map(doc => ({
-          ...(doc.data() as T),
-          id: doc.id
-        }));
-        
-        setData(results);
-        setError(null);
-        setIsLoading(false);
-      },
-      (err: FirestoreError) => {
-        if (!isMounted) return;
+      try {
+        unsubscribe = onSnapshot(
+          targetRefOrQuery,
+          { includeMetadataChanges: false },
+          (snapshot: QuerySnapshot<DocumentData>) => {
+            if (!isMounted) return;
 
-        if (err.code !== 'cancelled') {
-          console.error("🔥 SYSTEM_UPLINK_CRASH:", err);
-          setError(err);
+            const results = snapshot.docs.map(doc => ({
+              ...(doc.data() as T),
+              id: doc.id
+            }));
+            
+            setData(results);
+            setError(null);
+            setIsLoading(false);
+          },
+          (err: FirestoreError) => {
+            if (!isMounted) return;
+
+            if (err.code !== 'cancelled') {
+              console.error("🔥 SYSTEM_UPLINK_CRASH:", err);
+              setError(err);
+            }
+            setIsLoading(false);
+          }
+        );
+      } catch (e: any) {
+        if (isMounted) {
+          setError(e);
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
-    );
+    }, 0);
 
     return () => {
       isMounted = false;
-      unsubscribe();
+      clearTimeout(engagementTimer);
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [targetRefOrQuery]);
 

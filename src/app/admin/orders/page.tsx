@@ -37,20 +37,17 @@ export default function AdminOrdersPage() {
 
   /**
    * ADMIN ORDER QUERY
-   * Stabilized with useMemo to prevent redundant SDK re-subscriptions.
+   * Stabilized with useMemoFirebase to prevent redundant SDK re-subscriptions.
    */
   const allOrdersQuery = useMemoFirebase(() => {
     if (!db || !mounted || !isAdmin) return null;
-    try {
-      return query(
-        collectionGroup(db, 'orders'), 
-        orderBy('orderDate', 'desc'),
-        limit(150)
-      );
-    } catch (e) {
-      // Fallback if index is not ready
-      return query(collectionGroup(db, 'orders'), limit(150));
-    }
+    
+    // Explicitly non-recursive query to improve performance and stability
+    return query(
+      collectionGroup(db, 'orders'), 
+      orderBy('createdAt', 'desc'),
+      limit(150)
+    );
   }, [db, isAdmin, mounted]);
 
   const { data: rawOrders, isLoading, error: queryError } = useCollection(allOrdersQuery);
@@ -71,10 +68,7 @@ export default function AdminOrdersPage() {
       );
     }
 
-    // Secondary sort in case index is missing
-    return result.sort((a, b) => 
-      new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime()
-    );
+    return result;
   }, [rawOrders, searchTerm]);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: string) => {

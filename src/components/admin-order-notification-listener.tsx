@@ -10,7 +10,7 @@ import { ShoppingBag, Zap } from 'lucide-react';
  * ADMIN ORDER NOTIFICATION LISTENER
  * Establishes a real-time uplink to the global orders collection.
  * Triggers cinematic toasts for new orders when admin is active.
- * Fortified with lifecycle checks to prevent SDK assertion failures (ID: ca9).
+ * Fortified with delayed-engagement logic to prevent SDK assertion failures (ID: ca9).
  */
 export function AdminOrderNotificationListener() {
   const { user } = useUser();
@@ -35,57 +35,64 @@ export function AdminOrderNotificationListener() {
   useEffect(() => {
     if (!db || !isAdmin) return;
     let isMounted = true;
-    let unsubscribe: () => void = () => {};
+    let unsubscribe: (() => void) | null = null;
 
-    try {
-      const q = query(
-        collectionGroup(db, 'orders'),
-        orderBy('createdAt', 'desc'),
-        limit(5)
-      );
+    const engagementTimer = setTimeout(() => {
+      if (!isMounted) return;
 
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        if (!isMounted) return;
+      try {
+        const q = query(
+          collectionGroup(db, 'orders'),
+          orderBy('createdAt', 'desc'),
+          limit(5)
+        );
 
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === 'added') {
-            const order = change.doc.data();
-            
-            // Filter historical orders
-            if (order.createdAt > mountTime.current) {
-              toast({
-                title: "NEW ORDER DETECTED",
-                description: `ORDER ${order.order_ID || order.id} / ₹${order.totalAmount}`,
-                action: (
-                  <div className="flex items-center gap-2 pr-4">
-                     <Zap className="w-4 h-4 text-white animate-pulse" />
-                     <ShoppingBag className="w-4 h-4 text-white" />
-                  </div>
-                ),
-              });
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          if (!isMounted) return;
+
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'added') {
+              const order = change.doc.data();
               
-              try {
-                 const audio = new Audio('/notification.mp3');
-                 audio.play().catch(() => {});
-              } catch (e) {}
+              // Filter historical orders
+              if (order.createdAt > mountTime.current) {
+                toast({
+                  title: "NEW ORDER DETECTED",
+                  description: `ORDER ${order.order_ID || order.id} / ₹${order.totalAmount}`,
+                  action: (
+                    <div className="flex items-center gap-2 pr-4">
+                       <Zap className="w-4 h-4 text-white animate-pulse" />
+                       <ShoppingBag className="w-4 h-4 text-white" />
+                    </div>
+                  ),
+                });
+                
+                try {
+                   const audio = new Audio('/notification.mp3');
+                   audio.play().catch(() => {});
+                } catch (e) {}
+              }
             }
+          });
+        }, (error) => {
+          if (!isMounted) return;
+          if (error.code === 'failed-precondition') {
+            console.warn('[ADMIN_NOTIFIER] Index building or missing. Check Firebase Console.');
+          } else {
+            console.error('[ADMIN_NOTIFIER] Real-time uplink error:', error);
           }
         });
-      }, (error) => {
-        if (!isMounted) return;
-        if (error.code === 'failed-precondition') {
-          console.warn('[ADMIN_NOTIFIER] Index building or missing. Check Firebase Console.');
-        } else {
-          console.error('[ADMIN_NOTIFIER] Real-time uplink error:', error);
-        }
-      });
-    } catch (err) {
-      console.error('[ADMIN_NOTIFIER] Listener initialization failed:', err);
-    }
+      } catch (err) {
+        console.error('[ADMIN_NOTIFIER] Listener initialization failed:', err);
+      }
+    }, 500); // Slight delay for admin initialization stability
 
     return () => {
       isMounted = false;
-      unsubscribe();
+      clearTimeout(engagementTimer);
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [db, isAdmin, toast]);
 
