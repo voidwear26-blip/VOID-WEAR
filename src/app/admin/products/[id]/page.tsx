@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
@@ -14,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { compressImage } from '@/lib/image-utils';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type StockMatrix = { [size: string]: { [color: string]: number; }; };
 
@@ -268,7 +268,12 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
              </div>
              <AnimatePresence>
                {formData.isTopItem && (
-                 <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                 <motion.div 
+                   initial={{ height: 0, opacity: 0 }}
+                   animate={{ height: 'auto', opacity: 1 }}
+                   exit={{ height: 0, opacity: 0 }}
+                   className="space-y-4 overflow-hidden"
+                 >
                     <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">CAROUSEL NARRATIVE</label>
                     <Textarea 
                       value={formData.topItemDescription} 
@@ -276,7 +281,7 @@ export default function ProductAdminDetail({ params }: { params: Promise<{ id: s
                       placeholder="ENTER THE CINEMATIC DESCRIPTION FOR THE HOMEPAGE 3D CAROUSEL..."
                       className="bg-white border-black/10 rounded-none h-24 text-[10px] tracking-widest focus:border-black/40 text-black uppercase"
                     />
-                 </div>
+                 </motion.div>
                )}
              </AnimatePresence>
           </div>
