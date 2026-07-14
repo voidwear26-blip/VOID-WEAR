@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -6,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ProductCard } from '@/components/product-card';
 import { cn } from '@/lib/utils';
 import { Zap, Info } from 'lucide-react';
+import Link from 'next/link';
 
 interface TopItems3DCarouselProps {
   products: any[];
