@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, runTransaction, getDoc } from 'firebase/firestore';
+import { collection, doc, runTransaction, getDoc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Truck, CreditCard, ArrowRight, Loader2, CheckCircle2, Zap, Download, Hash, User as UserIcon, MapPin, Phone, Mail, HandCoins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,12 @@ export default function CheckoutPage() {
         landmark: profile.landmark || '',
         additionalInfo: ''
       });
+    } else if (user) {
+      setFormData(prev => ({
+        ...prev,
+        displayName: user.displayName || '',
+        email: user.email || ''
+      }));
     }
   }, [user, profile]);
 
@@ -156,6 +163,11 @@ export default function CheckoutPage() {
     };
 
     try {
+      /**
+       * ATOMIC TRANSACTION PROTOCOL:
+       * 1. PRE-FETCH Stock Levels (READ PHASE)
+       * 2. SYNC User Profile, UPDATE Inventory, CREATE Order, PURGE Bag (WRITE PHASE)
+       */
       await runTransaction(db, async (transaction) => {
         // Phase 1: Bulk Read
         const productSnapshots = await Promise.all(
@@ -163,20 +175,22 @@ export default function CheckoutPage() {
         );
         
         // Phase 2: Bulk Write
-        // Create/Update User Profile first to ensure consistency
+        // Create/Update User Profile first
         transaction.set(userRef, { 
-          ...formData, 
           uid: user.uid,
           email: user.email,
+          role: profile?.role || 'CUSTOMER',
           displayName: formData.displayName.toUpperCase(),
+          mobileNumber: formData.mobileNumber,
           addressLine1: formData.addressLine1.toUpperCase(),
           landmark: formData.landmark.toUpperCase(),
           city: formData.city.toUpperCase(),
           stateProvince: formData.stateProvince.toUpperCase(),
+          postalCode: formData.postalCode,
           updatedAt: new Date().toISOString() 
         }, { merge: true });
 
-        // Update Stock
+        // Update Stock and Delete Cart Items
         cartItems.forEach((item, idx) => {
           const productSnap = productSnapshots[idx];
           if (productSnap.exists()) {
@@ -228,7 +242,7 @@ export default function CheckoutPage() {
       toast({
         variant: "destructive",
         title: "ORDER FAILED",
-        description: "TRANSACTION ERROR: " + (e.message || "UNABLE TO SECURE RECORD"),
+        description: "TRANSACTION FAILED: " + (e.code || "MISSING_PERMISSION"),
       });
     } finally {
       setLoading(false);

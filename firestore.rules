@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -7,7 +8,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // High-speed authority check using token metadata
+    // High-speed authority check using token metadata - NO DATABASE LOOKUPS
     function isAdmin() {
       if (!isSignedIn()) return false;
       
@@ -25,28 +26,12 @@ service cloud.firestore {
       return (request.auth.uid in masterUIDs) || (email in masterEmails);
     }
 
-    // --- Product & Catalog Nodes ---
-    match /products/{productId} {
-      allow read: if true;
-      allow update: if isSignedIn(); // Required for stock decrement during purchase
-      allow create, delete, write: if isAdmin();
-    }
-
-    match /app_config/{configId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /stories/{storyId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // --- User-Specific Archives (Profile, Orders, Carts, Wishlist) ---
-    // Using explicit paths to prevent recursive wildcard evaluation errors in transactions.
+    // --- User-Specific Paths (Absolute Ownership) ---
     match /users/{userId} {
+      // Users can manage their own profile
       allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       
+      // Explicit sub-collection rules for performance
       match /orders/{orderId} {
         allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       }
@@ -61,6 +46,23 @@ service cloud.firestore {
       match /wishlist/{itemId} {
         allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       }
+    }
+
+    // --- Product & Catalog Nodes ---
+    match /products/{productId} {
+      allow read: if true;
+      allow update: if isSignedIn(); // Required for stock decrement during acquisition
+      allow create, delete, write: if isAdmin();
+    }
+
+    match /app_config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /stories/{storyId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // --- Communication & Feedback ---

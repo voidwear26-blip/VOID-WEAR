@@ -1,17 +1,17 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2 } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { ProductCard } from '@/components/product-card';
-import { saveUserToFirestore } from '@/firebase/user-actions';
 import { initiateSignOut, updateAuthProfile } from '@/firebase/non-blocking-login';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -21,6 +21,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import { useRouter } from 'next/navigation';
 import { submitReview } from '@/firebase/review-actions';
 import { cn } from '@/lib/utils';
+import { getDelhiveryTracking } from '@/app/actions/tracking';
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -303,10 +304,32 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingData, setTrackingData] = useState<any>(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
 
   const handleDownload = () => {
     generateInvoicePDF(order);
     toast({ title: "INVOICE DOWNLOADED", description: "ORDER RECORD SAVED AS PDF." });
+  };
+
+  const handleTrackOrder = async () => {
+    if (!order.trackingId) return;
+    setTrackingLoading(true);
+    setTrackingOpen(true);
+    try {
+      const data = await getDelhiveryTracking(order.trackingId);
+      if (data.success) {
+        setTrackingData(data);
+      } else {
+        toast({ variant: "destructive", title: "TRACKING ERROR", description: data.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "UPLINK FAILURE" });
+    } finally {
+      setTrackingLoading(false);
+    }
   };
 
   const handleReviewSubmit = async (productId: string, productName: string) => {
@@ -364,13 +387,74 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
              </div>
           </div>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleDownload}
-          className="h-12 border-black/10 bg-black/5 hover:bg-black hover:text-white rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all shrink-0"
-        >
-          DOWNLOAD INVOICE <Download className="ml-3 w-3.5 h-3.5" />
-        </Button>
+        
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {order.trackingId && (
+            <Dialog open={trackingOpen} onOpenChange={setTrackingOpen}>
+               <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleTrackOrder}
+                    className="h-12 flex-1 md:flex-none border-black/10 bg-black text-white hover:bg-black/90 rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all"
+                  >
+                    TRACK ORDER <Truck className="ml-3 w-3.5 h-3.5" />
+                  </Button>
+               </DialogTrigger>
+               <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
+                  <DialogHeader className="space-y-4 mb-8">
+                    <DialogTitle className="text-xl font-black tracking-tight uppercase">Courier Tracking</DialogTitle>
+                    <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold">
+                       WAYBILL: {order.trackingId}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-8">
+                     {trackingLoading ? (
+                       <div className="py-12 flex flex-col items-center justify-center gap-6 opacity-40">
+                          <Loader2 className="w-8 h-8 animate-spin" />
+                          <p className="text-[9px] tracking-[0.5em] uppercase">LINKING_COURIER_NODE...</p>
+                       </div>
+                     ) : trackingData ? (
+                       <div className="space-y-10">
+                          <div className="p-8 border border-black/5 bg-black/[0.02] space-y-6">
+                             <div className="flex justify-between items-center border-b border-black/5 pb-4">
+                                <span className="text-[8px] font-black tracking-widest uppercase text-black/40">CURRENT STATUS</span>
+                                <span className="text-[10px] font-black tracking-widest uppercase text-black">{trackingData.status}</span>
+                             </div>
+                             <div className="flex justify-between items-center border-b border-black/5 pb-4">
+                                <span className="text-[8px] font-black tracking-widest uppercase text-black/40">LOCATION</span>
+                                <span className="text-[10px] font-black tracking-widest uppercase text-black">{trackingData.location}</span>
+                             </div>
+                             {trackingData.expectedDate && (
+                               <div className="flex justify-between items-center">
+                                  <span className="text-[8px] font-black tracking-widest uppercase text-black/40">EXPECTED DELIVERY</span>
+                                  <span className="text-[10px] font-black tracking-widest uppercase text-green-600">{new Date(trackingData.expectedDate).toLocaleDateString()}</span>
+                               </div>
+                             )}
+                          </div>
+                          <p className="text-[8px] text-black/40 tracking-widest uppercase italic leading-relaxed text-center">
+                             REAL-TIME SCAN DATA PROVIDED BY DELHIVERY SYSTEMS.
+                          </p>
+                       </div>
+                     ) : (
+                       <div className="py-12 text-center opacity-40">
+                          <p className="text-[9px] tracking-widest uppercase">WAYBILL NOT DETECTED IN COURIER ARCHIVE.</p>
+                       </div>
+                     )}
+                  </div>
+                  <DialogFooter className="mt-8">
+                     <Button onClick={() => setTrackingOpen(false)} className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none text-[10px] font-black tracking-[0.4em] uppercase">CLOSE ARCHIVE</Button>
+                  </DialogFooter>
+               </DialogContent>
+            </Dialog>
+          )}
+          <Button 
+            variant="outline" 
+            onClick={handleDownload}
+            className="h-12 flex-1 md:flex-none border-black/10 bg-black/5 hover:bg-black hover:text-white rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all"
+          >
+            INVOICE <Download className="ml-3 w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">

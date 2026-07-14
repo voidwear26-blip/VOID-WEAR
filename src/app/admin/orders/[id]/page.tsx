@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
@@ -13,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { generateNotificationContent } from '@/ai/flows/generate-notification-content';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
+import { getDelhiveryTracking } from '@/app/actions/tracking';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -29,6 +31,10 @@ export default function OrderDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
+  const [trackingId, setTrackingId] = useState('');
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingStatus, setTrackingData] = useState<any>(null);
+
   const currentProfileRef = useMemoFirebase(() => {
     if (!db || !currentUser) return null;
     return doc(db, 'users', currentUser.uid);
@@ -72,6 +78,7 @@ export default function OrderDetailsPage() {
         transition_ID: order.transition_ID || order.paymentProviderId || '',
         paymentStatus: order.paymentStatus || 'paid'
       });
+      setTrackingId(order.trackingId || '');
     }
   }, [order]);
 
@@ -83,7 +90,7 @@ export default function OrderDetailsPage() {
       const notification = await generateNotificationContent({
         productName: order.items?.[0]?.name || 'ORDER ITEM',
         status: newStatus,
-        trackingId: order.trackingId,
+        trackingId: trackingId || order.trackingId,
         operatorName: entity.displayName || 'CUSTOMER'
       });
 
@@ -111,6 +118,46 @@ export default function OrderDetailsPage() {
       });
     } finally {
       setNotifying(false);
+    }
+  };
+
+  const handleUpdateTracking = async () => {
+    if (!db || !orderRef) return;
+    setSaving(true);
+    try {
+      await updateDoc(orderRef, {
+        trackingId: trackingId.trim(),
+        updatedAt: new Date().toISOString()
+      });
+      toast({ title: "TRACKING UPDATED", description: "WAYBILL LINKED TO ORDER." });
+      
+      // Auto-fetch status
+      if (trackingId.trim()) {
+        const status = await getDelhiveryTracking(trackingId.trim());
+        if (status.success) setTrackingData(status);
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "SYNC FAILURE" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const checkCourierStatus = async () => {
+    if (!trackingId.trim()) return;
+    setTrackingLoading(true);
+    try {
+      const data = await getDelhiveryTracking(trackingId.trim());
+      if (data.success) {
+        setTrackingData(data);
+        toast({ title: "TRACKING SYNCED", description: `STATUS: ${data.status}` });
+      } else {
+        toast({ variant: "destructive", title: "COURIER_ERROR", description: data.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "UPLINK FAILURE" });
+    } finally {
+      setTrackingLoading(false);
     }
   };
 
@@ -232,6 +279,61 @@ export default function OrderDetailsPage() {
               </Select>
             </div>
           </div>
+        </div>
+
+        <div className="mb-12 bg-black/[0.02] border border-black/10 p-10 space-y-10">
+           <div className="flex items-center justify-between border-b border-black/5 pb-6">
+              <div className="flex items-center gap-4">
+                 <Truck className="w-5 h-5 text-black/60" />
+                 <h3 className="text-sm font-black tracking-[0.4em] uppercase">DELHIVERY TRACKING</h3>
+              </div>
+              {trackingStatus && (
+                <div className="flex items-center gap-3">
+                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                   <span className="text-[9px] font-black tracking-widest uppercase text-black">{trackingStatus.status}</span>
+                </div>
+              )}
+           </div>
+           <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-1 space-y-2">
+                 <label className="text-[9px] font-bold tracking-widest text-black/40 uppercase">WAYBILL / TRACKING ID</label>
+                 <Input 
+                   value={trackingId}
+                   onChange={e => setTrackingId(e.target.value)}
+                   placeholder="ENTER AWB NUMBER..."
+                   className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest text-black font-mono uppercase"
+                 />
+              </div>
+              <div className="flex gap-4 items-end">
+                 <Button 
+                   onClick={handleUpdateTracking} 
+                   disabled={saving}
+                   className="h-14 px-8 bg-black text-white hover:bg-black/90 rounded-none text-[9px] font-bold tracking-[0.4em] uppercase"
+                 >
+                   {saving ? <Loader2 className="animate-spin w-4 h-4" /> : 'SAVE ID'}
+                 </Button>
+                 <Button 
+                   variant="ghost"
+                   onClick={checkCourierStatus} 
+                   disabled={trackingLoading || !trackingId}
+                   className="h-14 px-8 border border-black/10 bg-white hover:bg-black/5 rounded-none text-[9px] font-bold tracking-[0.4em] uppercase"
+                 >
+                   {trackingLoading ? <Loader2 className="animate-spin w-4 h-4" /> : 'REFRESH STATUS'}
+                 </Button>
+              </div>
+           </div>
+           {trackingStatus && (
+             <div className="p-6 bg-white/40 border border-black/5 grid md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black tracking-widest text-black/40 uppercase">LATEST SCAN</p>
+                   <p className="text-[10px] font-black tracking-widest uppercase text-black">{trackingStatus.location}</p>
+                </div>
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black tracking-widest text-black/40 uppercase">LAST UPDATED</p>
+                   <p className="text-[10px] font-black tracking-widest uppercase text-black">{new Date(trackingStatus.updatedAt).toLocaleString()}</p>
+                </div>
+             </div>
+           )}
         </div>
 
         {isEditing && (
