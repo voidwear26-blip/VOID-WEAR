@@ -1,4 +1,3 @@
-
 "use client"
 
 import { ProductCard } from '@/components/product-card';
@@ -13,8 +12,7 @@ type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock
 
 /**
  * COLLECTION PORTAL
- * Optimized for performance: Fetches only a lightweight initial batch (24 items).
- * Future implementation can add "Load More" to satisfy deep searches.
+ * Optimized for high-speed performance: Fetches only a lightweight initial batch (24 items).
  */
 export default function ProductsPage() {
   const db = useFirestore();
@@ -23,10 +21,6 @@ export default function ProductsPage() {
 
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    /**
-     * PAGINATION PROTOCOL:
-     * Restricting initial scan to 24 modules to ensure fast interaction.
-     */
     return query(collection(db, 'products'), limit(24));
   }, [db]);
 
@@ -108,9 +102,10 @@ export default function ProductsPage() {
         </div>
 
         {isLoading && !dbProducts ? (
-          <div className="flex flex-col items-center justify-center py-48 opacity-60">
-            <Loader2 className="w-10 h-10 animate-spin mb-8 text-black" />
-            <p className="text-[10px] tracking-[1em] uppercase font-black text-black">Syncing...</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-12">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="aspect-[3/4] bg-black/[0.02] border border-black/5 animate-pulse h-[600px] w-full" />
+            ))}
           </div>
         ) : filteredAndSortedProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-12">

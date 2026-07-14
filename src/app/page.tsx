@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
@@ -38,7 +37,7 @@ export default function Home() {
   // 1. ARRIVALS DATA (Lazy)
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db || !arrivalsVisible) return null;
-    return query(collection(db, 'products'), limit(8)); // Reduced limit for home
+    return query(collection(db, 'products'), limit(8)); 
   }, [db, arrivalsVisible]);
 
   // 2. TOP MODULE DATA (Lazy)
@@ -79,7 +78,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const options = { threshold: 0.1, rootMargin: "100px" };
+    const options = { threshold: 0.05, rootMargin: "200px" };
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -91,7 +90,9 @@ export default function Home() {
       });
     }, options);
 
-    Object.values(observerRefs).forEach(ref => ref.current && observer.observe(ref.current));
+    const currentRefs = Object.values(observerRefs);
+    currentRefs.forEach(ref => ref.current && observer.observe(ref.current));
+    
     return () => observer.disconnect();
   }, []);
 
@@ -146,7 +147,7 @@ export default function Home() {
                 {latestLoading ? (
                   [1, 2, 3, 4].map(i => (
                     <CarouselItem key={i} className="pl-8 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                      <div className="aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse" />
+                      <div className="aspect-[3/4] bg-black/[0.03] border border-black/5 animate-pulse rounded-none h-[600px]" />
                     </CarouselItem>
                   ))
                 ) : latestProducts && latestProducts.length > 0 ? (

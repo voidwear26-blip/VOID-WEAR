@@ -7,7 +7,7 @@ import { Heart, Loader2, Share2, Zap, ZapOff } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { toggleWishlist } from '@/firebase/wishlist-actions';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const db = useFirestore();
   const { toast } = useToast();
   const [toggling, setToggling] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const wishlistRef = useMemoFirebase(() => {
     if (!db || !user || !product.id) return null;
@@ -36,12 +41,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const { data: wishlistEntry } = useDoc(wishlistRef);
   const isInWishlist = !!wishlistEntry;
 
-  // Kinetic Tilt Logic
+  // Kinetic Tilt Logic (Initialized on mount to ensure microsecond-fast initial frame)
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  const mouseXSpring = useSpring(x);
-  const mouseYSpring = useSpring(y);
+  const mouseXSpring = useSpring(x, { stiffness: 100, damping: 30 });
+  const mouseYSpring = useSpring(y, { stiffness: 100, damping: 30 });
 
   const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
@@ -52,14 +57,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
     x.set(xPct);
     y.set(yPct);
   };
@@ -72,12 +71,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (!user) {
       toast({ title: "AUTHENTICATION REQUIRED", description: "PLEASE LOG IN." });
       return;
     }
-
     setToggling(true);
     try {
       await toggleWishlist(db!, user.uid, product as any);
@@ -95,32 +92,16 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     const shareUrl = `${window.location.origin}/products/${product.id}`;
-    const shareData = {
-      title: product.name,
-      text: `Check out ${product.name} from VOID WEAR.`,
-      url: shareUrl,
-    };
-
+    const shareData = { title: product.name, text: `Check out ${product.name} from VOID WEAR.`, url: shareUrl };
     if (navigator.share && navigator.canShare?.(shareData)) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {}
+      try { await navigator.share(shareData); } catch (err) {}
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "COPIED", description: "LINK COPIED TO CLIPBOARD." });
-      } catch (err) {
-        toast({ variant: "destructive", title: "ERROR" });
-      }
+      } catch (err) { toast({ variant: "destructive", title: "ERROR" }); }
     }
-  };
-
-  const iconMotionProps = {
-    whileHover: { scale: 1.1 },
-    whileTap: { scale: 0.95 },
-    transition: { type: "spring", stiffness: 400, damping: 15 }
   };
 
   const displayImage = product.imageUrls && product.imageUrls.length > 0 
@@ -132,29 +113,24 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateY,
-        rotateX,
+        rotateY: isMounted ? rotateY : 0,
+        rotateX: isMounted ? rotateX : 0,
         transformStyle: "preserve-3d",
       }}
       className={cn("group relative h-[600px] flex flex-col", className)}
     >
       <div className="flex flex-col h-full bg-black/[0.02] border border-black/5 group-hover:border-black/10 transition-all duration-300 overflow-hidden relative">
-        {/* Shine Overlay */}
         <motion.div 
           className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{
-            background: `radial-gradient(circle at ${shineX} ${shineY}, rgba(255,255,255,0.15) 0%, transparent 60%)`
-          }}
+          style={{ background: `radial-gradient(circle at ${shineX} ${shineY}, rgba(255,255,255,0.15) 0%, transparent 60%)` }}
         />
 
-        {/* 82% Image Section */}
         <Link href={`/products/${product.id}`} className="block relative h-[82%] overflow-hidden shrink-0 border-b border-black/5">
           <Image
             src={displayImage}
@@ -184,8 +160,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           </div>
 
           <div className="absolute top-4 right-4 z-20 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <motion.button 
-              {...iconMotionProps}
+            <button 
               onClick={handleWishlistToggle}
               disabled={toggling}
               className={`p-3 rounded-full border transition-all ${
@@ -193,37 +168,26 @@ export function ProductCard({ product, className }: ProductCardProps) {
               }`}
             >
               {toggling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current' : ''}`} />}
-            </motion.button>
-
-            <motion.button 
-              {...iconMotionProps}
+            </button>
+            <button 
               onClick={handleShare}
               className="p-3 rounded-full border border-black/5 bg-white/90 text-black hover:border-black transition-all"
             >
               <Share2 className="w-4 h-4" />
-            </motion.button>
+            </button>
           </div>
         </Link>
 
-        {/* 18% Metadata Section */}
         <Link href={`/products/${product.id}`} className="h-[18%] p-5 flex flex-col justify-center">
           <div className="space-y-1">
-            <h3 className={cn(
-              "text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1",
-              isSoldOut && "opacity-40"
-            )}>
+            <h3 className={cn("text-[12px] md:text-sm font-bold tracking-tight uppercase text-black line-clamp-1", isSoldOut && "opacity-40")}>
               {product.name}
             </h3>
           </div>
-          
           <div className="flex items-center justify-between gap-4 border-t border-black/5 pt-4 mt-3">
-             <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-bold whitespace-nowrap">
-                {isSoldOut ? 'UNAVAILABLE' : 'AVAILABLE'}
-             </p>
+             <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-bold whitespace-nowrap">{isSoldOut ? 'UNAVAILABLE' : 'AVAILABLE'}</p>
              <div className="flex items-center gap-2">
-                {hasDiscount && (
-                  <span className="text-[9px] line-through text-black/20">₹{product.originalPrice}</span>
-                )}
+                {hasDiscount && <span className="text-[9px] line-through text-black/20">₹{product.originalPrice}</span>}
                 <span className="text-[11px] md:text-xs font-black tracking-widest text-black">₹{product.basePrice}</span>
              </div>
           </div>
