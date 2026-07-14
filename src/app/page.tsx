@@ -21,8 +21,8 @@ import { TopItems3DCarousel } from '@/components/top-items-3d-carousel';
 
 /**
  * HOME PAGE ARCHITECTURE
- * Recalibrated for high-speed initial paint.
- * Uses Intersection Observers to fetch data nodes only when required.
+ * Recalibrated for extreme rendering speed using Predictive Fetching.
+ * Triggers data uplinks 800px before visibility to ensure "microsecond" transitions.
  */
 export default function Home() {
   const db = useFirestore();
@@ -34,13 +34,13 @@ export default function Home() {
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [topItemsVisible, setTopItemsVisible] = useState(false);
 
-  // 1. ARRIVALS DATA (Lazy)
+  // 1. ARRIVALS DATA (Predictive)
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db || !arrivalsVisible) return null;
     return query(collection(db, 'products'), limit(8)); 
   }, [db, arrivalsVisible]);
 
-  // 2. TOP MODULE DATA (Lazy)
+  // 2. TOP MODULE DATA (Predictive)
   const topProductsQuery = useMemoFirebase(() => {
     if (!db || !topItemsVisible) return null;
     return query(
@@ -50,7 +50,7 @@ export default function Home() {
     );
   }, [db, topItemsVisible]);
 
-  // 3. FEEDBACK DATA (Lazy)
+  // 3. FEEDBACK DATA (Predictive)
   const featuredReviewsQuery = useMemoFirebase(() => {
     if (!db || !feedbackVisible) return null;
     return query(
@@ -70,7 +70,7 @@ export default function Home() {
     }
   }, [featuredReviews]);
 
-  // Intersection Observers for On-Demand Fetching
+  // Predictive Intersection Observers
   const observerRefs = {
     arrivals: useRef<HTMLDivElement>(null),
     feedback: useRef<HTMLDivElement>(null),
@@ -78,7 +78,11 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const options = { threshold: 0.05, rootMargin: "200px" };
+    /**
+     * PRE-WARM PROTOCOL:
+     * rootMargin is set to 800px to trigger data fetching long before the user scrolls to the section.
+     */
+    const options = { threshold: 0.01, rootMargin: "800px" };
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
