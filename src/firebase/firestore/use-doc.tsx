@@ -25,7 +25,7 @@ export interface UseDocResult<T> {
 
 /**
  * Stabilized React hook to subscribe to a single Firestore document.
- * Features protection against internal SDK state conflicts.
+ * Features protection against internal SDK state conflicts by tracking mount state.
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
@@ -35,9 +35,11 @@ export function useDoc<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!memoizedDocRef) {
       setData(null);
-      setIsLoading(true);
+      setIsLoading(false);
       setError(null);
       return;
     }
@@ -48,6 +50,8 @@ export function useDoc<T = any>(
     const unsubscribe = onSnapshot(
       memoizedDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
+        if (!isMounted) return;
+
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
@@ -57,6 +61,8 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        if (!isMounted) return;
+
         if (error.code === 'permission-denied') {
           const contextualError = new FirestorePermissionError({
             operation: 'get',
@@ -72,7 +78,10 @@ export function useDoc<T = any>(
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [memoizedDocRef]);
 
   return { data, isLoading, error };

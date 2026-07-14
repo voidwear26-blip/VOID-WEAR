@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Query,
   onSnapshot,
@@ -23,7 +22,7 @@ export interface UseCollectionResult<T> {
  * STABILIZED DATA UPLINK HOOK
  * Synchronizes a collection or query in real-time.
  * Features protective logic to stabilize the subscription lifecycle and avoid
- * internal SDK state assertion errors.
+ * internal SDK state assertion errors (e.g. ID: ca9).
  */
 export function useCollection<T = any>(
     targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
@@ -33,10 +32,12 @@ export function useCollection<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
-    // 1. Initial State: If no query, we are effectively 'loading' the service uplink
+    let isMounted = true;
+
+    // 1. Initial State: If no query, we are effectively 'not loading' any active service
     if (!targetRefOrQuery) {
       setData(null);
-      setIsLoading(true);
+      setIsLoading(false);
       setError(null);
       return;
     }
@@ -49,6 +50,8 @@ export function useCollection<T = any>(
       targetRefOrQuery,
       { includeMetadataChanges: false },
       (snapshot: QuerySnapshot<DocumentData>) => {
+        if (!isMounted) return;
+
         const results = snapshot.docs.map(doc => ({
           ...(doc.data() as T),
           id: doc.id
@@ -59,6 +62,8 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
+        if (!isMounted) return;
+
         // Log critical uplink errors for review but don't hang UI
         if (err.code !== 'cancelled') {
           console.error("🔥 SYSTEM_UPLINK_CRASH:", err);
@@ -69,7 +74,10 @@ export function useCollection<T = any>(
     );
 
     // 3. Purge listener on node unmount
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [targetRefOrQuery]);
 
   return { data, isLoading, error };

@@ -4,12 +4,13 @@ import { useEffect, useRef, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, onSnapshot, orderBy, limit, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingBag, Zap, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Zap } from 'lucide-react';
 
 /**
  * ADMIN ORDER NOTIFICATION LISTENER
  * Establishes a real-time uplink to the global orders collection.
  * Triggers cinematic toasts for new orders when admin is active.
+ * Fortified with lifecycle checks to prevent SDK assertion failures.
  */
 export function AdminOrderNotificationListener() {
   const { user } = useUser();
@@ -33,6 +34,7 @@ export function AdminOrderNotificationListener() {
 
   useEffect(() => {
     if (!db || !isAdmin) return;
+    let isMounted = true;
 
     /**
      * UPLINK CONFIGURATION:
@@ -45,6 +47,8 @@ export function AdminOrderNotificationListener() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!isMounted) return;
+
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') {
           const order = change.doc.data();
@@ -70,6 +74,8 @@ export function AdminOrderNotificationListener() {
         }
       });
     }, (error) => {
+      if (!isMounted) return;
+
       if (error.code === 'failed-precondition') {
         console.warn('[ADMIN_NOTIFIER] INDEX_MISSING: Global order tracking requires a Collection Group index. Check Firebase Console.');
       } else {
@@ -77,7 +83,10 @@ export function AdminOrderNotificationListener() {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [db, isAdmin, toast]);
 
   return null;
