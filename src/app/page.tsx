@@ -17,13 +17,13 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import AutoScroll from "embla-carousel-auto-scroll";
+import { TopItems3DCarousel } from '@/components/top-items-3d-carousel';
 
 export default function Home() {
   const db = useFirestore();
   const reviewScrollRef = useRef<HTMLDivElement>(null);
   
   const [reviewContainerWidth, setReviewContainerWidth] = useState(0);
-  const [activeTopIndex, setActiveTopIndex] = useState(1); // Rank 1 is middle
   
   const latestProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -32,7 +32,7 @@ export default function Home() {
 
   const topProductsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), limit(3));
+    return query(collection(db, 'products'), limit(6)); // Increased limit for better 3D carousel ring
   }, [db]);
 
   const featuredReviewsQuery = useMemoFirebase(() => {
@@ -54,23 +54,6 @@ export default function Home() {
     }
   }, [featuredReviews]);
 
-  // Elite Rank Narratives
-  const rankReasons = [
-    "Maximum urban resilience via Grade-A ballistic materials.",
-    "Integrated neural thermal regulation for adaptive environments.",
-    "Geometric architectural modularity for the modern explorer."
-  ];
-
-  // Reorder topProducts for 3-1-2 layout: Rank 3, Rank 1, Rank 2
-  const rankedTopItems = useMemo(() => {
-    if (!topProducts || topProducts.length < 3) return [];
-    return [
-      { ...topProducts[2], reason: rankReasons[2], rank: "03" }, // Index 0 (Left)
-      { ...topProducts[0], reason: rankReasons[0], rank: "01" }, // Index 1 (Center)
-      { ...topProducts[1], reason: rankReasons[1], rank: "02" }  // Index 2 (Right)
-    ];
-  }, [topProducts]);
-
   return (
     <div className="space-y-0 bg-background text-black">
       <Hero />
@@ -85,7 +68,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <Button asChild className="bg-black text-white hover:bg-black/80 px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm uppercase">
+          <Button asChild className="bg-black text-white hover:bg-black/80 px-16 py-8 text-[11px] font-bold tracking-[0.6em] rounded-none transition-all duration-500 shadow-sm uppercase font-body">
             <Link href="/products">VIEW COLLECTION</Link>
           </Button>
         </motion.div>
@@ -98,9 +81,9 @@ export default function Home() {
               <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black font-headline">
                 ARRIVALS
               </h2>
-              <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-black">LATEST SYSTEM MODULES</p>
+              <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-black font-body">LATEST SYSTEM MODULES</p>
             </div>
-            <Link href="/products" className="text-[9px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-1 uppercase flex items-center gap-2">
+            <Link href="/products" className="text-[9px] font-bold tracking-[0.4em] text-black/60 hover:text-black transition-all border-b border-black/10 hover:border-black pb-1 uppercase flex items-center gap-2 font-body">
               EXPLORE ALL
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -153,7 +136,7 @@ export default function Home() {
         <div className="container mx-auto px-6 mb-12">
           <div className="space-y-2">
             <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none text-black font-headline">FEEDBACK</h2>
-            <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-black">OPERATOR EXPERIENCES</p>
+            <p className="text-[9px] tracking-[0.4em] text-black/40 uppercase font-black font-body">OPERATOR EXPERIENCES</p>
           </div>
         </div>
 
@@ -180,8 +163,8 @@ export default function Home() {
                                  <User className="w-3 h-3 text-black/40" />
                               </div>
                               <div>
-                                 <p className="text-[9px] font-black tracking-widest uppercase text-black">{review.userName}</p>
-                                 <p className="text-[7px] tracking-widest text-black/40 uppercase font-bold">VERIFIED</p>
+                                 <p className="text-[9px] font-black tracking-widest uppercase text-black font-body">{review.userName}</p>
+                                 <p className="text-[7px] tracking-widest text-black/40 uppercase font-bold font-body">VERIFIED</p>
                               </div>
                            </div>
                            <div className="flex gap-0.5">
@@ -190,7 +173,7 @@ export default function Home() {
                               ))}
                            </div>
                         </div>
-                        <p className="text-[10px] tracking-widest leading-relaxed uppercase text-black/80 font-medium line-clamp-4">
+                        <p className="text-[10px] tracking-widest leading-relaxed uppercase text-black/80 font-medium line-clamp-4 font-body">
                            "{review.comment}"
                         </p>
                       </div>
@@ -212,87 +195,31 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="text-center space-y-4 mb-24">
             <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none text-black font-headline">TOP ITEMS</h2>
-            <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black">ELITE SYSTEM SELECTIONS</p>
+            <p className="text-[9px] tracking-[0.5em] text-black/40 uppercase font-black font-body">ELITE SYSTEM SELECTIONS</p>
           </div>
 
-          <div className="relative flex flex-col items-center">
-            <div className="flex flex-row items-center justify-center gap-4 md:gap-16 lg:gap-24 w-full max-w-7xl px-4 md:px-10">
-              {topLoading ? (
-                [1, 2, 3].map(i => {
-                   const isCenter = i === 2;
-                   return (
-                    <div 
-                      key={i} 
-                      className={cn(
-                        "bg-black/[0.03] animate-pulse border border-black/5 shrink-0",
-                        isCenter ? "z-30 scale-110 w-[240px] md:w-[380px] h-[350px] md:h-[500px]" : "z-10 scale-90 w-[180px] md:w-[280px] h-[300px] md:h-[450px]"
-                      )} 
-                    />
-                   );
-                })
-              ) : rankedTopItems.length > 0 ? rankedTopItems.map((product: any, idx) => {
-                const isCenter = idx === 1;
-                const isLeft = idx === 0;
-                const isRight = idx === 2;
-                const isActive = activeTopIndex === idx;
-
-                return (
-                  <motion.div 
-                    key={product.id} 
-                    onClick={() => setActiveTopIndex(idx)}
-                    className={cn(
-                      "relative cursor-pointer transition-all duration-700 ease-out shrink-0",
-                      isLeft ? "md:-mx-32 -mx-8" : isRight ? "md:-mx-32 -mx-8" : "",
-                      isCenter ? "z-30 scale-110 w-[240px] md:w-[380px]" : isRight ? "z-20 scale-100 w-[200px] md:w-[320px]" : "z-10 scale-90 w-[180px] md:w-[280px]"
-                    )}
-                    animate={{
-                      scale: isActive ? 1.1 : isCenter ? 1.1 : 0.95,
-                      x: (idx - activeTopIndex) * 20,
-                      opacity: 1,
-                      filter: "none"
-                    }}
-                    whileHover={{ scale: isActive ? 1.15 : 1.05 }}
-                  >
-                    <ProductCard product={product as any} />
-                    <div className={cn(
-                      "absolute -top-4 -left-4 w-10 h-10 md:w-12 md:h-12 border bg-background flex items-center justify-center text-xs font-black tracking-widest z-40 shadow-xl",
-                      isActive ? "border-black text-black" : "border-black/10 text-black/20"
-                    )}>
-                      {product.rank}
-                    </div>
-                  </motion.div>
-                );
-              }) : (
-                <div className="flex gap-16 md:gap-24">
-                   {[1, 2, 3].map(i => (
-                     <div key={i} className="w-[180px] md:w-[320px] aspect-[3/4] bg-black/[0.01] border border-black/5 shrink-0" />
-                   ))}
-                </div>
-              )}
-            </div>
-
-            <AnimatePresence mode="wait">
-              {rankedTopItems.length > 0 && (
-                <motion.div 
-                  key={activeTopIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="mt-20 text-center space-y-6 max-w-xl px-6"
-                >
-                   <div className="flex items-center justify-center gap-3 text-[10px] font-black tracking-[0.4em] text-black/40 uppercase">
-                      <Zap className="w-3 h-3" />
-                      <span>RANK_{rankedTopItems[activeTopIndex].rank}_ANALYSIS</span>
-                   </div>
-                   <h3 className="text-xl md:text-2xl font-black tracking-widest uppercase">
-                     {rankedTopItems[activeTopIndex].name}
-                   </h3>
-                   <p className="text-[11px] md:text-xs text-black/60 tracking-[0.2em] leading-relaxed uppercase font-medium">
-                     {rankedTopItems[activeTopIndex].reason}
-                   </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <div className="relative">
+            {topLoading ? (
+              <div className="h-[600px] flex items-center justify-center opacity-20">
+                <Loader2 className="w-12 h-12 animate-spin" />
+              </div>
+            ) : topProducts && topProducts.length > 0 ? (
+              <TopItems3DCarousel products={topProducts} />
+            ) : (
+              <div className="h-[400px] border border-dashed border-black/10 flex items-center justify-center opacity-40">
+                <p className="text-[10px] tracking-widest uppercase font-bold font-body">No Top Items Configured</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-20 text-center space-y-6 max-w-xl mx-auto px-6">
+             <div className="flex items-center justify-center gap-3 text-[10px] font-black tracking-[0.4em] text-black/40 uppercase font-body">
+                <Zap className="w-3 h-3" />
+                <span>ELITE_RANK_ANALYSIS</span>
+             </div>
+             <p className="text-[11px] md:text-xs text-black/60 tracking-[0.2em] leading-relaxed uppercase font-medium font-body">
+               Curated selections based on urban resilience, material integrity, and architectural modularity. Interact with the carousel to inspect individual modules.
+             </p>
           </div>
         </div>
       </section>
