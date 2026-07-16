@@ -101,7 +101,7 @@ export function PromoBanner() {
                 >
                   {currentBanner.subtitle && (
                     <span 
-                      className="text-[10px] md:text-xs font-bold tracking-[0.8em] uppercase drop-shadow-sm"
+                      className="text-[10px] md:text-[11px] font-bold tracking-[0.8em] uppercase drop-shadow-sm"
                       style={{ color: currentBanner.textColor || '#FFFFFF' }}
                     >
                       {currentBanner.subtitle}
@@ -109,7 +109,7 @@ export function PromoBanner() {
                   )}
                   {currentBanner.title && (
                     <h2 
-                      className="text-4xl md:text-8xl font-black tracking-tight uppercase leading-none drop-shadow-md font-headline"
+                      className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none drop-shadow-md font-headline"
                       style={{ color: currentBanner.textColor || '#FFFFFF' }}
                     >
                       {currentBanner.title}
@@ -136,13 +136,13 @@ export function PromoBanner() {
         <>
           <button 
             onClick={prevSlide}
-            className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 z-40 p-2 text-white opacity-60 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:scale-125 hover:opacity-100 focus:outline-none"
+            className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 z-40 p-2 text-white opacity-60 hover:opacity-100 transition-all hover:scale-125 focus:outline-none"
           >
             <ChevronLeft className="w-10 h-10 md:w-14 md:h-14" />
           </button>
           <button 
             onClick={nextSlide}
-            className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 z-40 p-2 text-white opacity-60 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:scale-125 hover:opacity-100 focus:outline-none"
+            className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 z-40 p-2 text-white opacity-60 hover:opacity-100 transition-all hover:scale-125 focus:outline-none"
           >
             <ChevronRight className="w-10 h-10 md:w-14 md:h-14" />
           </button>
