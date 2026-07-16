@@ -2,43 +2,52 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend('re_43Qt9Sqs_KMkjukPTvcYxkFEmCsLXwhzC');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * ADMIN NOTIFICATION RELAY
- * Dispatches a high-priority alert to the admin via Resend upon order completion.
+ * Dispatches high-priority order alerts to admin via order@voidwear.co.in
  */
 export async function sendAdminOrderNotification(orderData: any) {
   const adminEmail = 'voidwear26@gmail.com';
 
   try {
     const itemsSummary = orderData.items.map((item: any) => 
-      `- ${item.name} (SIZE: ${item.size}, QTY: ${item.quantity})`
+      `- ${item.name.toUpperCase()} (SIZE: ${item.size}, QTY: ${item.quantity})`
     ).join('\n');
 
     await resend.emails.send({
-      from: 'VOID WEAR SYSTEM <onboarding@resend.dev>',
+      from: 'VOID WEAR | SYSTEM <order@voidwear.co.in>',
       to: adminEmail,
-      subject: `[NEW_ORDER] ${orderData.order_ID}`,
+      subject: `[SYSTEM_ALERT] NEW_ACQUISITION_${orderData.order_ID}`,
       html: `
-        <div style="background-color: #000; color: #fff; padding: 40px; font-family: 'Space Grotesk', sans-serif; border: 1px solid #333;">
-          <h1 style="border-bottom: 1px solid #333; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase;">NEW ORDER RECEIVED</h1>
-          <div style="margin-top: 30px;">
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">ORDER_ID</p>
-            <p style="margin-bottom: 20px; font-size: 16px; font-weight: bold;">${orderData.order_ID}</p>
+        <div style="background-color: #000; color: #fff; padding: 40px; font-family: 'Helvetica', sans-serif; border: 1px solid #333;">
+          <h1 style="border-bottom: 2px solid #fff; padding-bottom: 20px; font-size: 20px; letter-spacing: 0.4em; text-transform: uppercase;">NEW_ACQUISITION</h1>
+          
+          <div style="margin-top: 30px; display: grid; gap: 20px;">
+            <div style="padding: 20px; background-color: #050505; border: 1px solid #111;">
+              <p style="color: #444; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 5px;">ORDER_IDENTIFIER</p>
+              <p style="font-size: 16px; font-weight: bold; margin: 0;">${orderData.order_ID}</p>
+            </div>
             
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">VALUE</p>
-            <p style="margin-bottom: 20px; font-size: 24px; color: #fff; font-weight: 900;">₹${orderData.totalAmount}</p>
+            <div style="padding: 20px; background-color: #050505; border: 1px solid #111;">
+              <p style="color: #444; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 5px;">CREDIT_VALUATION</p>
+              <p style="font-size: 28px; color: #fff; font-weight: 900; margin: 0;">₹${orderData.totalAmount}</p>
+            </div>
             
-            <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase;">CUSTOMER</p>
-            <p style="margin-bottom: 20px; font-size: 14px;">${orderData.displayName} / ${orderData.email}</p>
+            <div style="padding: 20px; background-color: #050505; border: 1px solid #111;">
+              <p style="color: #444; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 5px;">ENTITY_LINK</p>
+              <p style="font-size: 14px; margin: 0; text-transform: uppercase;">${orderData.displayName} / ${orderData.email}</p>
+            </div>
           </div>
+
           <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
-             <p style="color: #666; font-size: 10px; letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase;">ITEMS_SUMMARY</p>
-             <pre style="font-size: 12px; line-height: 1.6; color: #ccc;">${itemsSummary}</pre>
+             <p style="color: #444; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px;">ASSEMBLAGE_DATA</p>
+             <pre style="font-size: 12px; line-height: 1.6; color: #888;">${itemsSummary}</pre>
           </div>
-          <div style="margin-top: 40px; font-size: 8px; color: #444; letter-spacing: 0.5em; text-align: center; text-transform: uppercase;">
-            VOID WEAR // SYSTEM COMMAND 2026
+
+          <div style="margin-top: 50px; font-size: 7px; color: #333; letter-spacing: 1em; text-align: center; text-transform: uppercase;">
+            VOID WEAR // COMMAND_CENTER_2026
           </div>
         </div>
       `
