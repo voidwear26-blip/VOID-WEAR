@@ -62,13 +62,13 @@ export function PromoBanner() {
   if (!currentBanner) return null;
 
   const alignmentStyles = {
-    left: 'items-start text-left pl-6 md:pl-32',
+    left: 'items-start text-left pl-10 md:pl-32',
     center: 'items-center text-center',
-    right: 'items-end text-right pr-6 md:pr-32',
+    right: 'items-end text-right pr-10 md:pr-32',
   };
 
   return (
-    <section className="relative w-full aspect-[21/9] overflow-hidden bg-black/5 border-y border-black/5 group/banner">
+    <section className="relative w-full aspect-[4/3] md:aspect-[21/9] overflow-hidden bg-black/5 border-y border-black/5 group/banner">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -88,22 +88,22 @@ export function PromoBanner() {
               priority
             />
             <div className="absolute inset-0 bg-black/5 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
             <div className={cn(
               "absolute inset-0 flex flex-col justify-center px-6 transition-all duration-1000",
               alignmentStyles[currentBanner.alignment || 'center']
             )}>
-              <div className="space-y-2 md:space-y-6 max-w-4xl">
+              <div className="space-y-4 md:space-y-6 max-w-4xl">
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.8 }}
-                  className="space-y-0.5 md:space-y-2"
+                  className="space-y-2 md:space-y-3"
                 >
                   {currentBanner.subtitle && (
                     <span 
-                      className="text-[6px] md:text-xs font-bold tracking-[0.8em] uppercase drop-shadow-sm"
+                      className="text-[10px] md:text-xs font-bold tracking-[0.8em] uppercase drop-shadow-sm"
                       style={{ color: currentBanner.textColor || '#FFFFFF' }}
                     >
                       {currentBanner.subtitle}
@@ -111,7 +111,7 @@ export function PromoBanner() {
                   )}
                   {currentBanner.title && (
                     <h2 
-                      className="text-xs md:text-7xl font-black tracking-tight uppercase leading-none drop-shadow-md font-headline"
+                      className="text-2xl md:text-7xl font-black tracking-tight uppercase leading-none drop-shadow-md font-headline"
                       style={{ color: currentBanner.textColor || '#FFFFFF' }}
                     >
                       {currentBanner.title}
@@ -124,7 +124,7 @@ export function PromoBanner() {
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ delay: 0.6, duration: 1 }}
-                    className="h-[0.5px] md:h-[1px] w-8 md:w-24 opacity-60"
+                    className="h-[1px] w-12 md:w-24 opacity-60"
                     style={{ backgroundColor: currentBanner.textColor || '#FFFFFF' }}
                   />
                 )}
@@ -138,30 +138,30 @@ export function PromoBanner() {
         <>
           <button 
             onClick={prevSlide}
-            className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-40 p-1 md:p-4 border border-white/20 bg-white/10 backdrop-blur-md text-white opacity-40 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:bg-white hover:text-black"
+            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-40 p-2 text-white opacity-60 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:scale-125 hover:opacity-100"
           >
-            <ChevronLeft className="w-3 h-3 md:w-6 md:h-6" />
+            <ChevronLeft className="w-8 h-8 md:w-10 md:h-10" />
           </button>
           <button 
             onClick={nextSlide}
-            className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-40 p-1 md:p-4 border border-white/20 bg-white/10 backdrop-blur-md text-white opacity-40 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:bg-white hover:text-black"
+            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 p-2 text-white opacity-60 md:opacity-0 group-hover/banner:opacity-100 transition-all hover:scale-125 hover:opacity-100"
           >
-            <ChevronRight className="w-3 h-3 md:w-6 md:h-6" />
+            <ChevronRight className="w-8 h-8 md:w-10 md:h-10" />
           </button>
         </>
       )}
 
-      <div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1 md:gap-3 z-30">
+      <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-3 z-30">
         {banners.map((_, i) => (
           <button 
             key={i} 
             onClick={() => setCurrentIndex(i)}
-            className={`h-0.5 md:h-1 transition-all duration-700 ${currentIndex === i ? 'w-6 md:w-16 bg-white' : 'w-2 md:w-6 bg-white/20'}`}
+            className={`h-0.5 md:h-1 transition-all duration-700 ${currentIndex === i ? 'w-8 md:w-16 bg-white' : 'w-2 md:w-6 bg-white/20'}`}
           />
         ))}
       </div>
 
-      <div className="absolute top-4 left-6 z-30 pointer-events-none hidden md:block">
+      <div className="absolute top-6 left-8 z-30 pointer-events-none hidden md:block">
          <span className="text-[10px] font-black tracking-[1.2em] text-white/30 uppercase">SYSTEM_BROADCAST</span>
       </div>
     </section>
