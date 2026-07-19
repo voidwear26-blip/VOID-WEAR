@@ -133,7 +133,10 @@ export default function LoginPage() {
       const cred = await initiateGoogleSignIn(auth);
       // Flag as new registration to trigger profile confirmation
       localStorage.setItem('void_new_reg', 'true');
+      
+      // CRITICAL: Await the synchronization to ensure database integrity before redirect
       await saveUserToFirestore(db, cred.user);
+      
       toast({ title: "IDENTITY LINKED", description: "DATA RETRIEVED FROM GOOGLE." });
     } catch (err: any) {
       setMode('login');

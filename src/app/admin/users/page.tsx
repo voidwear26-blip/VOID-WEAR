@@ -91,7 +91,7 @@ export default function AdminUsersPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-black/5 bg-black/[0.02]">
-                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/60">CUSTOMER NAME</th>
+                  <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/60">CUSTOMER IDENTITY</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/60">EMAIL ADDRESS</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/60">MOBILE</th>
                   <th className="px-10 py-6 text-[10px] font-bold tracking-[0.3em] uppercase text-black/60">ROLE</th>
@@ -110,7 +110,10 @@ export default function AdminUsersPage() {
                           <div className="w-10 h-10 border border-black/10 bg-black/5 flex items-center justify-center">
                             <UserIcon className="w-4 h-4 text-black/40" />
                           </div>
-                          <span className="text-[10px] font-bold tracking-widest text-black uppercase">{userEntity.displayName || 'UNNAMED'}</span>
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold tracking-widest text-black uppercase">{userEntity.displayName || 'UNNAMED'}</span>
+                            <p className="text-[8px] text-black/40 font-mono lowercase block md:hidden">{userEntity.email}</p>
+                          </div>
                         </div>
                       </td>
                       <td className="px-10 py-8">

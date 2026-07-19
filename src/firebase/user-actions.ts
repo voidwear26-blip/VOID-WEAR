@@ -16,9 +16,10 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
 
   const userRef = doc(db, 'users', user.uid);
   
+  // CORE METADATA: Prioritizing system-level identifiers
   const profileData: any = {
     uid: user.uid,
-    email: user.email,
+    email: user.email || extraData.email || null,
     updatedAt: new Date().toISOString(),
     ...extraData
   };
