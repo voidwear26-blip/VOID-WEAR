@@ -1,9 +1,9 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
-import { collection, query, orderBy, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck, AlertCircle, CheckCircle2, XCircle, UserMinus } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,9 @@ export default function ProfilePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('account');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [isConfirmingIdentity, setIsConfirmingIdentity] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     // Check if redirecting from a new Google sign-in/registration
@@ -141,6 +143,37 @@ export default function ProfilePage() {
       router.push('/');
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!db || !user) return;
+    setDeleting(true);
+
+    try {
+      // 1. Purge Firestore Entity
+      const userRef = doc(db, 'users', user.uid);
+      await deleteDoc(userRef);
+
+      // 2. Terminate Auth Session
+      await initiateSignOut(auth);
+
+      toast({ 
+        title: "IDENTITY PURGED", 
+        description: "YOUR DIGITAL ENTITY HAS BEEN DE-AUTHORIZED." 
+      });
+
+      router.push('/');
+    } catch (err) {
+      console.error('[PURGE_FAILURE]', err);
+      toast({ 
+        variant: "destructive", 
+        title: "PURGE FAILED", 
+        description: "COULD NOT COMPLETE DE-AUTHORIZATION PROTOCOL." 
+      });
+    } finally {
+      setDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -302,6 +335,49 @@ export default function ProfilePage() {
                     <Button type="submit" disabled={saving} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>CONFIRM DIGITAL ENTITY <Save className="ml-3 w-4 h-4" /></>}
                     </Button>
+
+                    <div className="pt-12 border-t border-black/10">
+                      <div className="bg-red-500/5 border border-red-500/10 p-8 space-y-6">
+                        <div className="flex items-center gap-3 text-red-600">
+                          <AlertCircle className="w-5 h-5" />
+                          <span className="text-[10px] font-black tracking-[0.4em] uppercase">TERMINAL ACTION ZONE</span>
+                        </div>
+                        <p className="text-[9px] text-black/60 tracking-widest leading-relaxed uppercase">
+                          PERMANENTLY DE-AUTHORIZE YOUR DIGITAL ENTITY AND PURGE ALL MISSION LOGS. THIS ACTION IS IRREVERSIBLE.
+                        </p>
+                        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" className="text-[9px] tracking-[0.5em] text-red-600 hover:text-white hover:bg-red-600 border border-red-600/20 rounded-none h-12 uppercase font-black transition-all">
+                              DELETE ACCOUNT <UserMinus className="ml-3 w-3.5 h-3.5" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
+                            <DialogHeader className="space-y-4 mb-8">
+                              <DialogTitle className="text-xl font-black tracking-tight uppercase text-red-600">System Purge</DialogTitle>
+                              <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold leading-relaxed">
+                                ARE YOU ABSOLUTELY SURE YOU WANT TO TERMINATE YOUR ACCESS? ALL PROFILE DATA WILL BE ERASED.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-6">
+                               <div className="p-6 bg-red-500/5 border border-red-500/10 flex items-center gap-4 text-red-600">
+                                  <ShieldCheck className="w-6 h-6 shrink-0" />
+                                  <p className="text-[9px] font-black tracking-widest uppercase">IDENTITY VERIFICATION REQUIRED FOR DE-AUTHORIZATION.</p>
+                               </div>
+                            </div>
+                            <DialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+                              <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} className="h-14 text-[9px] font-bold uppercase tracking-widest">ABORT MISSION</Button>
+                              <Button 
+                                disabled={deleting}
+                                onClick={handleDeleteAccount}
+                                className="h-14 bg-red-600 text-white hover:bg-red-700 rounded-none text-[9px] font-black tracking-[0.4em] uppercase flex-1 shadow-xl"
+                              >
+                                {deleting ? <Loader2 className="animate-spin w-4 h-4" /> : 'CONFIRM PURGE'}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
                   </form>
                 </motion.div>
               )}
