@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { ProductCard } from '@/components/product-card';
-import { initiateSignOut, updateAuthProfile } from '@/firebase/non-blocking-login';
+import { initiateSignOut, updateAuthProfile, terminateUserAccount } from '@/firebase/non-blocking-login';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
@@ -35,7 +35,6 @@ export default function ProfilePage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Check if redirecting from a new Google sign-in/registration
     const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
     if (wasNewReg) {
       setIsConfirmingIdentity(true);
@@ -95,7 +94,6 @@ export default function ProfilePage() {
         landmark: profile.landmark || ''
       });
     } else if (user) {
-       // Pre-fill from Google if Firestore doc doesn't exist yet
        setFormData(prev => ({
          ...prev,
          displayName: user.displayName || '',
@@ -155,8 +153,8 @@ export default function ProfilePage() {
       const userRef = doc(db, 'users', user.uid);
       await deleteDoc(userRef);
 
-      // 2. Terminate Auth Session
-      await initiateSignOut(auth);
+      // 2. Terminate Auth Account
+      await terminateUserAccount(user);
 
       toast({ 
         title: "ACCOUNT DELETED", 
@@ -164,13 +162,22 @@ export default function ProfilePage() {
       });
 
       router.push('/');
-    } catch (err) {
+    } catch (err: any) {
       console.error('[PURGE_FAILURE]', err);
-      toast({ 
-        variant: "destructive", 
-        title: "DELETE FAILED", 
-        description: "COULD NOT DELETE ACCOUNT AT THIS TIME." 
-      });
+      
+      if (err.code === 'auth/requires-recent-login') {
+        toast({ 
+          variant: "destructive", 
+          title: "RE-AUTHENTICATION REQUIRED", 
+          description: "PLEASE SIGN OUT AND LOG BACK IN TO CONFIRM DELETION." 
+        });
+      } else {
+        toast({ 
+          variant: "destructive", 
+          title: "DELETE FAILED", 
+          description: "COULD NOT DELETE ACCOUNT AT THIS TIME. PLEASE CONTACT SUPPORT." 
+        });
+      }
     } finally {
       setDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -726,4 +733,3 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
     </div>
   );
 }
-

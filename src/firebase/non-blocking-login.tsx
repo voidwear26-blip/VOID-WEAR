@@ -10,6 +10,7 @@ import {
   sendEmailVerification,
   signOut,
   updateProfile,
+  deleteUser,
   UserCredential,
   User,
 } from 'firebase/auth';
@@ -54,4 +55,9 @@ export function initiatePasswordReset(authInstance: Auth, email: string): Promis
 /** Initiate sign-out (non-blocking). */
 export function initiateSignOut(authInstance: Auth): Promise<void> {
   return signOut(authInstance);
+}
+
+/** Terminates the user's Auth account. */
+export function terminateUserAccount(user: User): Promise<void> {
+  return deleteUser(user);
 }
