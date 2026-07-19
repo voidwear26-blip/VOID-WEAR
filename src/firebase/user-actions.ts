@@ -9,6 +9,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from './errors';
  * VOID WEAR // CUSTOMER PROFILE SYNCHRONIZATION
  * Persists customer identity metadata to the Firestore database.
  * Optimized for reliability and preventing silent write failures.
+ * Integrated with Auto-Collection for Provider metadata.
  */
 export async function saveUserToFirestore(db: Firestore, user: User, extraData: any = {}) {
   if (!user || !user.uid) return;
@@ -42,14 +43,24 @@ export async function saveUserToFirestore(db: Firestore, user: User, extraData: 
     profileData.role = 'CUSTOMER';
   }
 
-  // Ensure mandatory fields have values
-  if (!profileData.displayName && user.displayName) profileData.displayName = user.displayName;
-  if (!profileData.displayName && !user.displayName && !extraData.displayName) {
-    profileData.displayName = user.email?.split('@')[0].toUpperCase() || 'CUSTOMER';
+  /**
+   * AUTO-COLLECTION PROTOCOL:
+   * Prioritizes provider-level (e.g. Google) data for the initial handshake.
+   */
+  if (!profileData.displayName) {
+    profileData.displayName = user.displayName || extraData.displayName || user.email?.split('@')[0].toUpperCase() || 'CUSTOMER';
+  }
+
+  // Ensure photo metadata is synchronized if available
+  if (user.photoURL && !profileData.photoURL) {
+    profileData.photoURL = user.photoURL;
   }
   
   if (extraData.createdAt) {
     profileData.createdAt = extraData.createdAt;
+  } else if (!profileData.createdAt) {
+     // Setting default creation timestamp for new entities
+     profileData.createdAt = new Date().toISOString();
   }
 
   // Perform set with merge protocol. 

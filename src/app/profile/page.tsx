@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
 import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,16 @@ export default function ProfilePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('account');
   const [saving, setSaving] = useState(false);
+  const [isConfirmingIdentity, setIsConfirmingIdentity] = useState(false);
+
+  useEffect(() => {
+    // Check if redirecting from a new Google sign-in/registration
+    const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg_confirm') : null;
+    if (wasNewReg) {
+      setIsConfirmingIdentity(true);
+      localStorage.removeItem('void_new_reg_confirm');
+    }
+  }, []);
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -75,7 +84,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        displayName: profile.displayName || '',
+        displayName: profile.displayName || user?.displayName || '',
         mobileNumber: profile.mobileNumber || '',
         city: profile.city || '',
         stateProvince: profile.stateProvince || '',
@@ -83,8 +92,14 @@ export default function ProfilePage() {
         addressLine1: profile.addressLine1 || '',
         landmark: profile.landmark || ''
       });
+    } else if (user) {
+       // Pre-fill from Google if Firestore doc doesn't exist yet
+       setFormData(prev => ({
+         ...prev,
+         displayName: user.displayName || '',
+       }));
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +120,7 @@ export default function ProfilePage() {
     ])
       .then(() => {
         toast({ title: "PROFILE UPDATED", description: "ACCOUNT DETAILS SAVED." });
+        setIsConfirmingIdentity(false);
       })
       .catch(async (err) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -128,6 +144,8 @@ export default function ProfilePage() {
     }
   };
 
+  const isDossierIncomplete = !formData.mobileNumber || !formData.addressLine1 || !formData.city;
+
   if (isUserLoading || (user && isProfileLoading)) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -150,8 +168,33 @@ export default function ProfilePage() {
   const displayTitle = formData.displayName || profile?.displayName || user.email?.split('@')[0].toUpperCase() || 'USER';
 
   return (
-    <div className="pt-48 pb-32 bg-transparent min-h-screen text-black">
+    <div className="pt-48 pb-32 bg-transparent min-h-screen text-black font-body">
       <div className="container mx-auto px-6 md:px-10">
+        
+        <AnimatePresence>
+          {isConfirmingIdentity && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mb-16 overflow-hidden"
+            >
+              <div className="bg-black text-white p-10 border border-black/10 flex flex-col md:flex-row items-center justify-between gap-8 backdrop-blur-3xl shadow-2xl">
+                 <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 bg-white/10 border border-white/20 flex items-center justify-center rounded-full">
+                       <CheckCircle2 className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="space-y-1">
+                       <h3 className="text-sm font-black tracking-[0.3em] uppercase">IDENTITY_LINKED</h3>
+                       <p className="text-[9px] tracking-[0.2em] text-white/60 uppercase">Data retrieved from Google. Please confirm your details below.</p>
+                    </div>
+                 </div>
+                 <Button onClick={() => setIsConfirmingIdentity(false)} variant="ghost" className="text-[10px] tracking-[0.4em] font-bold uppercase text-white/40 hover:text-white hover:bg-white/5">DISMISS</Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="grid lg:grid-cols-4 gap-16 md:gap-24 items-start">
           <div className="space-y-12 lg:sticky lg:top-48">
             <div className="space-y-6">
@@ -205,8 +248,17 @@ export default function ProfilePage() {
             <AnimatePresence mode="wait">
               {activeTab === 'account' && (
                 <motion.div key="account" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                  <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                    <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ACCOUNT INFORMATION</h2>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-black/5 pb-8 gap-6">
+                    <div className="space-y-2">
+                       <h2 className="text-xs font-bold tracking-[0.5em] uppercase text-black/80">ACCOUNT INFORMATION</h2>
+                       <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase font-black">Sync Source: {user.providerData[0]?.providerId === 'google.com' ? 'GOOGLE_UPLINK' : 'DIRECT_ENTRY'}</p>
+                    </div>
+                    {isDossierIncomplete && (
+                      <div className="flex items-center gap-3 bg-red-500/5 border border-red-500/10 px-4 py-2">
+                         <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                         <span className="text-[8px] font-black tracking-widest text-red-600 uppercase">DOSSIER_INCOMPLETE</span>
+                      </div>
+                    )}
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="bg-black/[0.01] border border-black/5 p-10 space-y-10 backdrop-blur-xl">
@@ -217,29 +269,29 @@ export default function ProfilePage() {
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">MOBILE NUMBER</label>
-                        <Input value={formData.mobileNumber} onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" placeholder="+91 XXXX XXX XXX" />
+                        <Input required value={formData.mobileNumber} onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })} className={cn("bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black", !formData.mobileNumber && "border-red-500/30")} placeholder="+91 XXXX XXX XXX" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-10">
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">CITY</label>
-                        <Input value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
+                        <Input required value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">STATE</label>
-                        <Input value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
+                        <Input required value={formData.stateProvince} onChange={e => setFormData({ ...formData, stateProvince: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">PINCODE</label>
-                        <Input value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" />
+                        <Input required value={formData.postalCode} onChange={e => setFormData({ ...formData, postalCode: e.target.value })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-10">
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">ADDRESS</label>
-                        <Input value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
+                        <Input required value={formData.addressLine1} onChange={e => setFormData({ ...formData, addressLine1: e.target.value.toUpperCase() })} className="bg-white border-black/10 rounded-none h-14 text-[10px] tracking-widest focus:border-black/40 text-black uppercase" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">LANDMARK</label>
@@ -248,7 +300,7 @@ export default function ProfilePage() {
                     </div>
 
                     <Button type="submit" disabled={saving} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>UPDATE DETAILS <Save className="ml-3 w-4 h-4" /></>}
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>CONFIRM DIGITAL ENTITY <Save className="ml-3 w-4 h-4" /></>}
                     </Button>
                   </form>
                 </motion.div>

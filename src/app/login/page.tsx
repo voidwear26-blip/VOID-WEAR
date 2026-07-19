@@ -15,12 +15,12 @@ import { saveUserToFirestore } from '@/firebase/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Chrome, Eye, EyeOff, MailCheck, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Loader2, Chrome, Eye, EyeOff, MailCheck, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 
-type AuthMode = 'login' | 'signup' | 'reset' | 'verify';
+type AuthMode = 'login' | 'signup' | 'reset' | 'verify' | 'sync';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -128,10 +128,15 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setMode('sync');
     try {
       const cred = await initiateGoogleSignIn(auth);
+      // Flag as new registration to trigger profile confirmation
+      localStorage.setItem('void_new_reg', 'true');
       await saveUserToFirestore(db, cred.user);
+      toast({ title: "IDENTITY LINKED", description: "DATA RETRIEVED FROM GOOGLE." });
     } catch (err: any) {
+      setMode('login');
       if (err.code !== 'auth/popup-closed-by-user') {
         toast({ variant: "destructive", title: "LOGIN FAILED" });
       }
@@ -148,7 +153,7 @@ export default function LoginPage() {
         <div className="text-center space-y-6">
            <Image src="/logo.png" alt="VOID WEAR" width={80} height={80} className="mx-auto grayscale" unoptimized />
            <p className="text-[10px] tracking-[0.8em] text-black/60 uppercase font-black font-headline">
-             {mode === 'login' ? 'LOGIN' : mode === 'signup' ? 'SIGN UP' : mode === 'reset' ? 'RECOVERY' : 'VERIFY'}
+             {mode === 'login' ? 'LOGIN' : mode === 'signup' ? 'SIGN UP' : mode === 'reset' ? 'RECOVERY' : mode === 'sync' ? 'SYNCING' : 'VERIFY'}
            </p>
         </div>
 
@@ -171,6 +176,14 @@ export default function LoginPage() {
                   </Button>
                   <button onClick={handleLogout} className="text-[8px] tracking-[0.4em] text-black/60 hover:text-black uppercase font-black transition-colors">SIGN OUT</button>
                 </div>
+              </motion.div>
+            ) : mode === 'sync' ? (
+              <motion.div key="sync" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-20 flex flex-col items-center justify-center gap-6">
+                 <ShieldCheck className="w-12 h-12 text-black/20 animate-pulse" />
+                 <div className="space-y-2 text-center">
+                    <p className="text-[10px] tracking-[0.5em] font-black uppercase">Retrieving Metadata</p>
+                    <p className="text-[8px] tracking-[0.2em] text-black/40 uppercase">Establishing secure link...</p>
+                 </div>
               </motion.div>
             ) : (
               <form onSubmit={handleAuth} className="space-y-6">
@@ -225,7 +238,7 @@ export default function LoginPage() {
           )}
         </div>
 
-        {mode !== 'verify' && (
+        {mode !== 'verify' && mode !== 'sync' && (
           <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="w-full text-[10px] tracking-[0.3em] text-black/60 hover:text-black border-b border-black/5 pb-1 uppercase font-black transition-all">
             {mode === 'signup' ? 'ALREADY HAVE AN ACCOUNT? LOGIN' : 'NEW CUSTOMER? SIGN UP'}
           </button>
