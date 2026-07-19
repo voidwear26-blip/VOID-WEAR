@@ -108,11 +108,6 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
       {/* Right Node: Narrative */}
       <div className="lg:col-span-5 space-y-12">
         <div className="space-y-6">
-          <div className="flex items-center gap-4 text-[10px] font-black tracking-[0.5em] text-black/40 uppercase">
-             <Zap className="w-4 h-4" />
-             <span>MODULE_0{activeIndex + 1} // {n} TOTAL</span>
-          </div>
-          
           <AnimatePresence mode="wait">
             <motion.div
               key={activeProduct.id}
@@ -127,7 +122,7 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
                   {activeProduct.name}
                 </h2>
                 <p className="text-[10px] font-bold tracking-[0.4em] text-black/60 uppercase">
-                  {activeProduct.category} // SYSTEM TOP
+                  {activeProduct.category}
                 </p>
               </div>
 
@@ -136,7 +131,7 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
               <div className="space-y-6">
                 <div className="flex items-center gap-3 text-black/40">
                    <Info className="w-3.5 h-3.5" />
-                   <span className="text-[9px] font-bold tracking-[0.4em] uppercase">CURATOR ANALYSIS</span>
+                   <span className="text-[9px] font-bold tracking-[0.4em] uppercase">DESCRIPTION</span>
                 </div>
                 <p className="text-lg md:text-xl font-light tracking-widest leading-relaxed uppercase text-black/80">
                   {activeProduct.topItemDescription || activeProduct.description}
@@ -149,7 +144,7 @@ export function TopItems3DCarousel({ products }: TopItems3DCarouselProps) {
                     whileHover={{ x: 10 }}
                     className="group flex items-center gap-4 text-[10px] font-black tracking-[0.8em] text-black uppercase"
                   >
-                    INSPECT MODULE
+                    VIEW PRODUCT
                     <div className="w-12 h-[1px] bg-black/20 group-hover:w-20 transition-all duration-500" />
                   </motion.button>
                 </Link>
