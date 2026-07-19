@@ -36,10 +36,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Check if redirecting from a new Google sign-in/registration
-    const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg_confirm') : null;
+    const wasNewReg = typeof window !== 'undefined' ? localStorage.getItem('void_new_reg') : null;
     if (wasNewReg) {
       setIsConfirmingIdentity(true);
-      localStorage.removeItem('void_new_reg_confirm');
+      localStorage.removeItem('void_new_reg');
     }
   }, []);
 
@@ -159,8 +159,8 @@ export default function ProfilePage() {
       await initiateSignOut(auth);
 
       toast({ 
-        title: "IDENTITY PURGED", 
-        description: "YOUR DIGITAL ENTITY HAS BEEN DE-AUTHORIZED." 
+        title: "ACCOUNT DELETED", 
+        description: "YOUR PROFILE HAS BEEN PERMANENTLY REMOVED." 
       });
 
       router.push('/');
@@ -168,8 +168,8 @@ export default function ProfilePage() {
       console.error('[PURGE_FAILURE]', err);
       toast({ 
         variant: "destructive", 
-        title: "PURGE FAILED", 
-        description: "COULD NOT COMPLETE DE-AUTHORIZATION PROTOCOL." 
+        title: "DELETE FAILED", 
+        description: "COULD NOT DELETE ACCOUNT AT THIS TIME." 
       });
     } finally {
       setDeleting(false);
@@ -289,7 +289,7 @@ export default function ProfilePage() {
                     {isDossierIncomplete && (
                       <div className="flex items-center gap-3 bg-red-500/5 border border-red-500/10 px-4 py-2">
                          <AlertCircle className="w-3.5 h-3.5 text-red-600" />
-                         <span className="text-[8px] font-black tracking-widest text-red-600 uppercase">DOSSIER_INCOMPLETE</span>
+                         <span className="text-[8px] font-black tracking-widest text-red-600 uppercase">INCOMPLETE PROFILE</span>
                       </div>
                     )}
                   </div>
@@ -333,17 +333,17 @@ export default function ProfilePage() {
                     </div>
 
                     <Button type="submit" disabled={saving} className="w-full bg-black text-white hover:bg-black/90 h-16 text-[10px] font-bold tracking-[0.5em] rounded-none uppercase">
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>CONFIRM DIGITAL ENTITY <Save className="ml-3 w-4 h-4" /></>}
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <>UPDATE PROFILE <Save className="ml-3 w-4 h-4" /></>}
                     </Button>
 
                     <div className="pt-12 border-t border-black/10">
                       <div className="bg-red-500/5 border border-red-500/10 p-8 space-y-6">
                         <div className="flex items-center gap-3 text-red-600">
                           <AlertCircle className="w-5 h-5" />
-                          <span className="text-[10px] font-black tracking-[0.4em] uppercase">TERMINAL ACTION ZONE</span>
+                          <span className="text-[10px] font-black tracking-[0.4em] uppercase">DANGER ZONE</span>
                         </div>
                         <p className="text-[9px] text-black/60 tracking-widest leading-relaxed uppercase">
-                          PERMANENTLY DE-AUTHORIZE YOUR DIGITAL ENTITY AND PURGE ALL MISSION LOGS. THIS ACTION IS IRREVERSIBLE.
+                          Permanently delete your account and all saved data. This action cannot be undone.
                         </p>
                         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                           <DialogTrigger asChild>
@@ -353,25 +353,25 @@ export default function ProfilePage() {
                           </DialogTrigger>
                           <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
                             <DialogHeader className="space-y-4 mb-8">
-                              <DialogTitle className="text-xl font-black tracking-tight uppercase text-red-600">System Purge</DialogTitle>
+                              <DialogTitle className="text-xl font-black tracking-tight uppercase text-red-600">Delete Account</DialogTitle>
                               <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold leading-relaxed">
-                                ARE YOU ABSOLUTELY SURE YOU WANT TO TERMINATE YOUR ACCESS? ALL PROFILE DATA WILL BE ERASED.
+                                Are you sure you want to delete your account? This will permanently remove your profile and order history from our system.
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-6">
                                <div className="p-6 bg-red-500/5 border border-red-500/10 flex items-center gap-4 text-red-600">
                                   <ShieldCheck className="w-6 h-6 shrink-0" />
-                                  <p className="text-[9px] font-black tracking-widest uppercase">IDENTITY VERIFICATION REQUIRED FOR DE-AUTHORIZATION.</p>
+                                  <p className="text-[9px] font-black tracking-widest uppercase">THIS ACTION IS PERMANENT AND CANNOT BE REVERSED.</p>
                                </div>
                             </div>
                             <DialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
-                              <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} className="h-14 text-[9px] font-bold uppercase tracking-widest">ABORT MISSION</Button>
+                              <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} className="h-14 text-[9px] font-bold uppercase tracking-widest">CANCEL</Button>
                               <Button 
                                 disabled={deleting}
                                 onClick={handleDeleteAccount}
                                 className="h-14 bg-red-600 text-white hover:bg-red-700 rounded-none text-[9px] font-black tracking-[0.4em] uppercase flex-1 shadow-xl"
                               >
-                                {deleting ? <Loader2 className="animate-spin w-4 h-4" /> : 'CONFIRM PURGE'}
+                                {deleting ? <Loader2 className="animate-spin w-4 h-4" /> : 'DELETE PERMANENTLY'}
                               </Button>
                             </DialogFooter>
                           </DialogContent>
@@ -619,9 +619,9 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                </DialogTrigger>
                <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
                   <DialogHeader className="space-y-4 mb-8">
-                    <DialogTitle className="text-xl font-black tracking-tight uppercase">Cancel Mission</DialogTitle>
+                    <DialogTitle className="text-xl font-black tracking-tight uppercase">Cancel Order</DialogTitle>
                     <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold">
-                       ARE YOU SURE YOU WANT TO DE-AUTHORIZE THIS ACQUISITION?
+                       ARE YOU SURE YOU WANT TO CANCEL THIS PURCHASE?
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-8">
@@ -636,7 +636,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                      </div>
                   </div>
                   <DialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
-                     <Button variant="ghost" onClick={() => setCancelOpen(false)} className="h-14 text-[9px] font-bold uppercase tracking-widest">ABORT</Button>
+                     <Button variant="ghost" onClick={() => setCancelOpen(false)} className="h-14 text-[9px] font-bold uppercase tracking-widest">BACK</Button>
                      <Button 
                        disabled={cancelling}
                        onClick={handleCancelOrder} 
@@ -664,7 +664,7 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
           <div key={idx} className="flex items-center justify-between group/item">
             <div className="flex items-center gap-6">
               <div className="relative w-12 h-16 bg-black/5 border border-black/10 overflow-hidden shrink-0">
-                <Image src={item.image || 'https://picsum.photos/seed/void/200/300'} alt={item.name} fill className="object-cover grayscale" unoptimized />
+                <Image src={item.image || 'https://picsum.photos/seed/void-placeholder/200/300'} alt={item.name} fill className="object-cover grayscale" unoptimized />
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-bold tracking-widest uppercase text-black">{item.name}</p>
@@ -726,3 +726,4 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
     </div>
   );
 }
+
