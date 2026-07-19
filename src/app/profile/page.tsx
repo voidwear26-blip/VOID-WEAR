@@ -1,9 +1,9 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useAuth } from '@/firebase';
-import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Package, Clock, ShieldCheck, ShoppingBag, Heart, Settings, User as UserIcon, Save, Loader2, Calendar, Zap, Download, Info, Star, MessageSquare, Hash, LogOut, Trash2, Truck, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -361,6 +361,10 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
   const [trackingData, setTrackingData] = useState<any>(null);
   const [trackingOpen, setTrackingOpen] = useState(false);
 
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
+
   const handleDownload = () => {
     generateInvoicePDF(order);
     toast({ title: "INVOICE DOWNLOADED", description: "ORDER RECORD SAVED AS PDF." });
@@ -381,6 +385,31 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
       toast({ variant: "destructive", title: "UPLINK FAILURE" });
     } finally {
       setTrackingLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!db || !userId || !order.id) return;
+    if (!cancelReason.trim()) {
+       toast({ variant: "destructive", title: "REASON REQUIRED", description: "PLEASE PROVIDE A REASON FOR CANCELLATION." });
+       return;
+    }
+
+    setCancelling(true);
+    try {
+      const orderRef = doc(db, 'users', userId, 'orders', order.id);
+      await updateDoc(orderRef, {
+        shippingStatus: 'cancelled',
+        cancellationReason: cancelReason,
+        cancelledAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      toast({ title: "ORDER CANCELLED", description: "THE SYSTEM HAS PROCESSED YOUR REQUEST." });
+      setCancelOpen(false);
+    } catch (e) {
+      toast({ variant: "destructive", title: "FAILURE", description: "COULD NOT CANCEL ORDER." });
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -413,6 +442,8 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
     }
   };
 
+  const canCancel = order.shippingStatus === 'processing' || order.shippingStatus === 'pending';
+
   return (
     <div className="bg-black/[0.02] border border-black/10 p-8 md:p-10 space-y-8 backdrop-blur-xl group hover:border-black/20 transition-all duration-500 text-black">
       <div className="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-black/5 pb-8">
@@ -433,14 +464,14 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
              <div className="space-y-1">
                 <p className="text-[8px] tracking-widest text-black/60 uppercase font-bold">STATUS</p>
                 <div className="flex items-center gap-2">
-                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : 'bg-black/60')} />
+                   <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", order.shippingStatus === 'delivered' ? 'bg-green-500' : order.shippingStatus === 'cancelled' ? 'bg-red-500' : 'bg-black/60')} />
                    <p className="text-[10px] text-black uppercase tracking-widest font-black">{order.shippingStatus || 'PROCESSING'}</p>
                 </div>
              </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {order.trackingId && (
             <Dialog open={trackingOpen} onOpenChange={setTrackingOpen}>
                <DialogTrigger asChild>
@@ -499,6 +530,49 @@ function OrderCard({ order, userId, userName, db }: { order: any, userId: string
                </DialogContent>
             </Dialog>
           )}
+
+          {canCancel && (
+            <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+               <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="h-12 flex-1 md:flex-none border-red-500/20 bg-red-500/5 text-red-600 hover:bg-red-500 hover:text-white rounded-none text-[9px] font-bold tracking-[0.4em] uppercase transition-all"
+                  >
+                    CANCEL ORDER <XCircle className="ml-3 w-3.5 h-3.5" />
+                  </Button>
+               </DialogTrigger>
+               <DialogContent className="bg-background border border-black/10 p-10 max-w-lg">
+                  <DialogHeader className="space-y-4 mb-8">
+                    <DialogTitle className="text-xl font-black tracking-tight uppercase">Cancel Mission</DialogTitle>
+                    <DialogDescription className="text-[9px] tracking-widest uppercase text-black/60 font-bold">
+                       ARE YOU SURE YOU WANT TO DE-AUTHORIZE THIS ACQUISITION?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-8">
+                     <div className="space-y-4">
+                        <label className="text-[9px] font-bold tracking-widest text-black/60 uppercase">REASON FOR CANCELLATION</label>
+                        <Textarea 
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          placeholder="EXPLAIN WHY YOU ARE CANCELLING..."
+                          className="bg-black/5 border-black/10 rounded-none h-32 text-[10px] tracking-widest focus:border-black/40 text-black uppercase"
+                        />
+                     </div>
+                  </div>
+                  <DialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+                     <Button variant="ghost" onClick={() => setCancelOpen(false)} className="h-14 text-[9px] font-bold uppercase tracking-widest">ABORT</Button>
+                     <Button 
+                       disabled={cancelling}
+                       onClick={handleCancelOrder} 
+                       className="h-14 bg-red-600 text-white hover:bg-red-700 rounded-none text-[9px] font-black tracking-[0.4em] uppercase flex-1"
+                     >
+                       {cancelling ? <Loader2 className="animate-spin w-4 h-4" /> : 'CONFIRM CANCELLATION'}
+                     </Button>
+                  </DialogFooter>
+               </DialogContent>
+            </Dialog>
+          )}
+
           <Button 
             variant="outline" 
             onClick={handleDownload}
